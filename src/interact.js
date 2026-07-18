@@ -28,18 +28,29 @@ export class Interactions {
   }
 
   attach(canvas) {
+    this.canvas = canvas;
     window.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('mousemove', (e) => {
       this._mouse.x = e.clientX; this._mouse.y = e.clientY;
+      this._overUI = e.target !== canvas; // cursor over chat/panel/menu, not the world
     });
     canvas.addEventListener('mousedown', (e) => {
       if (!this.player.inputEnabled || this.ui.menu.isOpen) return;
-      const hit = this.pickAtPointer();
-      if (e.button === 0) this.defaultAction(hit);
-      else if (e.button === 2) this.openMenuFor(hit);
+      if (e.button === 2) { this.openMenuFor(this.pickAtPointer(), e); return; }
+      if (e.button !== 0) return;
+      if (this.player.pointerLocked) this.defaultAction(this.pickAtPointer());
+      else this._downAt = { x: e.clientX, y: e.clientY }; // maybe a click, maybe a drag-look
+    });
+    canvas.addEventListener('mouseup', (e) => {
+      if (e.button !== 0 || !this._downAt) return;
+      const moved = Math.hypot(e.clientX - this._downAt.x, e.clientY - this._downAt.y);
+      this._downAt = null;
+      // a still click acts; a drag was just the player looking around
+      if (moved < 5 && this.player.inputEnabled && !this.ui.menu.isOpen && !this.player.pointerLocked)
+        this.defaultAction(this.pickAtPointer());
     });
     window.addEventListener('keydown', (e) => {
-      if (!this.player.inputEnabled || this.ui.menu.isOpen) return;
+      if (!this.player.inputEnabled || this.ui.menu.isOpen || e.repeat) return;
       if (e.code === 'KeyE') this.openMenuFor(this.pickAtPointer());
     });
   }
@@ -74,6 +85,12 @@ export class Interactions {
   /** Called every frame: refresh the hover action text. */
   updateHover() {
     if (this.ui.menu.isOpen) return;
+    if (!this.player.pointerLocked && this._overUI) {
+      // the cursor is on the UI layer — don't advertise world targets beneath it
+      this.hover = null;
+      this.ui.setActionText(null);
+      return;
+    }
     this.hover = this.pickAtPointer();
     this.ui.setActionText(this.hover ? this._describe(this.hover) : null);
   }
@@ -82,8 +99,9 @@ export class Interactions {
     const { it, inReach } = hit;
     const first = it.actions[0];
     const verb = first ? resolveLabel(first.label) : 'Examine';
-    const extra = it.actions.length; // +1 implicit examine, -1 shown as default
-    return { verb, name: it.name, more: extra > 1 ? extra : 0, inReach };
+    // menu entries = actions + implicit Examine; the default verb is one of them,
+    // so with >=1 real action there are exactly actions.length further options
+    return { verb, name: it.name, more: it.actions.length, inReach };
   }
 
   examineAction(it) {
@@ -103,7 +121,7 @@ export class Interactions {
     action.fn(this.ctx);
   }
 
-  openMenuFor(hit) {
+  openMenuFor(hit, openEvent = null) {
     if (!hit) return;
     const { it } = hit;
     const entries = it.actions.map((a) => ({
@@ -120,6 +138,6 @@ export class Interactions {
     const at = this.player.pointerLocked
       ? null // centered
       : { x: this._mouse.x, y: this._mouse.y };
-    this.ui.menu.open(entries, at);
+    this.ui.menu.open(entries, at, openEvent);
   }
 }

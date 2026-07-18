@@ -55,6 +55,38 @@
 - [x] Examine it
 - [x] Climb to the castle roof
 
+## Phase 2 post-review hardening (multi-agent review: ~16 unique defects, all fixed)
+
+- **Menus survive their opening mousedown** (was: the same event bubbled to the window
+  dismiss handler and closed them instantly — right-click menus and inventory Drop were
+  unreachable by real mouse input). Fixed with an opening-event identity guard; verified
+  by dispatching real MouseEvents.
+- **Tab pages actually hide**: `#tab-inventory`'s ID-specificity `display:grid` beat
+  `.tab-page.hidden`; both pages rendered stacked. `.hidden` now wins (`!important`),
+  verified via computed styles.
+- **Door can't soft-lock you**: closing is refused while anyone stands in the doorway
+  ("You can't close the door while standing in it.").
+- **Movement resumes after menus**: menus no longer clear held keys; movement/look are
+  frozen via `player.menuOpen` while open and resume on close. `menuOpen` releases
+  synchronously (the deferred release guarded nothing and could race).
+- **Esc = cancel**: losing pointer lock (browser-reserved Esc) closes an open menu.
+- **Cursor mode polish**: left-drag looks without acting, a still click (<5px) acts;
+  right button never drags; hover/action text suppressed while the cursor is over UI.
+- **Menu input polish**: E-repeat no longer flickers the menu; out-of-range digits are
+  ignored; wheel only moves the highlight when locked or over the menu.
+- **Hover "/ N more" off-by-one fixed** (door now shows "Open Door / 1 more").
+- **World geometry truth**: ladder rails no longer poke through the roof slab onto the
+  roof-side stub (wrong-plane picks + z-fighting gone); stairwell visuals span exactly
+  their four blocked tiles; banner registered as examinable scenery.
+- **Registry contract**: `removeInteractable` now purges occluders, clears userData,
+  detaches the entry root, and disposes item-owned materials (Phase 3 despawns can rely
+  on it). Occluder gaps closed (tower caps, piers, merlons, banner pole; water stays
+  deliberately non-occluding). Furniture blocking is plane-aware. Item-menu Drop
+  revalidates its slot at run time.
+- Re-verified after fixes: full real-mouse menu/drop/take flows, drag-vs-click, door
+  refusal, tab computed styles, movement freeze/resume, Phase 1 regressions, 5 ticks/3s,
+  0.96 ms/frame with the expanded 234-mesh pick pool.
+
 ---
 
 ## Phase 1 — Engine Core — COMPLETE

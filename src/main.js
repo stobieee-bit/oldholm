@@ -73,6 +73,8 @@ overlay.addEventListener('click', () => {
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === canvas;
   ui.setCursorMode(entered && !locked);
+  // browsers consume Esc to exit pointer lock — treat that as menu-cancel too
+  if (!locked && ui.menu.isOpen) ui.menu.close();
 });
 window.addEventListener('keydown', (e) => {
   if (e.code !== 'Tab' || !entered) return;

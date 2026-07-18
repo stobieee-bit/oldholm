@@ -183,10 +183,17 @@ export class World {
   removeInteractable(entry) {
     this.interactables = this.interactables.filter((e) => e !== entry);
     this.raycastTargets = this.raycastTargets.filter((m) => m.userData.interactable !== entry);
+    this.occluders = this.occluders.filter((m) => m.userData.interactable !== entry);
     for (const m of entry.meshes) {
-      this.group.remove(m);
+      delete m.userData.interactable;
+      if (m.parent) m.parent.remove(m); // item meshes hang off the entry's root group
       if (m.geometry) m.geometry.dispose();
+      if (entry.kind === 'ground-item') {
+        // item models own their materials; scenery shares them — don't touch those
+        for (const mat of Array.isArray(m.material) ? m.material : [m.material]) mat.dispose();
+      }
     }
+    if (entry.root && entry.root.parent) entry.root.parent.remove(entry.root);
     this._rebuildPickPool();
   }
 
@@ -476,6 +483,7 @@ export class World {
       cap.position.set(txx, base + 7.2, tzz);
       cap.matrixAutoUpdate = false; cap.updateMatrix();
       this.group.add(cap);
+      this.occluders.push(cap);
       this.markBlockedCircle(txx, tzz, 2.4);
     }
 
@@ -497,6 +505,7 @@ export class World {
     });
     merlons.frustumCulled = false;
     this.group.add(merlons);
+    this.occluders.push(merlons);
 
     // the keep — hollow, three levels (built by its own method)
     this._buildKeep(c);
@@ -556,11 +565,18 @@ export class World {
     pts.forEach(([mx, mz], i) => { m4.makeTranslation(mx, roofY + 0.85 + 0.25, mz); merlons.setMatrixAt(i, m4); });
     merlons.frustumCulled = false;
     this.group.add(merlons);
+    this.occluders.push(merlons);
     // banner of Aurel, now flown from the roof terrace
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.0, 5), darkStone);
     pole.position.set(kx, roofY + 1.5, kz - 2);
     this.group.add(pole);
-    this._addBox(0.8, 0.5, 0.06, kx + 0.45, roofY + 2.6, kz - 2, gold);
+    this.occluders.push(pole);
+    const flag = this._addBox(0.8, 0.5, 0.06, kx + 0.45, roofY + 2.6, kz - 2, gold);
+    this.addInteractable({
+      kind: 'scenery', name: 'Banner', meshes: [pole, flag],
+      examine: 'The banner of Aurel. Gold, as is traditional.',
+      actions: [], // thin decor deliberately doesn't block walking
+    });
     // upper-floor windows (dark insets) on the east, south, and west faces
     for (const wz of [doorRow - 1.5, doorRow + 2.5])
       this._addBox(0.2, 1.0, 0.7, k.x1 - 0.03, base + 4.5, wz, dark);
@@ -599,6 +615,16 @@ export class World {
       actions: [{
         label: () => (door.open ? 'Close' : 'Open'),
         fn: (ctx) => {
+          if (door.open) {
+            // refuse to close onto an occupant — a blocked tile you stand in is a soft-lock
+            const p = ctx.player.pos;
+            if (ctx.player.plane === 0 &&
+                p.x > doorTile.x - 0.35 && p.x < doorTile.x + 1.35 &&
+                p.z > doorTile.z - 0.35 && p.z < doorTile.z + 1.35) {
+              ctx.ui.chat.add("You can't close the door while standing in it.");
+              return;
+            }
+          }
           door.open = !door.open;
           hinge.rotation.y = door.open ? -Math.PI / 2 : 0;
           this.setTileBlocked(doorTile.x, doorTile.z, !door.open);
@@ -626,9 +652,10 @@ export class World {
         },
       }],
     });
-    // the stairwell opening seen from the upper floor
-    const stairWell = this._addBox(3.3, 0.06, 1.0, k.x0 + 2.9, floorY + 0.03, k.z0 + 1.5, dark);
-    const banister = this._addBox(3.3, 0.75, 0.09, k.x0 + 2.9, floorY + 0.4, k.z0 + 1.96, wood);
+    // the stairwell opening seen from the upper floor — spans exactly the
+    // four blocked hole tiles (x k.x0+1 .. k.x0+4)
+    const stairWell = this._addBox(4.0, 0.06, 1.0, k.x0 + 3, floorY + 0.03, k.z0 + 1.5, dark);
+    const banister = this._addBox(4.0, 0.75, 0.09, k.x0 + 3, floorY + 0.4, k.z0 + 1.96, wood);
     this.addInteractable({
       kind: 'stairs', name: 'Staircase', meshes: [stairWell, banister],
       examine: 'Stairs. They go down. Also up.',
@@ -644,10 +671,13 @@ export class World {
     // ---- ladder: upper floor <-> roof terrace ----
     const ladderX = k.x1 - 2.5, ladderZ = k.z0 + 1.3;
     const ladderMeshes = [];
-    const railGeo = new THREE.CylinderGeometry(0.05, 0.05, wallH - k.floorH + 0.6, 5);
+    // rails stop just under the roof slab (roofY - 0.3): no poking through,
+    // no coincidence with the roof-side stubs
+    const railLen = (roofY - 0.3) - floorY - 0.05;
+    const railGeo = new THREE.CylinderGeometry(0.05, 0.05, railLen, 5);
     for (const dx of [-0.25, 0.25]) {
       const rail = new THREE.Mesh(railGeo, wood);
-      rail.position.set(ladderX + dx, floorY + (wallH - k.floorH + 0.6) / 2, ladderZ);
+      rail.position.set(ladderX + dx, floorY + railLen / 2, ladderZ);
       this.group.add(rail);
       ladderMeshes.push(rail);
     }
@@ -707,6 +737,7 @@ export class World {
         pier.position.set(x, b.deckH - 2.9, rz + 0.5);
         pier.matrixAutoUpdate = false; pier.updateMatrix();
         this.group.add(pier);
+        this.occluders.push(pier);
       }
     }
     this.addInteractable({
@@ -806,8 +837,13 @@ export class World {
       for (const [lx, lz] of [[-0.65, -0.32], [0.65, -0.32], [-0.65, 0.32], [0.65, 0.32]])
         meshes.push(this._addBox(0.12, 0.72, 0.12, f.x + lx, y + 0.36, f.z + lz, wood));
       for (let tx = Math.floor(f.x - 0.8); tx <= Math.floor(f.x + 0.8); tx++)
-        for (let tz = Math.floor(f.z - 0.45); tz <= Math.floor(f.z + 0.45); tz++)
+        for (let tz = Math.floor(f.z - 0.45); tz <= Math.floor(f.z + 0.45); tz++) {
           if (f.plane === 0) this.setTileBlocked(tx, tz, true);
+          else {
+            const t = this.planes[f.plane]?.tiles.get(tx + ',' + tz);
+            if (t) t.blocked = true; // block the floor tile, never the terrain below
+          }
+        }
       this.addInteractable({
         kind: 'scenery', name: 'Table', meshes,
         examine: 'Four legs and ambitions of stability.',
@@ -841,8 +877,7 @@ export class World {
             ctx.ui.chat.add("You can't carry any more.");
             return;
           }
-          this.group.remove(root);
-          this.removeInteractable(entry);
+          this.removeInteractable(entry); // also detaches root + disposes the model
           ctx.ui.chat.add('You take the ' + def.name.toLowerCase() + '.');
           ctx.ui.refreshInventory();
         },

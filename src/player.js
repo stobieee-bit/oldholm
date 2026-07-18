@@ -107,7 +107,10 @@ export class Player {
       if (this.pointerLocked || this._dragging) this._look(e.movementX, e.movementY);
     });
     // drag-look fallback for environments where pointer lock is unavailable
-    lockTarget.addEventListener('mousedown', () => { if (!this.pointerLocked) this._dragging = true; });
+    // (left button only — right button belongs to the context menu)
+    lockTarget.addEventListener('mousedown', (e) => {
+      if (!this.pointerLocked && e.button === 0) this._dragging = true;
+    });
     window.addEventListener('mouseup', () => { this._dragging = false; });
   }
 
@@ -137,6 +140,7 @@ export class Player {
     const k = this.keys;
     let mx = (k.right ? 1 : 0) - (k.left ? 1 : 0);
     let mz = (k.forward ? 1 : 0) - (k.back ? 1 : 0);
+    if (this.menuOpen) { mx = 0; mz = 0; } // keys stay held; motion resumes on close
     const moving = mx !== 0 || mz !== 0;
 
     if (moving) {

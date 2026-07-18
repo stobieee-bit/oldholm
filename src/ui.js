@@ -45,23 +45,29 @@ export class Menu {
       e.preventDefault();
     }, true); // capture: the menu owns keys while open
     window.addEventListener('wheel', (e) => {
-      if (this.isOpen) this._move(Math.sign(e.deltaY));
+      // only when locked (no cursor) or actually over the menu — scrolling the
+      // chat log must not change the pending selection
+      if (this.isOpen && (this.player.pointerLocked || this.el.contains(e.target)))
+        this._move(Math.sign(e.deltaY));
     });
     window.addEventListener('mousedown', (e) => {
       if (!this.isOpen) return;
+      if (e === this._openEvent) return; // the mousedown that opened us is not a dismissal
       if (this.el.contains(e.target)) return; // row handlers take it
       if (e.button === 0 && this.player.pointerLocked) this._pick(this.highlight);
       else this.close();
     });
   }
 
-  open(entries, at = null) {
+  /** openEvent: the mousedown that spawned this menu, so its own bubble
+   *  to window doesn't immediately dismiss it. */
+  open(entries, at = null, openEvent = null) {
     if (!entries.length) return;
     this.entries = entries;
     this.highlight = 0;
     this.isOpen = true;
-    this.player.menuOpen = true;
-    this.player.clearKeys();
+    this._openEvent = openEvent;
+    this.player.menuOpen = true; // freezes look + movement; keyups still clear keys
     this.listEl.innerHTML = '';
     entries.forEach((entry, i) => {
       const row = document.createElement('div');
@@ -88,8 +94,8 @@ export class Menu {
   close() {
     this.isOpen = false;
     this.el.classList.add('hidden');
-    // release the keyboard next tick so the closing keyup doesn't move the player
-    setTimeout(() => { this.player.menuOpen = false; }, 0);
+    this._openEvent = null;
+    this.player.menuOpen = false; // keyups are ungated and the closing keydown was captured
   }
 
   _move(dir) {
@@ -104,8 +110,9 @@ export class Menu {
 
   _pick(i) {
     const entry = this.entries[i];
+    if (!entry) return; // out-of-range digit: ignore, keep the menu open
     this.close();
-    if (entry) entry.run();
+    entry.run();
   }
 }
 
@@ -252,6 +259,9 @@ export class UI {
       {
         label: 'Drop ' + def.name,
         run: () => {
+          // revalidate: the slot may have changed since the menu opened
+          const cur = this.player.inventory.slots[slotIndex];
+          if (!cur || cur.id !== slot.id) return;
           const removed = this.player.inventory.removeSlot(slotIndex);
           const p = this.player;
           this.world.addGroundItem(removed.id, removed.count, p.pos.x, p.pos.z, p.plane);
@@ -263,6 +273,6 @@ export class UI {
         label: 'Examine ' + def.name,
         run: () => this.chat.add(def.examine, 'examine'),
       },
-    ], { x: e.clientX, y: e.clientY });
+    ], { x: e.clientX, y: e.clientY }, e);
   }
 }

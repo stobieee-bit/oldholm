@@ -86,7 +86,8 @@
   }
   .tab-btn.active { color: #ffe17d; background: rgba(85, 80, 60, 0.35); }
   .tab-page { padding: 8px; }
-  .tab-page.hidden { display: none; }
+  /* !important: must beat #tab-inventory's ID-specificity display:grid */
+  .tab-page.hidden { display: none !important; }
 
   #tab-inventory {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
