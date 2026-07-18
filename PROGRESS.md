@@ -1,6 +1,58 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 3 — Combat v1 — COMPLETE
+## Current status: Phase 4 — Gathering Loop — COMPLETE
+
+## What was built (Phase 4)
+
+- **data/resources.js**: trees (normal 1/25xp, oak 15/37.5, willow 30/67.5, deplete odds,
+  respawns), rocks (copper/tin 1/17.5, iron 15/35, coal 30/50), fishing spot tables
+  (net: shrimp; bait: sardine/herring/pike; lure: trout/salmon, feather-fueled),
+  firemaking (logs 40 / oak 60 / willow 90, fire lifetime), cooking (per-food burn-stop
+  levels, range −4 bonus, 3 ticks/item, burn = 50% at req falling linearly to 0%).
+- **Action engine** (`skills.js`, per the spec's file layout): one action at a time,
+  per-tick success rolls with the EXACT spec formula min(0.95, 0.30+(lvl−req)·0.02);
+  interrupted by moving, entering combat, or taking damage ("Disturbed, you stop what
+  you were doing."). Tool gates (axe/pickaxe/net/rods/tinderbox as required items,
+  tiers defined bronze/iron/steel), consumables (feathers/bait per catch), pack-full
+  stops, level-gate refusals.
+- **Trees reworked**: 220 normal + 16 oak + 12 riverbank willow on shared
+  InstancedMeshes with per-instance state — raycast instanceId resolves the exact tree;
+  depleted trees collapse to a stump instance ("Somebody was here with an axe.") and
+  respawn on ticks.
+- **World sites**: mining outcrop SW of the castle (9 rocks, colored veins that vanish
+  when depleted), 4 fishing spots hugging the river channel (positions derived from the
+  meander), player-lit fires (log+flame models, age out into ashes), the castle range
+  in the keep (cooks with lower burn; quest-gating arrives with Phase 9's quest system).
+- **~25 new items**: tiered axes/pickaxes, net/rods/tinderbox/bait, oak/willow logs,
+  4 ores, 6 raw + 6 cooked fish (heals per the §8 ladder: shrimp 3 → pike 8, salmon 9),
+  cooked beef/chicken (Phase 3 drops now cookable), burnt fish/meat, ashes. Every one
+  with examine text.
+- **Tool spawns respawn** after being taken (data-driven `respawn` field) so death can
+  never strand the gathering loop. Cook menu on fires/ranges lists the pack's raws.
+
+## Phase 4 — tested (live browser, real pipelines, simulated ticks)
+
+- **DoD chain**: took the axe → chopped a tree (25 xp/log exact, tree → stump →
+  respawned ~30t) → lit a fire with the tinderbox (40 xp, "The fire catches…") →
+  netted 448 shrimp to Fishing 20 while cooking them to Cooking 20 (4480/4560 xp,
+  both exactly divisible by 10/30; "You accidentally incinerate the fish." seen) →
+  killed chickens for feathers → lured 3 trout at exactly 50 xp each (feathers
+  consumed per catch) → cooked trout ON the fire (1 cooked +70 xp, 2 incinerated —
+  authentic at Cooking 20) → **ate the trout: healed exactly 7**.
+- Mining: copper +17.5 xp, veins hide on deplete, rock respawned. Fire aged out into
+  ashes. Raycast → instanceId → tree record resolution verified. Cancel-on-move
+  verified. Cook menu opens with correct rows via the real Cook action.
+- Regressions green (bridge, walls, ticks 5/3s). Perf 0.97 ms/frame.
+
+## Definition of Done — Phase 4
+
+- [x] Chop → burn → catch → cook → eat a trout
+- [x] All four skills gain xp at correct rates (Woodcutting/Firemaking/Fishing/Cooking
+      — and Mining too)
+
+---
+
+## Phase 3 — Combat v1 — COMPLETE
 
 ## What was built (Phase 3)
 
@@ -240,12 +292,11 @@
 
 ## Exact next step
 
-**Phase 4 — Gathering Loop**: Woodcutting (normal/oak/willow trees with depletion +
-respawn), Mining (copper/tin/iron/coal rocks), Fishing (net/bait spots on the river),
-Firemaking (logs → fires that age out), Cooking on fires + castle range with the burn
-table, tiered tools (axes/pickaxes) as required items. Gathering success chance per
-tick: min(0.95, 0.30 + (level − reqLevel) × 0.02). DoD: chop → burn → catch → cook →
-eat a trout; all four skills gain xp at correct rates. (Trees currently have an empty
-actions list ready for Chop-down; the tick scheduler, xp pipeline, and food/eat flow
-from Phase 3 are all reusable. Raw beef/chicken from Phase 3 drops should become
-cookable too.)
+**Phase 5 — Smithing & Crafting**: furnace smelting (ore → bars, including the 50%
+iron success rate with a suitably hilarious message), anvil interface (bar → the full
+weapon/armor list with level gates), Crafting: leather (cowhide → tanner stand-in in
+Holmbridge for now), spinning wheel (castle top floor per the atlas), gem cutting,
+jewelry molds. DoD: smith a full bronze kit from raw ore and wear it. NOTE: "wear it"
+requires at least minimal equip support (weapon/armor slots) ahead of Phase 6's full
+equipment depth — plan a minimal wield/wear path that Phase 6 deepens. Copper+tin ore
+and a furnace site will drive bronze bars; the mine already yields all needed ores.

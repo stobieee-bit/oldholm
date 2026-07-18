@@ -9,6 +9,7 @@ import { UI } from './ui.js';
 import { Interactions } from './interact.js';
 import { NPCManager } from './npc.js';
 import { Combat } from './combat.js';
+import { Actions } from './skills.js';
 
 export const TICK_MS = 600;
 
@@ -51,8 +52,10 @@ const interactions = new Interactions(camera, world, player, ui);
 interactions.attach(canvas);
 const npcs = new NPCManager(world);
 const combat = new Combat(player, world, npcs, ui);
-interactions.combat = combat; // action ctx + nameplate level colors
-ui.bind({ world, combatLevelFn: () => combat.playerCombatLevel() });
+const actions = new Actions(player, world, ui);
+interactions.combat = combat;   // action ctx + nameplate level colors
+interactions.actions = actions; // gathering verbs
+ui.bind({ world, combatLevelFn: () => combat.playerCombatLevel(), actions });
 npcs.spawnAll();
 ui.showBanner(def.name.toUpperCase());
 ui.chat.add('Welcome to OLDHOLM.', 'system');
@@ -61,7 +64,8 @@ ui.chat.add('Left click acts. Right click (or E) offers options. TAB frees the c
 clock.on((tick) => {
   clock.gameMinutes = (clock.gameMinutes + 1) % (24 * 60); // one game minute per tick
   world.onTick(tick);
-  combat.tick(tick);   // the player swings first…
+  combat.tick(tick);       // the player swings first…
+  actions.tick(tick);      // …or keeps working…
   npcs.tick(tick, combat); // …then the realm answers
 });
 
@@ -171,7 +175,7 @@ requestAnimationFrame(frame);
 
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
-  world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat,
+  world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

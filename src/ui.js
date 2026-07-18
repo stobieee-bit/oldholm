@@ -4,6 +4,7 @@
 // More tabs slot into TABS as later phases add their systems.
 
 import { ITEMS } from '../data/items.js';
+import { FIREMAKING, COOKING } from '../data/resources.js';
 
 // ---------------------------------------------------------------------------
 
@@ -354,9 +355,10 @@ export class UI {
   }
 
   /** Late-bound refs the item menus / combat displays need. */
-  bind({ world, combatLevelFn }) {
+  bind({ world, combatLevelFn, actions }) {
     this.world = world;
     if (combatLevelFn) this._combatLevelFn = combatLevelFn;
+    if (actions) this.actions = actions;
   }
 
   combatLevel() { return this._combatLevelFn(); }
@@ -426,6 +428,21 @@ export class UI {
 
   refreshInventory() { this.panel.renderInventory(); }
 
+  /** Pick a raw food from the pack to cook on this fire/range. */
+  openCookMenu(fireEntry) {
+    if (fireEntry.expired) { this.chat.add('The fire has burned out.'); return; }
+    const raws = new Map();
+    this.player.inventory.slots.forEach((s) => {
+      if (s && COOKING[s.id]) raws.set(s.id, (raws.get(s.id) ?? 0) + (s.count ?? 1));
+    });
+    if (!raws.size) { this.chat.add('You have nothing you could cook.'); return; }
+    const entries = [...raws].map(([id, n]) => ({
+      label: `Cook ${ITEMS[id].name}` + (n > 1 ? ` (x${n})` : ''),
+      run: () => this.actions.startCook(fireEntry, id),
+    }));
+    this.menu.open(entries, null);
+  }
+
   openItemMenu(slotIndex, e) {
     const slot = this.player.inventory.slots[slotIndex];
     if (!slot) return;
@@ -434,6 +451,10 @@ export class UI {
     if (def.heals) entries.push({
       label: 'Eat ' + def.name,
       run: () => this.player.eat(slotIndex, this),
+    });
+    if (FIREMAKING[slot.id]) entries.push({
+      label: 'Light fire',
+      run: () => this.actions.startLight(slotIndex),
     });
     this.menu.open([
       ...entries,

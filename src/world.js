@@ -9,6 +9,7 @@
 
 import * as THREE from 'three';
 import { ITEMS } from '../data/items.js';
+import { TREES, ROCKS, FISHING, FIREMAKING } from '../data/resources.js';
 
 export const FLAG_BLOCKED = 1;
 export const FLAG_WATER = 2;
@@ -78,6 +79,10 @@ export class World {
     this.occluders = [];        // solid meshes that block targeting rays (walls, terrain)
     this.pickPool = [];         // raycastTargets ∪ occluders, kept deduplicated
     this._timedItems = [];      // ground items with a despawn tick
+    this._respawnQueue = [];    // ground items that re-seed after being taken
+    this._fires = [];           // live player-lit fires
+    this._rocks = [];           // mining rocks with deplete state
+    this._tick = 0;             // latest tick seen (for take-time scheduling)
     this.group = new THREE.Group();
     this.group.name = 'world:' + def.id;
     scene.add(this.group);
@@ -98,6 +103,8 @@ export class World {
     this._buildFurniture();
     this._buildPasture();
     this._buildGoblinCamp();
+    this._buildMine();
+    this._buildFishingSpots();
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -107,6 +114,7 @@ export class World {
   }
 
   onTick(tick) {
+    this._tick = tick;
     // ground piles (death drops, mob drops) age out
     if (this._timedItems.length) {
       const due = this._timedItems.filter((t) => tick >= t.at);
@@ -115,6 +123,24 @@ export class World {
         for (const t of due) this.removeInteractable(t.entry);
       }
     }
+    // taken tool spawns re-seed
+    if (this._respawnQueue.length) {
+      const due = this._respawnQueue.filter((r) => tick >= r.at);
+      if (due.length) {
+        this._respawnQueue = this._respawnQueue.filter((r) => tick < r.at);
+        for (const r of due) this.addGroundItem(r.id, r.count, r.x, r.z, r.plane, r.dy, r.opts);
+      }
+    }
+    // resources respawn
+    for (const t of this.trees ?? []) if (t.depleted && tick >= t.respawnAt) this.respawnTree(t);
+    for (const r of this._rocks) if (r.depleted && tick >= r.respawnAt) this.respawnRock(r);
+    // fires age out into ashes
+    for (const f of this._fires.filter((f) => tick >= f.expireAt)) {
+      f.entry.expired = true;
+      this.removeInteractable(f.entry);
+      this.addGroundItem('ashes', 1, f.x, f.z, 0, 0, { despawnAtTick: tick + 200 });
+    }
+    this._fires = this._fires.filter((f) => tick < f.expireAt);
   }
 
   // ---- queries ------------------------------------------------------------
@@ -197,8 +223,8 @@ export class World {
       delete m.userData.interactable;
       if (m.parent) m.parent.remove(m); // item meshes hang off the entry's root group
       if (m.geometry) m.geometry.dispose();
-      if (entry.kind === 'ground-item') {
-        // item models own their materials; scenery shares them — don't touch those
+      if (entry.kind === 'ground-item' || entry.kind === 'fire') {
+        // item/fire models own their materials; scenery shares them — leave those
         for (const mat of Array.isArray(m.material) ? m.material : [m.material]) mat.dispose();
       }
     }
@@ -724,6 +750,23 @@ export class World {
         },
       }],
     });
+
+    // ---- the castle range (ground floor, against the south wall) ----
+    const rangeStone = new THREE.MeshLambertMaterial({ color: 0x6f6a62, flatShading: true });
+    const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
+    const rgx = k.x0 + 9, rgz = k.z1 - 1.45;
+    const rangeMeshes = [
+      this._addBox(1.5, 1.45, 0.85, rgx, base + 0.72, rgz, rangeStone),
+      this._addBox(1.1, 0.62, 0.1, rgx, base + 0.45, rgz - 0.44, ember),
+      this._addBox(1.6, 0.14, 0.95, rgx, base + 1.5, rgz, darkStone),
+    ];
+    this.markBlockedRect(k.x0 + 8, k.z1 - 2, k.x0 + 9, k.z1 - 2);
+    let rangeEntry;
+    rangeEntry = this.addInteractable({
+      kind: 'fire', isRange: true, name: 'Range', meshes: rangeMeshes,
+      examine: 'The castle range. It judges amateur cooks silently.',
+      actions: [{ label: 'Cook', fn: (ctx) => ctx.ui.openCookMenu(rangeEntry) }],
+    });
   }
 
   // ---- bridge ---------------------------------------------------------------
@@ -758,85 +801,197 @@ export class World {
 
   // ---- trees ----------------------------------------------------------------
 
+  /**
+   * Typed, stateful trees on shared InstancedMeshes. Raycast instanceId
+   * resolves which tree was clicked; depleted trees collapse to a stump
+   * instance and respawn on ticks.
+   */
   _plantTrees() {
     const d = this.def, size = this.size, rng = this._rng;
     const c = d.castle;
     const taken = new Set();
-    const spots = [];
-    let attempts = d.trees.count * 12;
 
-    while (spots.length < d.trees.count && attempts-- > 0) {
-      const tx = 3 + Math.floor(rng() * (size - 6));
-      const tz = 3 + Math.floor(rng() * (size - 6));
-      if (this.flags[tz * size + tx] & FLAG_BLOCKED) continue;
-      if (this.overrides.has(tx + ',' + tz)) continue;
-      if (tx >= c.x0 - 3 && tx < c.x1 + 3 && tz >= c.z0 - 3 && tz < c.z1 + 3) continue;
-      if (this._roadDist(tx + 0.5, tz + 0.5) < 3) continue;
+    const bad = (tx, tz) => {
+      if (tx < 3 || tz < 3 || tx >= size - 3 || tz >= size - 3) return true;
+      if (this.flags[tz * size + tx] & FLAG_BLOCKED) return true;
+      if (this.overrides.has(tx + ',' + tz)) return true;
+      if (tx >= c.x0 - 3 && tx < c.x1 + 3 && tz >= c.z0 - 3 && tz < c.z1 + 3) return true;
+      if (this._roadDist(tx + 0.5, tz + 0.5) < 3) return true;
       if (tx >= this.bridgeX0 - 3 && tx <= this.bridgeX1 + 3 &&
-          Math.abs(tz + 0.5 - this.bridgeZC) < (this.bridgeZ1 - this.bridgeZ0) / 2 + 3) continue;
+          Math.abs(tz + 0.5 - this.bridgeZC) < (this.bridgeZ1 - this.bridgeZ0) / 2 + 3) return true;
       const pa = d.pasture;
-      if (pa && tx >= pa.x0 - 2 && tx < pa.x1 + 2 && tz >= pa.z0 - 2 && tz < pa.z1 + 2) continue;
+      if (pa && tx >= pa.x0 - 2 && tx < pa.x1 + 2 && tz >= pa.z0 - 2 && tz < pa.z1 + 2) return true;
       const gc = d.goblinCamp;
-      if (gc && Math.hypot(tx + 0.5 - gc.x, tz + 0.5 - gc.z) < 9) continue;
-      if (Math.abs(tx + 0.5 - this.riverCenter(tz + 0.5)) < d.river.width / 2 + d.river.falloff + 1) continue;
-      let crowded = false;
+      if (gc && Math.hypot(tx + 0.5 - gc.x, tz + 0.5 - gc.z) < 9) return true;
       const s = d.trees.minSpacing;
-      for (let dz = -s; dz <= s && !crowded; dz++)
-        for (let dx = -s; dx <= s && !crowded; dx++)
-          if (taken.has((tx + dx) + ',' + (tz + dz))) crowded = true;
-      if (crowded) continue;
+      for (let dz = -s; dz <= s; dz++)
+        for (let dx = -s; dx <= s; dx++)
+          if (taken.has((tx + dx) + ',' + (tz + dz))) return true;
+      return false;
+    };
+    const riverDist = (tx, tz) =>
+      Math.abs(tx + 0.5 - this.riverCenter(tz + 0.5)) - (d.river.width / 2 + d.river.falloff);
 
-      taken.add(tx + ',' + tz);
-      this.flags[tz * size + tx] |= FLAG_BLOCKED;
-      const x = tx + 0.5 + (rng() - 0.5) * 0.4;
-      const z = tz + 0.5 + (rng() - 0.5) * 0.4;
-      spots.push({
-        x, z, y: this.getGroundHeight(x, z),
-        scale: 0.85 + rng() * 0.45,
-        rot: rng() * Math.PI * 2,
-        tone: rng(),
-      });
+    // per-type silhouettes and foliage palettes
+    const SHAPES = {
+      tree: {
+        trunk: [0.13, 0.2, 1.7], canA: { cone: [1.2, 2.3], y: 2.5 }, canB: { cone: [0.85, 1.7], y: 3.6 },
+        leaf: (t) => [0.24 + t * 0.12, 0.42 + t * 0.14, 0.20 + t * 0.08],
+      },
+      oak: {
+        trunk: [0.2, 0.3, 1.5], canA: { cone: [1.8, 2.2], y: 2.4 }, canB: { ball: 1.0, y: 3.5 },
+        leaf: (t) => [0.20 + t * 0.08, 0.36 + t * 0.10, 0.16 + t * 0.06],
+      },
+      willow: {
+        trunk: [0.11, 0.16, 2.2], canA: { cone: [1.8, 1.3], y: 2.9 }, canB: { cone: [1.25, 1.0], y: 3.6 },
+        leaf: (t) => [0.42 + t * 0.10, 0.52 + t * 0.08, 0.22 + t * 0.05],
+      },
+    };
+
+    // placement
+    const placements = { tree: [], oak: [], willow: [] };
+    const plans = [
+      ['tree', d.trees.count],
+      ['oak', d.trees.oaks ?? 0],
+      ['willow', d.trees.willows ?? 0],
+    ];
+    for (const [type, count] of plans) {
+      let attempts = count * 16, placed = 0;
+      while (placed < count && attempts-- > 0) {
+        let tx, tz;
+        if (type === 'willow') {
+          // willows crowd the banks
+          tz = 55 + Math.floor(rng() * 85);
+          const side = rng() < 0.5 ? -1 : 1;
+          tx = Math.floor(this.riverCenter(tz + 0.5) +
+            side * (d.river.width / 2 + d.river.falloff * 0.8 + rng() * 2.5));
+          if (bad(tx, tz)) continue;
+        } else {
+          tx = 3 + Math.floor(rng() * (size - 6));
+          tz = 3 + Math.floor(rng() * (size - 6));
+          if (bad(tx, tz) || riverDist(tx, tz) < 1) continue;
+        }
+        taken.add(tx + ',' + tz);
+        this.flags[tz * size + tx] |= FLAG_BLOCKED;
+        const x = tx + 0.5 + (rng() - 0.5) * 0.4;
+        const z = tz + 0.5 + (rng() - 0.5) * 0.4;
+        placements[type].push({
+          x, z, tile: { x: tx, z: tz }, y: this.getGroundHeight(x, z),
+          scale: 0.85 + rng() * 0.45, rot: rng() * Math.PI * 2, tone: rng(),
+        });
+        placed++;
+      }
     }
 
-    const n = spots.length;
-    if (n === 0) return;
-    const trunkGeo = new THREE.CylinderGeometry(0.13, 0.2, 1.7, 6);
-    trunkGeo.translate(0, 0.85, 0);
-    const lowGeo = new THREE.ConeGeometry(1.2, 2.3, 7);
-    lowGeo.translate(0, 2.5, 0);
-    const highGeo = new THREE.ConeGeometry(0.85, 1.7, 7);
-    highGeo.translate(0, 3.6, 0);
+    // shared stump pool
+    this.trees = [];
+    this.treeSets = {};
+    const total = placements.tree.length + placements.oak.length + placements.willow.length;
+    if (total === 0) return;
+    const stumpGeo = new THREE.CylinderGeometry(0.18, 0.26, 0.42, 6);
+    stumpGeo.translate(0, 0.21, 0);
     const white = () => new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
-    const trunks = new THREE.InstancedMesh(trunkGeo, white(), n);
-    const lows = new THREE.InstancedMesh(lowGeo, white(), n);
-    const highs = new THREE.InstancedMesh(highGeo, white(), n);
+    const stumps = new THREE.InstancedMesh(stumpGeo, white(), total);
+    this._zeroM4 = new THREE.Matrix4().makeScale(1e-4, 1e-4, 1e-4);
+    for (let i = 0; i < total; i++) stumps.setMatrixAt(i, this._zeroM4);
+    const stumpCol = new THREE.Color().setRGB(0.35, 0.27, 0.18, THREE.SRGBColorSpace);
+    for (let i = 0; i < total; i++) stumps.setColorAt(i, stumpCol);
+    stumps.frustumCulled = false;
+    this.group.add(stumps);
+    this.stumps = stumps;
 
     const m4 = new THREE.Matrix4();
     const p = new THREE.Vector3(), q = new THREE.Quaternion(), sv = new THREE.Vector3();
     const axisY = new THREE.Vector3(0, 1, 0);
     const trunkCol = new THREE.Color(), leafCol = new THREE.Color();
-    spots.forEach((t, i) => {
-      p.set(t.x, t.y - 0.15, t.z);
-      q.setFromAxisAngle(axisY, t.rot);
-      sv.setScalar(t.scale);
-      m4.compose(p, q, sv);
-      trunks.setMatrixAt(i, m4); lows.setMatrixAt(i, m4); highs.setMatrixAt(i, m4);
-      // authored in sRGB, converted to the linear working space (same as chunk colors)
-      trunkCol.setRGB(0.33 + t.tone * 0.06, 0.25 + t.tone * 0.05, 0.17 + t.tone * 0.04, THREE.SRGBColorSpace);
-      leafCol.setRGB(0.24 + t.tone * 0.12, 0.42 + t.tone * 0.14, 0.20 + t.tone * 0.08, THREE.SRGBColorSpace);
-      trunks.setColorAt(i, trunkCol);
-      lows.setColorAt(i, leafCol);
-      highs.setColorAt(i, leafCol.multiplyScalar(1.08));
-    });
-    for (const mesh of [trunks, lows, highs]) {
-      mesh.frustumCulled = false; // instanced bounds don't cover instances
-      this.group.add(mesh);
+    let stumpIdx = 0;
+
+    for (const type of ['tree', 'oak', 'willow']) {
+      const list = placements[type];
+      if (!list.length) continue;
+      const shape = SHAPES[type];
+      const trunkGeo = new THREE.CylinderGeometry(shape.trunk[0], shape.trunk[1], shape.trunk[2], 6);
+      trunkGeo.translate(0, shape.trunk[2] / 2, 0);
+      const mkCan = (cdef) => {
+        const g = cdef.cone
+          ? new THREE.ConeGeometry(cdef.cone[0], cdef.cone[1], 7)
+          : new THREE.IcosahedronGeometry(cdef.ball, 0);
+        g.translate(0, cdef.y, 0);
+        return g;
+      };
+      const trunks = new THREE.InstancedMesh(trunkGeo, white(), list.length);
+      const canA = new THREE.InstancedMesh(mkCan(shape.canA), white(), list.length);
+      const canB = new THREE.InstancedMesh(mkCan(shape.canB), white(), list.length);
+      const records = [];
+      list.forEach((t, i) => {
+        p.set(t.x, t.y - 0.15, t.z);
+        q.setFromAxisAngle(axisY, t.rot);
+        sv.setScalar(t.scale);
+        m4.compose(p, q, sv);
+        trunks.setMatrixAt(i, m4); canA.setMatrixAt(i, m4); canB.setMatrixAt(i, m4);
+        trunkCol.setRGB(0.33 + t.tone * 0.06, 0.25 + t.tone * 0.05, 0.17 + t.tone * 0.04, THREE.SRGBColorSpace);
+        const [lr, lg, lb] = shape.leaf(t.tone);
+        leafCol.setRGB(lr, lg, lb, THREE.SRGBColorSpace);
+        trunks.setColorAt(i, trunkCol);
+        canA.setColorAt(i, leafCol);
+        canB.setColorAt(i, leafCol.multiplyScalar(1.08));
+        const rec = {
+          type, idx: i, stumpIdx: stumpIdx++, x: t.x, z: t.z, y: t.y, tile: t.tile,
+          depleted: false, respawnAt: 0, matrix: m4.clone(),
+        };
+        records.push(rec);
+        this.trees.push(rec);
+      });
+      const meshes = [trunks, canA, canB];
+      for (const mesh of meshes) {
+        mesh.frustumCulled = false;
+        this.group.add(mesh);
+      }
+      this.treeSets[type] = { meshes, list: records };
+      const tdef = TREES[type];
+      this.addInteractable({
+        kind: 'tree', treeType: type, name: tdef.label, meshes,
+        examine: tdef.examine,
+        actions: [{
+          label: 'Chop-down',
+          fn: (ctx, hit) => ctx.actions.startChop(this.treeFromHit(type, hit)),
+        }],
+      });
     }
     this.addInteractable({
-      kind: 'scenery', name: 'Tree', meshes: [trunks, lows, highs],
-      examine: 'A tree. Notably wooden.',
-      actions: [], // Chop-down arrives with Woodcutting in Phase 4
+      kind: 'scenery', name: 'Tree stump', meshes: [stumps],
+      examine: 'Somebody was here with an axe.',
+      actions: [],
     });
+  }
+
+  treeFromHit(type, hit) {
+    if (!hit || hit.instanceId === undefined || hit.instanceId === null) return null;
+    return this.treeSets[type]?.list[hit.instanceId] ?? null;
+  }
+
+  depleteTree(rec, tickNo) {
+    rec.depleted = true;
+    rec.respawnAt = tickNo + TREES[rec.type].respawnTicks;
+    const set = this.treeSets[rec.type];
+    for (const mesh of set.meshes) {
+      mesh.setMatrixAt(rec.idx, this._zeroM4);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+    const m = new THREE.Matrix4().makeTranslation(rec.x, rec.y - 0.05, rec.z);
+    this.stumps.setMatrixAt(rec.stumpIdx, m);
+    this.stumps.instanceMatrix.needsUpdate = true;
+  }
+
+  respawnTree(rec) {
+    rec.depleted = false;
+    const set = this.treeSets[rec.type];
+    for (const mesh of set.meshes) {
+      mesh.setMatrixAt(rec.idx, rec.matrix);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+    this.stumps.setMatrixAt(rec.stumpIdx, this._zeroM4);
+    this.stumps.instanceMatrix.needsUpdate = true;
   }
 
   // ---- furniture -------------------------------------------------------------
@@ -977,11 +1132,119 @@ export class World {
     });
   }
 
+  // ---- mining rocks -----------------------------------------------------------
+
+  _buildMine() {
+    const m = this.def.mine;
+    if (!m) return;
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x847e76, flatShading: true });
+    for (const [ore, dx, dz] of m.rocks) {
+      const def = ROCKS[ore];
+      const tx = m.x + dx, tz = m.z + dz;
+      const cx = tx + 0.5, cz = tz + 0.5;
+      const y = this.getGroundHeight(cx, cz);
+      const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52, 0), bodyMat);
+      body.position.set(cx, y + 0.3, cz);
+      body.scale.y = 0.72;
+      body.rotation.y = hash2(this.def.seed ^ 0x517, tx, tz) * Math.PI;
+      this.group.add(body);
+      const veinMat = new THREE.MeshLambertMaterial({ color: def.vein, flatShading: true });
+      const veins = [];
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2 + tx;
+        const v = new THREE.Mesh(new THREE.IcosahedronGeometry(0.14, 0), veinMat);
+        v.position.set(cx + Math.cos(a) * 0.3, y + 0.42 + (i % 2) * 0.12, cz + Math.sin(a) * 0.3);
+        this.group.add(v);
+        veins.push(v);
+      }
+      this.setTileBlocked(tx, tz, true);
+      const rock = { ore, tile: { x: tx, z: tz }, depleted: false, respawnAt: 0, veins };
+      this._rocks.push(rock);
+      this.addInteractable({
+        kind: 'rock', name: def.label, meshes: [body, ...veins],
+        examine: def.examine,
+        actions: [{ label: 'Mine', fn: (ctx) => ctx.actions.startMine(rock) }],
+      });
+    }
+  }
+
+  depleteRock(rock, tickNo) {
+    rock.depleted = true;
+    rock.respawnAt = tickNo + ROCKS[rock.ore].respawnTicks;
+    for (const v of rock.veins) v.visible = false;
+  }
+
+  respawnRock(rock) {
+    rock.depleted = false;
+    for (const v of rock.veins) v.visible = true;
+  }
+
+  // ---- fishing spots ------------------------------------------------------------
+
+  _buildFishingSpots() {
+    for (const s of this.def.fishingSpots ?? []) {
+      const def = FISHING[s.type];
+      const x = this.riverCenter(s.z + 0.5) - (this.def.river.width / 2 + 1.2); // west channel edge
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.45, 0.055, 6, 14),
+        new THREE.MeshLambertMaterial({ color: 0xbfd8cf, transparent: true, opacity: 0.75 }));
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(x, this.def.waterLevel + 0.04, s.z + 0.5);
+      this.group.add(ring);
+      this.addInteractable({
+        kind: 'fishspot', name: def.label, meshes: [ring],
+        examine: def.examine,
+        actions: [{ label: def.verb, fn: (ctx) => ctx.actions.startFish({ type: s.type }) }],
+      });
+    }
+  }
+
+  // ---- fires ----------------------------------------------------------------------
+
+  fireAt(tx, tz) {
+    return this._fires.some((f) => f.tile.x === tx && f.tile.z === tz);
+  }
+
+  /** Spawn a lit fire at a tile; it ages out into ashes on ticks. */
+  addFire(tx, tz, tickNo) {
+    const x = tx + 0.5, z = tz + 0.5;
+    const y = this.getGroundHeight(x, z);
+    const root = new THREE.Group();
+    root.position.set(x, y, z);
+    const wood = new THREE.MeshLambertMaterial({ color: 0x4a3826, flatShading: true });
+    const outer = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
+    const inner = new THREE.MeshLambertMaterial({ color: 0xf0a83a, emissive: 0xa85a10 });
+    const meshes = [];
+    const add = (mesh) => { root.add(mesh); meshes.push(mesh); return mesh; };
+    const log1 = add(new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.12), wood));
+    log1.position.y = 0.06; log1.rotation.y = 0.5;
+    const log2 = add(new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.12), wood));
+    log2.position.y = 0.1; log2.rotation.y = -0.7;
+    const flameA = add(new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.55, 5), outer));
+    flameA.position.y = 0.38;
+    const flameB = add(new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.32, 5), inner));
+    flameB.position.y = 0.32;
+    this.group.add(root);
+    const [lo, hi] = FIREMAKING.fireLifeTicks;
+    let entry;
+    entry = this.addInteractable({
+      kind: 'fire', name: 'Fire', meshes, root,
+      examine: 'Warm, crackling, and hungry for fish.',
+      actions: [{ label: 'Cook', fn: (ctx) => ctx.ui.openCookMenu(entry) }],
+    });
+    this._fires.push({
+      entry, x, z, tile: { x: tx, z: tz },
+      expireAt: tickNo + lo + Math.floor(Math.random() * (hi - lo)),
+    });
+    return entry;
+  }
+
   // ---- ground items ----------------------------------------------------------
 
   _spawnGroundItems() {
     for (const g of this.def.groundItems ?? [])
-      this.addGroundItem(g.item, g.count ?? 1, g.x, g.z, g.plane ?? 0, g.dy ?? 0);
+      this.addGroundItem(g.item, g.count ?? 1, g.x, g.z, g.plane ?? 0, g.dy ?? 0,
+        g.respawn ? { respawnTicks: g.respawn } : {});
   }
 
   /** Drop an item into the world; it becomes a takeable interactable. */
@@ -1003,6 +1266,8 @@ export class World {
             return;
           }
           this.removeInteractable(entry); // also detaches root + disposes the model
+          if (opts.respawnTicks) // tool spawns re-seed so death can never strand you
+            this._respawnQueue.push({ id, count, x, z, plane, dy, opts, at: this._tick + opts.respawnTicks });
           ctx.ui.chat.add('You take the ' + def.name.toLowerCase() + '.');
           ctx.ui.refreshInventory();
         },
@@ -1044,6 +1309,25 @@ export class World {
         add(new THREE.BoxGeometry(0.42, 0.03, 0.1), -0.08, 0.03, 0);
         add(new THREE.BoxGeometry(0.05, 0.05, 0.2), 0.16, 0.03, 0, handleMat);
         add(new THREE.BoxGeometry(0.16, 0.045, 0.06), 0.26, 0.03, 0, handleMat);
+        break;
+      }
+      case 'axe': {
+        const handleMat = new THREE.MeshLambertMaterial({ color: m.handle, flatShading: true });
+        const shaft = add(new THREE.BoxGeometry(0.06, 0.6, 0.06), 0, 0.06, 0, handleMat);
+        shaft.rotation.z = Math.PI / 2 - 0.35;
+        add(new THREE.BoxGeometry(0.2, 0.15, 0.05), -0.24, 0.16, 0);
+        break;
+      }
+      case 'pick': {
+        const handleMat = new THREE.MeshLambertMaterial({ color: m.handle, flatShading: true });
+        const shaft = add(new THREE.BoxGeometry(0.06, 0.6, 0.06), 0, 0.06, 0, handleMat);
+        shaft.rotation.z = Math.PI / 2 - 0.35;
+        add(new THREE.BoxGeometry(0.36, 0.06, 0.06), -0.24, 0.16, 0);
+        break;
+      }
+      case 'rod': {
+        const rod = add(new THREE.CylinderGeometry(0.015, 0.028, 0.95, 5), 0, 0.12, 0);
+        rod.rotation.z = 1.1;
         break;
       }
     }

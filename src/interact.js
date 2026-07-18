@@ -24,8 +24,11 @@ export class Interactions {
   }
 
   get ctx() {
-    // combat is wired in by main.js after construction
-    return { player: this.player, world: this.world, ui: this.ui, combat: this.combat };
+    // combat/actions are wired in by main.js after construction
+    return {
+      player: this.player, world: this.world, ui: this.ui,
+      combat: this.combat, actions: this.actions,
+    };
   }
 
   attach(canvas) {
@@ -80,7 +83,10 @@ export class Interactions {
       const dy = h.point.y - this.camera.position.y;
       const dz = h.point.z - this.player.pos.z;
       const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      return { it, point: h.point.clone(), dist, inReach: dist <= REACH };
+      return {
+        it, point: h.point.clone(), dist, inReach: dist <= REACH,
+        instanceId: h.instanceId, // which instance, for instanced resources (trees)
+      };
     }
     return null;
   }
@@ -126,7 +132,7 @@ export class Interactions {
       this.ui.chat.add("You can't reach that from here.");
       return;
     }
-    action.fn(this.ctx);
+    action.fn(this.ctx, hit);
   }
 
   openMenuFor(hit, openEvent = null) {
@@ -136,7 +142,7 @@ export class Interactions {
       label: resolveLabel(a.label) + ' ' + it.name,
       run: () => {
         if (!hit.inReach) { this.ui.chat.add("You can't reach that from here."); return; }
-        a.fn(this.ctx);
+        a.fn(this.ctx, hit);
       },
     }));
     entries.push({

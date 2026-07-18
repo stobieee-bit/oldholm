@@ -58,7 +58,26 @@ export const REGIONS = {
 
     swamp: { zStart: 148, fade: 14, sink: 1.1, sinkVar: 1.3 },
 
-    trees: { count: 240, minSpacing: 2 },
+    trees: { count: 220, oaks: 16, willows: 12, minSpacing: 2 },
+
+    // Mining outcrop southwest of the castle. rocks: [ore, dx, dz] tile offsets.
+    mine: {
+      x: 52, z: 122,
+      rocks: [
+        ['copper', -1, 0], ['copper', 1, 1], ['copper', 0, 2],
+        ['tin', 2, -1], ['tin', 3, 1], ['tin', -2, 2],
+        ['iron', -3, 0], ['iron', 4, 0],
+        ['coal', 1, -2],
+      ],
+    },
+
+    // Fishing spots hug the west edge of the channel (x derived from the river).
+    fishingSpots: [
+      { type: 'net', z: 95 },
+      { type: 'net', z: 101 },
+      { type: 'bait', z: 76 },
+      { type: 'lure', z: 71 },
+    ],
 
     // Furniture props (interior dressing; blocks its tiles).
     furniture: [
@@ -101,6 +120,14 @@ export const REGIONS = {
       { item: 'old_boot', x: 94.5, z: 84.5, plane: 0 },          // river bank
       { item: 'coins', count: 25, x: 58.5, z: 88.5, plane: 1 },  // keep, upstairs
       { item: 'bronze_dagger', x: 56.5, z: 88.5, plane: 2 },     // keep roof — the climb reward
+      // gathering tools (respawn after being taken, so death can't strand you)
+      { item: 'bronze_axe', x: 79.5, z: 93.5, respawn: 150 },        // by the trees near the gate
+      { item: 'tinderbox', x: 56.5, z: 89.5, respawn: 150 },         // keep ground floor
+      { item: 'bronze_pickaxe', x: 53.5, z: 120.5, respawn: 150 },   // at the mine
+      { item: 'small_net', x: 92.5, z: 96.5, respawn: 150 },         // bank by the net spots
+      { item: 'fishing_rod', x: 98.5, z: 76.5, respawn: 150 },       // bank by the bait spot
+      { item: 'fly_rod', x: 98.5, z: 72.5, respawn: 150 },           // bank by the lure spot
+      { item: 'fishing_bait', count: 30, x: 98.0, z: 75.5, respawn: 200 },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate
