@@ -77,6 +77,7 @@ export class World {
     this.raycastTargets = [];   // meshes with userData.interactable
     this.occluders = [];        // solid meshes that block targeting rays (walls, terrain)
     this.pickPool = [];         // raycastTargets ∪ occluders, kept deduplicated
+    this._timedItems = [];      // ground items with a despawn tick
     this.group = new THREE.Group();
     this.group.name = 'world:' + def.id;
     scene.add(this.group);
@@ -95,6 +96,8 @@ export class World {
     this._buildBridgeMeshes();
     this._plantTrees();
     this._buildFurniture();
+    this._buildPasture();
+    this._buildGoblinCamp();
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -104,8 +107,14 @@ export class World {
   }
 
   onTick(tick) {
-    // Nothing in the Holmbridge environment reacts to ticks yet; resource
-    // respawns and mob movement hook in here in later phases.
+    // ground piles (death drops, mob drops) age out
+    if (this._timedItems.length) {
+      const due = this._timedItems.filter((t) => tick >= t.at);
+      if (due.length) {
+        this._timedItems = this._timedItems.filter((t) => tick < t.at);
+        for (const t of due) this.removeInteractable(t.entry);
+      }
+    }
   }
 
   // ---- queries ------------------------------------------------------------
@@ -765,6 +774,10 @@ export class World {
       if (this._roadDist(tx + 0.5, tz + 0.5) < 3) continue;
       if (tx >= this.bridgeX0 - 3 && tx <= this.bridgeX1 + 3 &&
           Math.abs(tz + 0.5 - this.bridgeZC) < (this.bridgeZ1 - this.bridgeZ0) / 2 + 3) continue;
+      const pa = d.pasture;
+      if (pa && tx >= pa.x0 - 2 && tx < pa.x1 + 2 && tz >= pa.z0 - 2 && tz < pa.z1 + 2) continue;
+      const gc = d.goblinCamp;
+      if (gc && Math.hypot(tx + 0.5 - gc.x, tz + 0.5 - gc.z) < 9) continue;
       if (Math.abs(tx + 0.5 - this.riverCenter(tz + 0.5)) < d.river.width / 2 + d.river.falloff + 1) continue;
       let crowded = false;
       const s = d.trees.minSpacing;
@@ -852,6 +865,118 @@ export class World {
     }
   }
 
+  // ---- pasture, coop, goblin camp ---------------------------------------------
+
+  _buildPasture() {
+    const p = this.def.pasture;
+    if (!p) return;
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const isGap = (tx, tz) => p.gaps.some(([gx, gz]) => gx === tx && gz === tz);
+
+    // perimeter tiles (rows z0/z1-1, cols x0/x1-1), skipping the gate gap
+    const perim = [];
+    for (let tx = p.x0; tx < p.x1; tx++) perim.push([tx, p.z0], [tx, p.z1 - 1]);
+    for (let tz = p.z0 + 1; tz < p.z1 - 1; tz++) perim.push([p.x0, tz], [p.x1 - 1, tz]);
+    const fenceTiles = perim.filter(([tx, tz]) => !isGap(tx, tz));
+
+    // rails: one instanced box per tile per height, oriented per side
+    const railGeo = new THREE.BoxGeometry(1.02, 0.07, 0.07);
+    const rails = new THREE.InstancedMesh(railGeo, wood, fenceTiles.length * 2);
+    const postGeo = new THREE.CylinderGeometry(0.06, 0.07, 0.95, 5);
+    const posts = new THREE.InstancedMesh(postGeo, wood, fenceTiles.length);
+    const m4 = new THREE.Matrix4();
+    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), sc = new THREE.Vector3(1, 1, 1);
+    let ri = 0;
+    fenceTiles.forEach(([tx, tz], i) => {
+      const vertical = tx === p.x0 || tx === p.x1 - 1; // side columns run along z
+      const cx = tx + 0.5, cz = tz + 0.5;
+      const y = this.getGroundHeight(cx, cz);
+      q.setFromAxisAngle(up, vertical ? Math.PI / 2 : 0);
+      for (const h of [0.38, 0.72]) {
+        m4.compose(new THREE.Vector3(cx, y + h, cz), q, sc);
+        rails.setMatrixAt(ri++, m4);
+      }
+      m4.compose(new THREE.Vector3(cx, y + 0.45, cz), new THREE.Quaternion(), sc);
+      posts.setMatrixAt(i, m4);
+      this.setTileBlocked(tx, tz, true);
+    });
+    for (const mesh of [rails, posts]) {
+      mesh.frustumCulled = false;
+      this.group.add(mesh);
+      this.occluders.push(mesh);
+    }
+    this.addInteractable({
+      kind: 'scenery', name: 'Fence', meshes: [rails, posts],
+      examine: 'Keeps the cows in. Mostly keeps the cows in.',
+      actions: [],
+    });
+
+    // the chicken coop
+    const c = this.def.coop;
+    if (!c) return;
+    const y = this.getGroundHeight(c.x, c.z);
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const roof = new THREE.MeshLambertMaterial({ color: 0x8a5a3a, flatShading: true });
+    const coopMeshes = [
+      this._addBox(2.2, 1.6, 1.8, c.x, y + 0.8, c.z, wood),
+      this._addBox(0.7, 0.9, 0.1, c.x - 0.3, y + 0.45, c.z + 0.86, dark),
+    ];
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(1.7, 1.0, 4), roof);
+    cone.position.set(c.x, y + 2.1, c.z);
+    cone.rotation.y = Math.PI / 4;
+    this.group.add(cone);
+    this.occluders.push(cone);
+    coopMeshes.push(cone);
+    this.markBlockedRect(Math.floor(c.x - 1), Math.floor(c.z - 0.9), Math.floor(c.x + 1), Math.floor(c.z + 0.9));
+    this.addInteractable({
+      kind: 'scenery', name: 'Chicken coop', meshes: coopMeshes,
+      examine: 'Home to chickens. Smells honest.',
+      actions: [],
+    });
+  }
+
+  _buildGoblinCamp() {
+    const g = this.def.goblinCamp;
+    if (!g) return;
+    const cloth = new THREE.MeshLambertMaterial({ color: 0x6b5744, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x77716a, flatShading: true });
+    const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
+    for (const [tx, tz] of g.tents) {
+      const y = this.getGroundHeight(tx, tz);
+      const tent = new THREE.Mesh(new THREE.ConeGeometry(1.5, 1.8, 4), cloth);
+      tent.position.set(tx, y + 0.8, tz);
+      tent.rotation.y = Math.PI / 4;
+      this.group.add(tent);
+      this.occluders.push(tent);
+      this.markBlockedCircle(tx, tz, 1.3);
+      this.addInteractable({
+        kind: 'scenery', name: 'Tent', meshes: [tent],
+        examine: 'Goblin craftsmanship: holes included at no extra cost.',
+        actions: [],
+      });
+    }
+    const [fx, fz] = g.fire;
+    const fy = this.getGroundHeight(fx, fz);
+    const fireMeshes = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const rock = new THREE.Mesh(new THREE.IcosahedronGeometry(0.14, 0), stone);
+      rock.position.set(fx + Math.cos(a) * 0.5, fy + 0.08, fz + Math.sin(a) * 0.5);
+      this.group.add(rock);
+      fireMeshes.push(rock);
+    }
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.6, 5), ember);
+    flame.position.set(fx, fy + 0.3, fz);
+    this.group.add(flame);
+    fireMeshes.push(flame);
+    this.setTileBlocked(Math.floor(fx), Math.floor(fz), true);
+    this.addInteractable({
+      kind: 'scenery', name: 'Campfire', meshes: fireMeshes,
+      examine: 'Around this fire, the great debate rages: red armor or green?',
+      actions: [],
+    });
+  }
+
   // ---- ground items ----------------------------------------------------------
 
   _spawnGroundItems() {
@@ -860,7 +985,7 @@ export class World {
   }
 
   /** Drop an item into the world; it becomes a takeable interactable. */
-  addGroundItem(id, count, x, z, plane = 0, dy = 0) {
+  addGroundItem(id, count, x, z, plane = 0, dy = 0, opts = {}) {
     const def = ITEMS[id];
     const { root, meshes } = this._buildItemModel(def);
     root.position.set(x, this.getGroundHeight(x, z, plane) + dy + 0.01, z);
@@ -883,6 +1008,7 @@ export class World {
         },
       }],
     });
+    if (opts.despawnAtTick) this._timedItems.push({ entry, at: opts.despawnAtTick });
     return entry;
   }
 

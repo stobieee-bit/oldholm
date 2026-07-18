@@ -7,6 +7,8 @@ import { World } from './world.js';
 import { Player } from './player.js';
 import { UI } from './ui.js';
 import { Interactions } from './interact.js';
+import { NPCManager } from './npc.js';
+import { Combat } from './combat.js';
 
 export const TICK_MS = 600;
 
@@ -45,9 +47,13 @@ const world = new World(scene, def);
 const player = new Player(camera, world, def.spawn);
 player.attach(canvas);
 const ui = new UI(player);
-ui.bind({ world });
 const interactions = new Interactions(camera, world, player, ui);
 interactions.attach(canvas);
+const npcs = new NPCManager(world);
+const combat = new Combat(player, world, npcs, ui);
+interactions.combat = combat; // action ctx + nameplate level colors
+ui.bind({ world, combatLevelFn: () => combat.playerCombatLevel() });
+npcs.spawnAll();
 ui.showBanner(def.name.toUpperCase());
 ui.chat.add('Welcome to OLDHOLM.', 'system');
 ui.chat.add('Left click acts. Right click (or E) offers options. TAB frees the cursor.');
@@ -55,6 +61,8 @@ ui.chat.add('Left click acts. Right click (or E) offers options. TAB frees the c
 clock.on((tick) => {
   clock.gameMinutes = (clock.gameMinutes + 1) % (24 * 60); // one game minute per tick
   world.onTick(tick);
+  combat.tick(tick);   // the player swings first…
+  npcs.tick(tick, combat); // …then the realm answers
 });
 
 // --- pointer lock / cursor mode ----------------------------------------------
@@ -144,9 +152,12 @@ function frame(now) {
   }
 
   player.update(dt);
+  npcs.updateVisuals(dt, player.pos);
   interactions.updateHover();
   applyDayTint();
   ui.setRun(player.energy, player.runOn);
+  ui.setHp(player.hp, player.maxHp);
+  ui.fx.update(camera);
 
   fpsFrames++;
   if (now - fpsLast >= 500) {
@@ -160,7 +171,7 @@ requestAnimationFrame(frame);
 
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
-  world, player, clock, camera, renderer, scene, ui, interactions,
+  world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
@@ -171,9 +182,12 @@ window.__OLDHOLM = {
         for (const fn of clock.listeners) fn(clock.tick);
       }
       player.update(dt);
+      npcs.updateVisuals(dt, player.pos);
     }
     interactions.updateHover();
     applyDayTint();
+    ui.setHp(player.hp, player.maxHp);
+    ui.fx.update(camera);
     renderer.render(scene, camera);
   },
 };

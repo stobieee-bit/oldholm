@@ -117,10 +117,110 @@ export class Menu {
 }
 
 // ---------------------------------------------------------------------------
+// Combat feedback: hitsplats pinned to their victims, xp drops rising by the
+// crosshair, mob hp bars while a fight is live. All DOM, projected per frame.
+
+const _proj = { x: 0, y: 0, behind: false };
+
+function project(v3, camera, out) {
+  const v = v3.clone().project(camera);
+  out.behind = v.z > 1;
+  out.x = (v.x * 0.5 + 0.5) * window.innerWidth;
+  out.y = (-v.y * 0.5 + 0.5) * window.innerHeight;
+  return out;
+}
+
+export class FX {
+  constructor() {
+    this.layer = document.getElementById('fx-layer');
+    this.splats = [];
+    this.drops = [];
+    this.bars = new Map(); // mob -> {el, fill, until}
+  }
+
+  hitsplat(anchorFn, amount) {
+    const el = document.createElement('div');
+    el.className = 'hitsplat ' + (amount > 0 ? 'hs-dmg' : 'hs-zero');
+    el.textContent = amount;
+    this.layer.appendChild(el);
+    this.splats.push({ el, anchorFn, until: performance.now() + 850 });
+  }
+
+  xpDrop(gains) {
+    const el = document.createElement('div');
+    el.className = 'xp-drop';
+    el.innerHTML = gains
+      .map(([name, xp]) => `+${Math.round(xp * 10) / 10} ${name}`)
+      .join('<br>');
+    this.layer.appendChild(el);
+    this.drops.push({ el, born: performance.now() });
+  }
+
+  /** Show/refresh a mob's overhead hp bar for a few seconds. */
+  bar(mob) {
+    let b = this.bars.get(mob);
+    if (!b) {
+      const el = document.createElement('div');
+      el.className = 'mob-hpbar';
+      const fill = document.createElement('div');
+      el.appendChild(fill);
+      this.layer.appendChild(el);
+      b = { el, fill };
+      this.bars.set(mob, b);
+    }
+    b.until = performance.now() + 3000;
+  }
+
+  update(camera) {
+    const now = performance.now();
+    this.splats = this.splats.filter((s) => {
+      if (now > s.until) { s.el.remove(); return false; }
+      const a = s.anchorFn();
+      if (!a) { s.el.remove(); return false; }
+      if (a.screen) { // the player: pinned under the crosshair
+        s.el.style.transform =
+          `translate(${window.innerWidth / 2 - 14}px, ${window.innerHeight / 2 + 46}px)`;
+        return true;
+      }
+      project(a, camera, _proj);
+      if (_proj.behind) { s.el.style.opacity = '0'; return true; }
+      s.el.style.opacity = '1';
+      s.el.style.transform = `translate(${_proj.x - 14}px, ${_proj.y - 14}px)`;
+      return true;
+    });
+    this.drops = this.drops.filter((d) => {
+      const age = now - d.born;
+      if (age > 1100) { d.el.remove(); return false; }
+      const rise = age * 0.045;
+      d.el.style.transform =
+        `translate(${window.innerWidth / 2 + 26}px, ${window.innerHeight / 2 - 30 - rise}px)`;
+      d.el.style.opacity = String(1 - age / 1100);
+      return true;
+    });
+    for (const [mob, b] of this.bars) {
+      if (now > b.until || mob.dead) { b.el.remove(); this.bars.delete(mob); continue; }
+      const a = mob.splatAnchor();
+      if (!a) { b.el.style.opacity = '0'; continue; }
+      project(a, camera, _proj);
+      b.el.style.opacity = _proj.behind ? '0' : '1';
+      b.el.style.transform = `translate(${_proj.x - 22}px, ${_proj.y - 30}px)`;
+      b.fill.style.width = Math.round((mob.hp / mob.maxHp) * 100) + '%';
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 
 const TABS = [
+  { id: 'combat', label: 'Fight', key: 'F1' },
   { id: 'skills', label: 'Skills', key: 'F2' },
   { id: 'inventory', label: 'Pack', key: 'F4' },
+];
+
+const STYLES = [
+  ['accurate', 'Accurate', 'trains Attack'],
+  ['aggressive', 'Aggressive', 'trains Strength'],
+  ['defensive', 'Defensive', 'trains Defence'],
 ];
 
 export class TabPanel {
@@ -130,6 +230,7 @@ export class TabPanel {
     this.active = 'inventory';
     this.strip = document.getElementById('tab-strip');
     this.pages = {
+      combat: document.getElementById('tab-combat'),
       skills: document.getElementById('tab-skills'),
       inventory: document.getElementById('tab-inventory'),
     };
@@ -148,7 +249,36 @@ export class TabPanel {
     });
     this.renderSkills();
     this.renderInventory();
+    this.renderCombat();
     this.show(this.active);
+  }
+
+  renderCombat() {
+    const el = this.pages.combat;
+    el.innerHTML = '';
+    const head = document.createElement('div');
+    head.className = 'combat-head';
+    head.innerHTML = `<div class="weapon-name">Fists</div>` +
+      `<div class="combat-lvl">Combat level: <span>${this.ui.combatLevel()}</span></div>`;
+    el.appendChild(head);
+    for (const [id, label, hint] of STYLES) {
+      const b = document.createElement('button');
+      b.className = 'style-btn' + (this.player.style === id ? ' active' : '');
+      b.innerHTML = `${label}<small>${hint}</small>`;
+      b.addEventListener('click', () => {
+        this.player.style = id;
+        this.renderCombat();
+      });
+      el.appendChild(b);
+    }
+    const auto = document.createElement('button');
+    auto.className = 'style-btn retaliate' + (this.player.autoRetaliate ? ' active' : '');
+    auto.innerHTML = `Auto-retaliate<small>${this.player.autoRetaliate ? 'on' : 'off'}</small>`;
+    auto.addEventListener('click', () => {
+      this.player.autoRetaliate = !this.player.autoRetaliate;
+      this.renderCombat();
+    });
+    el.appendChild(auto);
   }
 
   show(id) {
@@ -167,6 +297,7 @@ export class TabPanel {
       total += s.level;
       const row = document.createElement('div');
       row.className = 'skill-row';
+      row.title = Math.floor(s.xp) + ' xp';
       row.innerHTML = `<span class="skill-name">${s.name}</span><span class="skill-lvl">${s.level}</span>`;
       el.appendChild(row);
     }
@@ -203,21 +334,63 @@ export class UI {
     this.player = player;
     this.chat = new Chat();
     this.menu = new Menu(player);
+    this.fx = new FX();
+    this._combatLevelFn = () => 3;
     this.panel = new TabPanel(player, this);
 
     this.runOrb = document.getElementById('run-orb');
     this.runFill = document.getElementById('run-fill');
     this.runText = document.getElementById('run-text');
+    this.hpOrb = document.getElementById('hp-orb');
+    this.hpFill = document.getElementById('hp-fill');
+    this.hpText = document.getElementById('hp-text');
     this.fpsEl = document.getElementById('fps');
     this.banner = document.getElementById('region-banner');
     this.actionEl = document.getElementById('action-text');
     this.cursorHint = document.getElementById('cursor-hint');
+    this.levelFlash = document.getElementById('level-flash');
+    this.levelBanner = document.getElementById('level-banner');
+    this.deathFade = document.getElementById('death-fade');
   }
 
-  /** Late-bound refs the item menus need. */
-  bind({ world }) {
+  /** Late-bound refs the item menus / combat displays need. */
+  bind({ world, combatLevelFn }) {
     this.world = world;
+    if (combatLevelFn) this._combatLevelFn = combatLevelFn;
   }
+
+  combatLevel() { return this._combatLevelFn(); }
+
+  setHp(hp, maxHp) {
+    const pct = Math.round((hp / maxHp) * 100);
+    this.hpFill.style.height = pct + '%';
+    this.hpText.textContent = hp;
+    this.hpOrb.classList.toggle('hurt', pct <= 50 && pct > 25);
+    this.hpOrb.classList.toggle('dying', pct <= 25);
+  }
+
+  levelUp(name, level) {
+    const an = /^[AEIOU]/.test(name) ? 'an' : 'a';
+    this.chat.add(
+      `Congratulations, you've advanced ${an} ${name} level! ` +
+      `Your ${name} level is now ${level}.`, 'system');
+    this.levelBanner.textContent = `${name.toUpperCase()} — LEVEL ${level}`;
+    for (const el of [this.levelFlash, this.levelBanner]) {
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+    }
+    this.panel.renderCombat();
+  }
+
+  deathFlash() {
+    this.deathFade.classList.remove('show');
+    void this.deathFade.offsetWidth;
+    this.deathFade.classList.add('show');
+    this.setHp(this.player.hp, this.player.maxHp);
+  }
+
+  refreshSkills() { this.panel.renderSkills(); }
 
   setRun(energy, on) {
     const pct = Math.round(energy);
@@ -235,13 +408,15 @@ export class UI {
     this.banner.classList.add('show');
   }
 
-  /** Hover text near the top-left, classic style: "Take Bucket / 2 more options". */
+  /** Hover text top-center, classic style: "Attack Goblin (level 5) / 1 more". */
   setActionText(desc) {
     if (!desc) { this.actionEl.classList.add('hidden'); return; }
     this.actionEl.classList.remove('hidden');
     this.actionEl.classList.toggle('far', !desc.inReach);
+    const lvl = desc.level !== undefined
+      ? ` <span class="${desc.levelClass}">(level ${desc.level})</span>` : '';
     this.actionEl.innerHTML =
-      `<span class="verb">${desc.verb}</span> <span class="tname">${desc.name}</span>` +
+      `<span class="verb">${desc.verb}</span> <span class="tname">${desc.name}</span>${lvl}` +
       (desc.more ? ` <span class="more">/ ${desc.more} more</span>` : '');
   }
 
@@ -255,7 +430,13 @@ export class UI {
     const slot = this.player.inventory.slots[slotIndex];
     if (!slot) return;
     const def = ITEMS[slot.id];
+    const entries = [];
+    if (def.heals) entries.push({
+      label: 'Eat ' + def.name,
+      run: () => this.player.eat(slotIndex, this),
+    });
     this.menu.open([
+      ...entries,
       {
         label: 'Drop ' + def.name,
         run: () => {

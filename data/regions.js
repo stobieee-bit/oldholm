@@ -65,6 +65,31 @@ export const REGIONS = {
       { kind: 'table', x: 54.0, z: 90.5, plane: 0 },
     ],
 
+    // Cow pasture east across the bridge: rail fence with a gate gap onto the
+    // road, chicken coop in its corner. Tile bounds x0..x1-1 / z0..z1-1.
+    pasture: { x0: 118, z0: 74, x1: 134, z1: 87, gaps: [[125, 86], [126, 86]] },
+    coop: { x: 131.5, z: 76.5 },
+
+    // Goblin camp on the far bank, north of the road.
+    goblinCamp: { x: 121, z: 56, tents: [[118.5, 54.5], [124, 54]], fire: [121, 57.5] },
+
+    // Mob spawn points (interpreted by npc.js). Both goblin variants display
+    // as "Goblin" — the level color tells them apart, as is proper.
+    spawns: [
+      { mob: 'cow', x: 121.5, z: 78.5 }, { mob: 'cow', x: 124.5, z: 82.5 },
+      { mob: 'cow', x: 128.5, z: 77.5 }, { mob: 'cow', x: 122.5, z: 84.5 },
+      { mob: 'cow', x: 130.5, z: 83.5 }, { mob: 'cow', x: 126.5, z: 79.5 },
+      { mob: 'chicken', x: 130.5, z: 78.5 }, { mob: 'chicken', x: 132.5, z: 79.5 },
+      { mob: 'chicken', x: 129.5, z: 75.5 }, { mob: 'chicken', x: 132.5, z: 75.5 },
+      { mob: 'goblin', x: 119.5, z: 57.5 }, { mob: 'goblin', x: 122.5, z: 58.5 },
+      { mob: 'goblin', x: 124.5, z: 56.5 },
+      { mob: 'goblin_strong', x: 120.5, z: 55.5 }, { mob: 'goblin_strong', x: 122.5, z: 54.5 },
+      { mob: 'giant_rat', x: 78.5, z: 125.5 }, { mob: 'giant_rat', x: 74.5, z: 132.5 },
+      { mob: 'giant_rat', x: 80.5, z: 138.5 },
+      { mob: 'spider', x: 128.5, z: 96.5 }, { mob: 'spider', x: 133.5, z: 99.5 },
+      { mob: 'spider', x: 137.5, z: 94.5 },
+    ],
+
     // Items lying about the region at boot. plane: 0 ground, 1 keep floor 2, 2 keep roof.
     // dy lifts an item off the ground (e.g. onto a table top).
     groundItems: [

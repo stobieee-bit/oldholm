@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { ITEMS } from '../data/items.js';
+import { XP_TABLE, levelForXp } from './skills.js';
 
 export const SKILL_NAMES = [
   'Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer',
@@ -56,9 +57,18 @@ export class Player {
     this.energy = 100;
     this.plane = 0;            // 0 = terrain; higher = building floors
     this.inventory = new Inventory();
-    this.skills = SKILL_NAMES.map((name) => ({
-      name, level: name === 'Hitpoints' ? 10 : 1, xp: 0,
-    }));
+    this.skills = SKILL_NAMES.map((name) => {
+      const level = name === 'Hitpoints' ? 10 : 1;
+      return { name, level, xp: XP_TABLE[level] };
+    });
+    // combat state
+    this.hp = 10;
+    this.maxHp = 10;
+    this.target = null;        // a mob, or null
+    this.attackCooldown = 0;   // ticks until the next swing
+    this.attackSpeed = 4;      // unarmed (weapon speeds arrive in Phase 6)
+    this.style = 'accurate';   // accurate|aggressive|defensive -> Attack/Strength/Defence
+    this.autoRetaliate = true;
     this.keys = { forward: false, back: false, left: false, right: false };
     this.pointerLocked = false;
     this.inputEnabled = false; // off while the title/pause overlay is up
@@ -186,6 +196,41 @@ export class Player {
       }
     }
     return false;
+  }
+
+  skillByName(name) {
+    return this.skills.find((s) => s.name === name);
+  }
+
+  /**
+   * Grant xp (floats allowed). Handles level-ups: fanfare via ui, Hitpoints
+   * raises max hp. Returns levels gained.
+   */
+  addXp(name, amount, ui) {
+    const s = this.skillByName(name);
+    if (s.level >= 99) { s.xp += amount; return 0; }
+    s.xp += amount;
+    const newLevel = levelForXp(s.xp);
+    const gained = newLevel - s.level;
+    if (gained > 0) {
+      s.level = newLevel;
+      if (name === 'Hitpoints') this.maxHp = newLevel;
+      ui.levelUp(name, newLevel);
+    }
+    ui.refreshSkills();
+    return gained;
+  }
+
+  /** Eat food from an inventory slot: instant heal, 3-tick attack delay (§5). */
+  eat(slotIndex, ui) {
+    const slot = this.inventory.slots[slotIndex];
+    if (!slot || !ITEMS[slot.id].heals) return;
+    const def = ITEMS[slot.id];
+    this.inventory.removeSlot(slotIndex);
+    this.hp = Math.min(this.maxHp, this.hp + def.heals);
+    this.attackCooldown = Math.max(this.attackCooldown, 3); // eating delays your next swing
+    ui.chat.add('You eat the ' + def.name.toLowerCase() + '. It heals a little.');
+    ui.refreshInventory();
   }
 
   /** Teleport, optionally onto another plane (stairs/ladders/respawn/debug). */

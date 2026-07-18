@@ -24,7 +24,8 @@ export class Interactions {
   }
 
   get ctx() {
-    return { player: this.player, world: this.world, ui: this.ui };
+    // combat is wired in by main.js after construction
+    return { player: this.player, world: this.world, ui: this.ui, combat: this.combat };
   }
 
   attach(canvas) {
@@ -71,15 +72,17 @@ export class Interactions {
     // isn't interactable, the target is behind something — no cheating
     // through walls.
     const hits = this.raycaster.intersectObjects(this.world.pickPool, false);
-    const h = hits[0];
-    if (!h) return null;
-    const it = h.object.userData.interactable;
-    if (!it) return null;
-    const dx = h.point.x - this.player.pos.x;
-    const dy = h.point.y - this.camera.position.y;
-    const dz = h.point.z - this.player.pos.z;
-    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    return { it, point: h.point.clone(), dist, inReach: dist <= REACH };
+    for (const h of hits) {
+      const it = h.object.userData.interactable;
+      if (it && it.hidden) continue; // dead mobs are transparent to rays
+      if (!it) return null;          // a solid occluder blocks the target
+      const dx = h.point.x - this.player.pos.x;
+      const dy = h.point.y - this.camera.position.y;
+      const dz = h.point.z - this.player.pos.z;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      return { it, point: h.point.clone(), dist, inReach: dist <= REACH };
+    }
+    return null;
   }
 
   /** Called every frame: refresh the hover action text. */
@@ -99,9 +102,14 @@ export class Interactions {
     const { it, inReach } = hit;
     const first = it.actions[0];
     const verb = first ? resolveLabel(first.label) : 'Examine';
-    // menu entries = actions + implicit Examine; the default verb is one of them,
-    // so with >=1 real action there are exactly actions.length further options
-    return { verb, name: it.name, more: it.actions.length, inReach };
+    const desc = { verb, name: it.name, more: it.actions.length, inReach };
+    if (it.kind === 'mob' && this.combat) {
+      // spec §3.3: level color-coded vs yours — green weaker, yellow even, red stronger
+      desc.level = it.mob.cl;
+      const diff = it.mob.cl - this.combat.playerCombatLevel();
+      desc.levelClass = diff < 0 ? 'lvl-green' : diff === 0 ? 'lvl-yellow' : 'lvl-red';
+    }
+    return desc;
   }
 
   examineAction(it) {

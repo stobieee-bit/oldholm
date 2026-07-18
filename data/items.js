@@ -55,9 +55,37 @@ export const ITEMS = {
   cabbage: {
     name: 'Cabbage',
     examine: 'Nutritious-ish. A vegetable of the people.',
-    value: 1, stackable: false,
+    value: 1, stackable: false, heals: 1,
     icon: '<circle cx="12" cy="13" r="7.2" fill="#7da75a"/><path d="M12 5.8a7.2 7.2 0 0 1 6.2 3.6M12 5.8a7.2 7.2 0 0 0-6.2 3.6M12 5.8v7" stroke="#5d8742" stroke-width="1.5" fill="none"/>',
     model: { kind: 'sphere', color: 0x7da75a, r: 0.16 },
+  },
+  feather: {
+    name: 'Feather',
+    examine: 'Surprisingly aerodynamic.',
+    value: 1, stackable: true,
+    icon: '<path d="M12 21c0-9 2-14 7-17-1 7-3 12-7 17Z" fill="#e8e4da"/><path d="M12 21c0-9-2-14-7-17 1 7 3 12 7 17Z" fill="#d5d0c2"/>',
+    model: { kind: 'box', color: 0xe8e4da, w: 0.06, h: 0.02, d: 0.3 },
+  },
+  raw_chicken: {
+    name: 'Raw chicken',
+    examine: 'It was this or the egg.',
+    value: 2, stackable: false,
+    icon: '<path d="M7 6c4-3 9-1 9 4 0 4-3 6-6 6l-2 4-2-1 1.5-3.5C5 14 4 9 7 6Z" fill="#e8c8b8"/>',
+    model: { kind: 'box', color: 0xe8c8b8, w: 0.3, h: 0.14, d: 0.24 },
+  },
+  raw_beef: {
+    name: 'Raw beef',
+    examine: 'Moo, formerly.',
+    value: 3, stackable: false,
+    icon: '<path d="M5 8c5-4 12-2 14 2-1 5-6 8-11 7S3 11 5 8Z" fill="#b8524a"/><path d="M8 10c3-1.5 6-1 8 1" stroke="#e0a8a0" stroke-width="1.5" fill="none"/>',
+    model: { kind: 'box', color: 0xb8524a, w: 0.28, h: 0.1, d: 0.24 },
+  },
+  cowhide: {
+    name: 'Cowhide',
+    examine: 'Fashion, pending.',
+    value: 3, stackable: false,
+    icon: '<path d="M5 5h14l-2 3 2 3-2 3 2 3-2 3H5l2-3-2-3 2-3-2-3Z" fill="#c9a877"/><circle cx="10" cy="11" r="1.8" fill="#8a6a42"/><circle cx="15" cy="15" r="1.4" fill="#8a6a42"/>',
+    model: { kind: 'box', color: 0xc9a877, w: 0.5, h: 0.04, d: 0.4 },
   },
   old_boot: {
     name: 'Old boot',

@@ -1,6 +1,68 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 2 — Interaction & UI Shell — COMPLETE
+## Current status: Phase 3 — Combat v1 — COMPLETE
+
+## What was built (Phase 3)
+
+- **skills.js**: the exact spec §4.1 xp curve (83 / 1,154 / 13,034,431 verified), level
+  lookup table, combat xp constants (4/dmg style, 1.33/dmg Hitpoints).
+- **combat.js**: exact §5 formulas (effective levels, max hit, accuracy rolls — unit
+  verified: maxHit(1,0)=1, maxHit(7,0)=2, parity hit chance 0.4991), §5.2 combat level,
+  the tick engagement loop (player swings on weapon-speed cadence while a target is in
+  ~1.8u melee reach), auto-retaliate both ways, xp capped at the target's remaining hp,
+  HP regen 1/100 ticks, and §3.4 death: keep the 3 most valuable stacks, drop the rest
+  as a pile at the death spot (despawns 500 ticks), respawn at the courtyard with a
+  gently mocking line.
+- **data/mobs.js + npc.js**: chicken, cow, giant rat, goblin, goblin (strong), spider —
+  combat levels DERIVED from stats via the formula (1/2/3/2/5/1). Each type bakes its
+  low-poly recipe into one merged vertex-colored geometry (one draw call per mob).
+  Per-tick AI: idle wander within a radius, aggro (radius-gated, only onto players
+  ≤ 2× mob level), BFS pathing on tiles (bounded window), tile-to-tile movement with
+  smooth visual glide + facing, leash/give-up with full reset, weighted drop tables
+  (always-drops + one weighted roll), respawn timers.
+- **World content**: fenced cow pasture with gate gap onto the road (instanced rails +
+  posts, blocks its tiles), chicken coop, goblin camp (two tents, ember-lit campfire,
+  examine lines: "the great debate rages: red armor or green?"), tree exclusions.
+- **UI**: HP orb (green/amber/red states), hitsplats (red damage / blue zero) projected
+  onto victims, xp drops floating by the crosshair, mob overhead hp bars during fights,
+  level-up fanfare (chat + gold flash + banner), death fade, mob nameplates with
+  §3.3 level colors (green weaker / yellow even / red stronger), Combat tab (F1) with
+  Accurate/Aggressive/Defensive style picker (trains Attack/Strength/Defence) and
+  auto-retaliate toggle, live Skills tab with xp tooltips.
+- **Food**: cabbage is edible (heals 1, instant, 3-tick attack delay per §5); goblins
+  occasionally drop one. New drop items: feather, raw chicken, raw beef, cowhide.
+
+## Phase 3 — tested (live browser, real pipelines, simulated ticks)
+
+- Single fight: engaged via raycast Attack, xp math EXACT (Attack +4.00/dmg,
+  Hitpoints +1.33/dmg verified to the decimal), drops (bones/cowhide/raw beef) at the
+  corpse, respawn at full hp after 42 ticks.
+- **DoD grind**: Attack 1→10 on cows (281 damage, ~3,400 ticks), 17 deaths en route —
+  punching cattle at 10 hp is honest work — 10 exact-wording fanfares, Hitpoints 10→11,
+  combat level 3→6, Strength untouched on Accurate.
+- **DoD death**: walked into the goblin camp with a full pack; strong goblins aggroed
+  unprovoked and killed us in 60 ticks; kept exactly the 3 most valuable stacks
+  (coins×25 / dagger / logs), the rest dropped as a pile at the camp; respawned at the
+  courtyard spawn, full hp, plane 0, "Oh dear, you are dead."; pile despawned at 500
+  ticks; goblins walked home.
+- Aggro 2× cutoff (no aggro at cl 16 vs lv5), auto-retaliate off stays passive / on
+  engages, leash gives up + fully heals (fixed a path that skipped the heal), eat
+  heals 1 + 3-tick swing delay, regen 1/100t, Aggressive trains Strength, chicken
+  drops bones/feather/raw chicken, idle wander confirmed, mobs face their targets
+  (fixed models fighting backwards).
+- Regressions green (walls, bridge, pasture gate/fence, ticks 5/3s, keep climb path
+  untouched). Perf: 0.86 ms/frame with mobs on screen; 500 full simulation ticks cost
+  3.6 ms total.
+
+## Definition of Done — Phase 3
+
+- [x] Train Attack from 1→10 on cows
+- [x] Die to the goblin camp on purpose
+- [x] Respawn correctly
+
+---
+
+## Phase 2 — Interaction & UI Shell — COMPLETE
 
 ## What was built (Phase 2)
 
@@ -178,10 +240,12 @@
 
 ## Exact next step
 
-**Phase 3 — Combat v1**: full formula set (spec §5: effective levels, max hit, accuracy
-rolls), engagement loop, auto-retaliate, hitsplats, HP orb, death/respawn at the
-courtyard, xp drops + level-up fanfare. Mobs: chicken, cow, giant rat, goblin ×2,
-spider — spawns, wander AI, aggro radius, tick-based BFS pathing on tiles, weighted
-drop tables. DoD: train Attack 1→10 on cows, die to the goblin camp on purpose,
-respawn correctly. (Will need `data/mobs.js`, `src/combat.js`, `src/npc.js`,
-`skills.js` with the exact xp curve, and mob nameplates with level colors.)
+**Phase 4 — Gathering Loop**: Woodcutting (normal/oak/willow trees with depletion +
+respawn), Mining (copper/tin/iron/coal rocks), Fishing (net/bait spots on the river),
+Firemaking (logs → fires that age out), Cooking on fires + castle range with the burn
+table, tiered tools (axes/pickaxes) as required items. Gathering success chance per
+tick: min(0.95, 0.30 + (level − reqLevel) × 0.02). DoD: chop → burn → catch → cook →
+eat a trout; all four skills gain xp at correct rates. (Trees currently have an empty
+actions list ready for Chop-down; the tick scheduler, xp pipeline, and food/eat flow
+from Phase 3 are all reusable. Raw beef/chicken from Phase 3 drops should become
+cookable too.)
