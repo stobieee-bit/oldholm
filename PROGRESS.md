@@ -59,6 +59,24 @@
 - [x] Collide with the castle walls
 - [x] Cross the bridge
 
+## Post-review hardening (multi-agent review, 24 raw findings → 6 confirmed, all fixed)
+
+- Input: movement keys clear on window blur / tab hide / pointer-lock exit (no more
+  stuck-W after Alt-Tab); keyboard is gated off while the title/pause overlay is up
+  (`player.inputEnabled`); resize handler refreshes pixel ratio for cross-monitor DPR.
+- Worldgen: river carve fades out inside the rim band, so the river now springs from
+  a cleft in the border hills instead of exposing the raw world edge at its mouths
+  (channel terrain at the border: ~5.6 north / ~3.7 south, water stops 5+ rows short).
+- One shared shoreline constant (`WATER_EPS`) for both the water-blocked flag and the
+  bed color — no more dry-looking tiles that invisibly block.
+- Bridge deck/parapets/piers/terrain-shaping all derive from `walkRows`/`railRows`
+  (data-driven, no duplicated literals); parapets fill their blocked rail tiles so the
+  collision face is the visible face. Dead `gate.side` field removed from region data
+  (east-wall gate is a documented engine convention).
+- Vertex/instance colors are authored in sRGB and converted once into the linear
+  working space — fixes the washed-out palette and the floor-brighter-than-walls
+  inversion under three.js r160 color management.
+
 ## Known issues / notes
 
 - Pointer lock requires a real user click; a drag-look fallback exists for environments

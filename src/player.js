@@ -25,6 +25,7 @@ export class Player {
     this.energy = 100;
     this.keys = { forward: false, back: false, left: false, right: false };
     this.pointerLocked = false;
+    this.inputEnabled = false; // off while the title/pause overlay is up
     this._dragging = false;
     this._eyeY = world.getGroundHeight(spawn.x, spawn.z) + EYE_HEIGHT;
     camera.rotation.order = 'YXZ';
@@ -35,6 +36,7 @@ export class Player {
     this.lockTarget = lockTarget;
 
     window.addEventListener('keydown', (e) => {
+      if (!this.inputEnabled) return; // the overlay owns the keyboard
       if (e.code === 'Space') e.preventDefault(); // no jumping — this is a civilized game
       if (e.repeat) return;
       switch (e.code) {
@@ -45,7 +47,7 @@ export class Player {
         case 'ShiftLeft': case 'ShiftRight': this.runOn = !this.runOn; break;
       }
     });
-    window.addEventListener('keyup', (e) => {
+    window.addEventListener('keyup', (e) => { // always processed: releasing is always safe
       switch (e.code) {
         case 'KeyW': case 'ArrowUp': this.keys.forward = false; break;
         case 'KeyS': case 'ArrowDown': this.keys.back = false; break;
@@ -53,9 +55,15 @@ export class Player {
         case 'KeyD': case 'ArrowRight': this.keys.right = false; break;
       }
     });
+    // keyups are lost when focus leaves (Alt-Tab, pointer-lock exit, tab switch)
+    window.addEventListener('blur', () => this.clearKeys());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.clearKeys();
+    });
 
     document.addEventListener('pointerlockchange', () => {
       this.pointerLocked = document.pointerLockElement === this.lockTarget;
+      if (!this.pointerLocked) this.clearKeys();
     });
     document.addEventListener('mousemove', (e) => {
       if (this.pointerLocked || this._dragging) this._look(e.movementX, e.movementY);
@@ -63,6 +71,11 @@ export class Player {
     // drag-look fallback for environments where pointer lock is unavailable
     lockTarget.addEventListener('mousedown', () => { if (!this.pointerLocked) this._dragging = true; });
     window.addEventListener('mouseup', () => { this._dragging = false; });
+  }
+
+  clearKeys() {
+    this.keys.forward = this.keys.back = this.keys.left = this.keys.right = false;
+    this._dragging = false;
   }
 
   requestLock() {

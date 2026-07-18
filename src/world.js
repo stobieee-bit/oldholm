@@ -8,6 +8,10 @@ export const FLAG_BLOCKED = 1;
 export const FLAG_WATER = 2;
 
 const CHUNK = 16;
+// One shoreline for both collision and color: tiles whose center sits below
+// waterLevel + WATER_EPS are water-flagged AND bed-colored, so the visual
+// boundary and the collision boundary always coincide.
+const WATER_EPS = 0.12;
 
 // ---------------------------------------------------------------------------
 // deterministic helpers
@@ -166,12 +170,15 @@ export class World {
           h -= t * (d.swamp.sink + n(cx * 0.07 + 53.1, cz * 0.07 + 91.7) * d.swamp.sinkVar);
         }
 
-        // carve the river channel
+        // carve the river channel — fading the carve out near the border so the
+        // river springs from a cleft in the rim hills instead of cutting a
+        // window through them to the raw world edge
         const dist = Math.abs(cx - this.riverCenter(cz));
         const half = r.width / 2;
         if (dist < half + r.falloff) {
           const bed = d.waterLevel - r.depth + n(cx * 0.2 + 5.5, cz * 0.2 + 5.5) * 0.35;
-          h = lerp(bed, h, smoothstep((dist - half) / r.falloff));
+          const carved = lerp(bed, h, smoothstep((dist - half) / r.falloff));
+          h = lerp(h, carved, smoothstep(edge / (d.rim.width + 4)));
         }
 
         // castle plateau
@@ -188,8 +195,14 @@ export class World {
 
   _computeBridgeSpan() {
     const b = this.def.bridge, r = this.def.river;
+    // The deck's z-extent is derived entirely from walkRows/railRows —
+    // the rows drive collision, meshes, and terrain shaping alike.
+    const rows = [...b.walkRows, ...b.railRows];
+    this.bridgeZ0 = Math.min(...rows);        // first deck tile row
+    this.bridgeZ1 = Math.max(...rows) + 1;    // corner bound past the last row
+    this.bridgeZC = (this.bridgeZ0 + this.bridgeZ1) / 2;
     let cMin = Infinity, cMax = -Infinity;
-    for (let z = b.z - 2.5; z <= b.z + 2.5; z += 0.5) {
+    for (let z = this.bridgeZ0 - 0.5; z <= this.bridgeZ1 + 0.5; z += 0.5) {
       const cc = this.riverCenter(z);
       cMin = Math.min(cMin, cc); cMax = Math.max(cMax, cc);
     }
@@ -201,8 +214,9 @@ export class World {
   _flattenBridgeApproaches() {
     const d = this.def, b = d.bridge, size = this.size;
     const target = b.deckH - 0.08;
-    for (let cz = b.z - 3; cz <= b.z + 3; cz++) {
-      const zw = 1 - clamp((Math.abs(cz - b.z) - 2) / 2, 0, 1);
+    const halfDepth = (this.bridgeZ1 - this.bridgeZ0) / 2;
+    for (let cz = this.bridgeZ0 - 1; cz <= this.bridgeZ1 + 1; cz++) {
+      const zw = 1 - clamp((Math.abs(cz - this.bridgeZC) - halfDepth) / 2, 0, 1);
       if (zw <= 0) continue;
       for (let cx = this.bridgeX0 - b.approach; cx <= this.bridgeX1 + b.approach; cx++) {
         if (cx < 0 || cx > size || cz < 0 || cz > size) continue;
@@ -224,7 +238,7 @@ export class World {
         const h01 = this.cornerHeight(tx, tz + 1), h11 = this.cornerHeight(tx + 1, tz + 1);
         const center = (h00 + h10 + h01 + h11) / 4;
         let f = 0;
-        if (center < d.waterLevel + 0.12) f |= FLAG_WATER | FLAG_BLOCKED;
+        if (center < d.waterLevel + WATER_EPS) f |= FLAG_WATER | FLAG_BLOCKED;
         const hi = Math.max(h00, h10, h01, h11), lo = Math.min(h00, h10, h01, h11);
         if (hi - lo > 1.35) f |= FLAG_BLOCKED; // cliff
         // the outermost two rings are the region boundary
@@ -253,7 +267,7 @@ export class World {
       out[0] = 0.46 + v; out[1] = 0.48 + v; out[2] = 0.45 + v;
       return;
     }
-    if (centerH < d.waterLevel + 0.1) { // river/pool bed
+    if (centerH < d.waterLevel + WATER_EPS) { // river/pool bed — matches the blocked threshold
       out[0] = 0.27 + v; out[1] = 0.30 + v; out[2] = 0.22 + v;
       return;
     }
@@ -288,6 +302,10 @@ export class World {
     const size = this.size, chunks = size / CHUNK;
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
     const tileCol = [0, 0, 0];
+    // The palette in _tileColor is authored in sRGB; convert once into the
+    // renderer's linear working space so vertex colors match hex-authored
+    // material/fog colors instead of rendering ~1.5 stops washed out.
+    const srgb = new THREE.Color();
     for (let ccz = 0; ccz < chunks; ccz++) {
       for (let ccx = 0; ccx < chunks; ccx++) {
         const pos = new Float32Array(CHUNK * CHUNK * 6 * 3);
@@ -298,6 +316,7 @@ export class World {
             const h00 = this.cornerHeight(tx, tz), h10 = this.cornerHeight(tx + 1, tz);
             const h01 = this.cornerHeight(tx, tz + 1), h11 = this.cornerHeight(tx + 1, tz + 1);
             this._tileColor(tx, tz, (h00 + h10 + h01 + h11) / 4, tileCol);
+            srgb.setRGB(tileCol[0], tileCol[1], tileCol[2], THREE.SRGBColorSpace);
             // two upward-facing triangles per tile: (A,C,B) and (B,C,D)
             const verts = [
               tx, h00, tz,       tx, h01, tz + 1,   tx + 1, h10, tz,
@@ -305,7 +324,7 @@ export class World {
             ];
             for (let k = 0; k < 18; k += 3) {
               pos[i] = verts[k]; pos[i + 1] = verts[k + 1]; pos[i + 2] = verts[k + 2];
-              col[i] = tileCol[0]; col[i + 1] = tileCol[1]; col[i + 2] = tileCol[2];
+              col[i] = srgb.r; col[i + 1] = srgb.g; col[i + 2] = srgb.b;
               i += 3;
             }
           }
@@ -446,16 +465,16 @@ export class World {
     const darker = new THREE.MeshLambertMaterial({ color: 0x777168, flatShading: true });
     const len = this.bridgeX1 - this.bridgeX0;
     const cx = (this.bridgeX0 + this.bridgeX1) / 2;
-    // deck spans the walk + rail rows (4 tiles wide)
-    this._addBox(len, 0.4, 4, cx, b.deckH - 0.2, b.z, stone);
-    // parapets on the outer rows
-    this._addBox(len, 0.9, 0.45, cx, b.deckH + 0.45, b.z - 1.75, darker);
-    this._addBox(len, 0.9, 0.45, cx, b.deckH + 0.45, b.z + 1.75, darker);
-    // support piers down into the river
-    for (let x = this.bridgeX0 + 2.5; x < this.bridgeX1 - 1; x += 4) {
-      for (const dz of [-1.2, 1.2]) {
+    // deck covers exactly the walk + rail rows
+    const depth = this.bridgeZ1 - this.bridgeZ0;
+    this._addBox(len, 0.4, depth, cx, b.deckH - 0.2, this.bridgeZC, stone);
+    // parapets fill their blocked rail tiles so the collision face is the visible face
+    for (const rz of b.railRows) {
+      this._addBox(len, 0.9, 0.95, cx, b.deckH + 0.45, rz + 0.5, darker);
+      // support piers down into the river, under the parapet lines
+      for (let x = this.bridgeX0 + 2.5; x < this.bridgeX1 - 1; x += 4) {
         const pier = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 5.5, 7), darker);
-        pier.position.set(x, b.deckH - 2.9, b.z + dz);
+        pier.position.set(x, b.deckH - 2.9, rz + 0.5);
         pier.matrixAutoUpdate = false; pier.updateMatrix();
         this.group.add(pier);
       }
@@ -466,7 +485,7 @@ export class World {
 
   _plantTrees() {
     const d = this.def, size = this.size, rng = this._rng;
-    const b = this.def.bridge, c = d.castle;
+    const c = d.castle;
     const taken = new Set();
     const spots = [];
     let attempts = d.trees.count * 12;
@@ -478,7 +497,8 @@ export class World {
       if (this.overrides.has(tx + ',' + tz)) continue;
       if (tx >= c.x0 - 3 && tx < c.x1 + 3 && tz >= c.z0 - 3 && tz < c.z1 + 3) continue;
       if (this._roadDist(tx + 0.5, tz + 0.5) < 3) continue;
-      if (tx >= this.bridgeX0 - 3 && tx <= this.bridgeX1 + 3 && Math.abs(tz - b.z) < 5) continue;
+      if (tx >= this.bridgeX0 - 3 && tx <= this.bridgeX1 + 3 &&
+          Math.abs(tz + 0.5 - this.bridgeZC) < (this.bridgeZ1 - this.bridgeZ0) / 2 + 3) continue;
       if (Math.abs(tx + 0.5 - this.riverCenter(tz + 0.5)) < d.river.width / 2 + d.river.falloff + 1) continue;
       let crowded = false;
       const s = d.trees.minSpacing;
@@ -522,8 +542,9 @@ export class World {
       sv.setScalar(t.scale);
       m4.compose(p, q, sv);
       trunks.setMatrixAt(i, m4); lows.setMatrixAt(i, m4); highs.setMatrixAt(i, m4);
-      trunkCol.setRGB(0.33 + t.tone * 0.06, 0.25 + t.tone * 0.05, 0.17 + t.tone * 0.04);
-      leafCol.setRGB(0.24 + t.tone * 0.12, 0.42 + t.tone * 0.14, 0.20 + t.tone * 0.08);
+      // authored in sRGB, converted to the linear working space (same as chunk colors)
+      trunkCol.setRGB(0.33 + t.tone * 0.06, 0.25 + t.tone * 0.05, 0.17 + t.tone * 0.04, THREE.SRGBColorSpace);
+      leafCol.setRGB(0.24 + t.tone * 0.12, 0.42 + t.tone * 0.14, 0.20 + t.tone * 0.08, THREE.SRGBColorSpace);
       trunks.setColorAt(i, trunkCol);
       lows.setColorAt(i, leafCol);
       highs.setColorAt(i, leafCol.multiplyScalar(1.08));

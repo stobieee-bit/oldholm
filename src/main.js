@@ -56,16 +56,19 @@ clock.on((tick) => {
 const overlay = document.getElementById('lock-overlay');
 overlay.addEventListener('click', () => {
   overlay.classList.add('hidden');
+  player.inputEnabled = true;
   player.requestLock();
 });
 document.addEventListener('pointerlockchange', () => {
-  if (document.pointerLockElement !== canvas) overlay.classList.remove('hidden');
-  else overlay.classList.add('hidden');
+  const locked = document.pointerLockElement === canvas;
+  overlay.classList.toggle('hidden', locked);
+  player.inputEnabled = locked; // overlay back up -> keyboard goes back to it
 });
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // DPR can change across monitors
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 

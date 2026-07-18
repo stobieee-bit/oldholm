@@ -38,13 +38,15 @@ export const REGIONS = {
       plateauH: 2.0,           // the bailey sits on a flattened plateau
       flattenMargin: 5,
       wallH: 4.5,
-      gate: { side: 'east', z0: 87, z1: 89 },    // open tile rows in the east wall
+      // Engine convention: the gate is always cut into the EAST wall;
+      // z0..z1 are the open tile rows.
+      gate: { z0: 87, z1: 89 },
       keep: { x0: 49, x1: 63, z0: 83, z1: 93, bodyH: 6, topH: 3.2 },
     },
 
-    // Stone bridge over the river, aligned with the east road.
+    // Stone bridge over the river, aligned with the east road. The deck's
+    // z-extent, meshes, and terrain shaping are all derived from these rows.
     bridge: {
-      z: 88,                   // center line (corner coordinate between tile rows 87 and 88)
       deckH: 2.05,
       walkRows: [87, 88],      // walkable deck tile rows
       railRows: [86, 89],      // parapet tile rows (blocked)
