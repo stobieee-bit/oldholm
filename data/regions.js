@@ -41,7 +41,9 @@ export const REGIONS = {
       // Engine convention: the gate is always cut into the EAST wall;
       // z0..z1 are the open tile rows.
       gate: { z0: 87, z1: 89 },
-      keep: { x0: 49, x1: 63, z0: 83, z1: 93, bodyH: 6, topH: 3.2 },
+      // The keep is hollow: ground floor, an upper floor (plane 1), and a
+      // crenellated roof terrace (plane 2). Door east-center; stairs NW; ladder NE.
+      keep: { x0: 49, x1: 63, z0: 83, z1: 93, wallH: 6.2, floorH: 3.0 },
     },
 
     // Stone bridge over the river, aligned with the east road. The deck's
@@ -57,6 +59,24 @@ export const REGIONS = {
     swamp: { zStart: 148, fade: 14, sink: 1.1, sinkVar: 1.3 },
 
     trees: { count: 240, minSpacing: 2 },
+
+    // Furniture props (interior dressing; blocks its tiles).
+    furniture: [
+      { kind: 'table', x: 54.0, z: 90.5, plane: 0 },
+    ],
+
+    // Items lying about the region at boot. plane: 0 ground, 1 keep floor 2, 2 keep roof.
+    // dy lifts an item off the ground (e.g. onto a table top).
+    groundItems: [
+      { item: 'bucket', x: 53.6, z: 90.4, plane: 0, dy: 0.84 },  // on the keep's table
+      { item: 'jug', x: 54.5, z: 90.6, plane: 0, dy: 0.84 },
+      { item: 'cabbage', x: 65.5, z: 84.6, plane: 0 },           // courtyard corner
+      { item: 'bones', x: 69.5, z: 91.5, plane: 0 },
+      { item: 'logs', x: 79.5, z: 95.5, plane: 0 },              // outside the gate
+      { item: 'old_boot', x: 94.5, z: 84.5, plane: 0 },          // river bank
+      { item: 'coins', count: 25, x: 58.5, z: 88.5, plane: 1 },  // keep, upstairs
+      { item: 'bronze_dagger', x: 56.5, z: 88.5, plane: 2 },     // keep roof — the climb reward
+    ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate
   },

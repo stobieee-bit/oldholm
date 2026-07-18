@@ -1,6 +1,63 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 1 — Engine Core — COMPLETE
+## Current status: Phase 2 — Interaction & UI Shell — COMPLETE
+
+## What was built (Phase 2)
+
+- **Items** (`data/items.js`): 8 items, each with name/examine/value/stackable, a 24×24
+  inline-SVG inventory icon, and a low-poly ground-model recipe (cylinder/box/sphere/
+  log/bones/blade) interpreted by `world._buildItemModel`.
+- **Planes** (`world.js`): plane 0 = terrain; higher planes are sparse per-tile
+  {h, blocked} maps (absent tile = air). `getGroundHeight`/`isBlocked` take a plane;
+  the player carries `plane`. Stairs/ladders teleport between planes per spec §3.2.
+- **The keep rebuilt hollow**: shell walls with an east doorway + working hinged door
+  (toggles its tile's blocked flag, dynamic Open/Close label), ground floor with table +
+  items, staircase (→ plane 1, wooden upper floor with stairwell hole + banister),
+  ladder (→ plane 2, crenellated roof terrace with hatch, banner of Aurel, and a
+  bronze dagger as the climb reward). Parapets fill their blocked ring tiles.
+- **Interactable registry + raycast targeting** (`interact.js`): crosshair ray when
+  pointer-locked, cursor ray in cursor mode; pick pool includes plain occluders
+  (terrain chunks, walls) so you cannot act through walls; ~4.2-unit reach gates
+  actions ("You can't reach that from here."); hover action text top-center
+  ("Open Door / 1 more"). Left click = default action; right click or E = context menu.
+- **Context menu**: "CHOOSE OPTION" header; while locked: W/S/arrows/wheel highlight,
+  1–9 direct, Enter/click confirm, Esc/E cancel; menu owns the keyboard (capture
+  listener + player.menuOpen) and freezes look/movement. In cursor mode it opens at
+  the cursor and is mouse-driven.
+- **Ground items**: region-defined spawns (`regions.js groundItems`, incl. dy for
+  table tops), Take/Drop lifecycle with mesh disposal and pick-pool rebuild, pack-full
+  message.
+- **UI shell** (`ui.js` + index.html): chatbox bottom-left (150-line cap, examine/system
+  styling), right-side tab panel — Inventory 28 slots (4×7 grid, SVG icons, count
+  badges, click → Drop/Examine menu) and Skills (15 skills, HP 10, total level),
+  F2/F4 switching. Cursor-mode flow: title overlay only at boot; afterwards Esc frees
+  the cursor (hint shown), TAB toggles mouse-look, WASD still walks in cursor mode.
+- **Furniture**: data-driven table (blocks its tiles, examinable). Trees and the bridge
+  are examinable scenery ("A tree. Notably wooden.").
+
+## Phase 2 — tested (live browser, programmatic driving of the real pipelines)
+
+- DoD: bucket targeted via raycast at 1.9u → taken → in pack → examined from the item
+  menu ("It holds things. Usually water.") → dropped back into the world. Door opened
+  (tile unblocks), stairs → plane 1 (coins looted), ladder → plane 2 roof, bronze
+  dagger taken on the roof. Round trip back down to plane 0.
+- Reach gating verified (dagger refused at 4.7u); occlusion verified (bucket not
+  targetable through the keep wall); closed door blocks walking; parapet ring holds on
+  the roof; menu keyboard flow (ArrowDown+Enter → examine in chat); full-pack refusal;
+  F2/F4 tabs; 28 slots + 15 skill rows rendered.
+- Phase 1 regressions all green (walls, bridge, river, boundary, ticks, run energy).
+- Perf: 0.92 ms/frame GPU-synced, 117 draw calls, 212-mesh pick pool raycast per frame.
+
+## Definition of Done — Phase 2
+
+- [x] Pick up a bucket
+- [x] Drop it
+- [x] Examine it
+- [x] Climb to the castle roof
+
+---
+
+## Phase 1 — Engine Core — COMPLETE
 
 ## What was built (Phase 1)
 
@@ -89,8 +146,10 @@
 
 ## Exact next step
 
-**Phase 2 — Interaction & UI Shell**: raycast targeting + nameplates, context menu
-(right-click/E), chatbox with message log, tab panel with Inventory (28 slots) + static
-Skills, ground items (drop/take), doors/ladders/stairs between castle floors, examine
-text everywhere. DoD: pick up a bucket, drop it, examine it, climb to the castle roof.
-(The castle keep currently has no interior — Phase 2 must add enterable floors + stairs.)
+**Phase 3 — Combat v1**: full formula set (spec §5: effective levels, max hit, accuracy
+rolls), engagement loop, auto-retaliate, hitsplats, HP orb, death/respawn at the
+courtyard, xp drops + level-up fanfare. Mobs: chicken, cow, giant rat, goblin ×2,
+spider — spawns, wander AI, aggro radius, tick-based BFS pathing on tiles, weighted
+drop tables. DoD: train Attack 1→10 on cows, die to the goblin camp on purpose,
+respawn correctly. (Will need `data/mobs.js`, `src/combat.js`, `src/npc.js`,
+`skills.js` with the exact xp curve, and mob nameplates with level colors.)

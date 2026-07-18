@@ -4,6 +4,37 @@
 // The player moves freely; the world stops them at tile-truth blockers.
 
 import * as THREE from 'three';
+import { ITEMS } from '../data/items.js';
+
+export const SKILL_NAMES = [
+  'Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer',
+  'Cooking', 'Fishing', 'Mining', 'Smithing', 'Woodcutting', 'Firemaking',
+  'Crafting', 'Glyphcraft',
+];
+
+/** 28 slots; stackables share a slot. */
+export class Inventory {
+  constructor(size = 28) {
+    this.slots = new Array(size).fill(null); // {id, count} | null
+  }
+
+  add(id, count = 1) {
+    if (ITEMS[id].stackable) {
+      const slot = this.slots.find((s) => s && s.id === id);
+      if (slot) { slot.count += count; return true; }
+    }
+    const free = this.slots.indexOf(null);
+    if (free === -1) return false;
+    this.slots[free] = { id, count };
+    return true;
+  }
+
+  removeSlot(i) {
+    const s = this.slots[i];
+    this.slots[i] = null;
+    return s;
+  }
+}
 
 const WALK_SPEED = 2.3;   // units (tiles) per second
 const RUN_SPEED = 4.6;
@@ -23,9 +54,15 @@ export class Player {
     this.pitch = 0;
     this.runOn = false;
     this.energy = 100;
+    this.plane = 0;            // 0 = terrain; higher = building floors
+    this.inventory = new Inventory();
+    this.skills = SKILL_NAMES.map((name) => ({
+      name, level: name === 'Hitpoints' ? 10 : 1, xp: 0,
+    }));
     this.keys = { forward: false, back: false, left: false, right: false };
     this.pointerLocked = false;
     this.inputEnabled = false; // off while the title/pause overlay is up
+    this.menuOpen = false;     // a context menu owns input while open
     this._dragging = false;
     this._eyeY = world.getGroundHeight(spawn.x, spawn.z) + EYE_HEIGHT;
     camera.rotation.order = 'YXZ';
@@ -36,7 +73,7 @@ export class Player {
     this.lockTarget = lockTarget;
 
     window.addEventListener('keydown', (e) => {
-      if (!this.inputEnabled) return; // the overlay owns the keyboard
+      if (!this.inputEnabled || this.menuOpen) return; // overlay/menu owns the keyboard
       if (e.code === 'Space') e.preventDefault(); // no jumping — this is a civilized game
       if (e.repeat) return;
       switch (e.code) {
@@ -66,6 +103,7 @@ export class Player {
       if (!this.pointerLocked) this.clearKeys();
     });
     document.addEventListener('mousemove', (e) => {
+      if (this.menuOpen) return; // freeze the view while choosing an option
       if (this.pointerLocked || this._dragging) this._look(e.movementX, e.movementY);
     });
     // drag-look fallback for environments where pointer lock is unavailable
@@ -122,7 +160,7 @@ export class Player {
     }
 
     // follow the ground, smoothed so steps and bridge lips don't jolt the camera
-    const targetY = this.world.getGroundHeight(this.pos.x, this.pos.z) + EYE_HEIGHT;
+    const targetY = this.world.getGroundHeight(this.pos.x, this.pos.z, this.plane) + EYE_HEIGHT;
     this._eyeY += (targetY - this._eyeY) * Math.min(1, dt * 12);
 
     this.camera.position.set(this.pos.x, this._eyeY, this.pos.z);
@@ -135,7 +173,7 @@ export class Player {
     const tz0 = Math.floor(z - r), tz1 = Math.floor(z + r);
     for (let tz = tz0; tz <= tz1; tz++) {
       for (let tx = tx0; tx <= tx1; tx++) {
-        if (!this.world.isBlocked(tx, tz)) continue;
+        if (!this.world.isBlocked(tx, tz, this.plane)) continue;
         // circle vs tile AABB
         const cx = Math.max(tx, Math.min(x, tx + 1));
         const cz = Math.max(tz, Math.min(z, tz + 1));
@@ -146,10 +184,11 @@ export class Player {
     return false;
   }
 
-  /** Teleport (debug/respawn plumbing for later phases). */
-  setPosition(x, z, yaw) {
+  /** Teleport, optionally onto another plane (stairs/ladders/respawn/debug). */
+  setPosition(x, z, yaw, plane) {
     this.pos.set(x, 0, z);
-    if (yaw !== undefined) this.yaw = yaw;
-    this._eyeY = this.world.getGroundHeight(x, z) + EYE_HEIGHT;
+    if (yaw !== undefined && yaw !== null) this.yaw = yaw;
+    if (plane !== undefined) this.plane = plane;
+    this._eyeY = this.world.getGroundHeight(x, z, this.plane) + EYE_HEIGHT;
   }
 }

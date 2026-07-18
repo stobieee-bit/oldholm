@@ -46,6 +46,94 @@
     color: rgba(255,245,200,0.75); font-size: 11px; letter-spacing: 1px; text-shadow: 1px 1px 0 #000;
   }
 
+  /* hover action text, classic top-left */
+  #action-text {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    font-size: 17px; color: #f4e6b8; text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
+  }
+  #action-text.hidden { display: none; }
+  #action-text .verb { color: #fff; }
+  #action-text .tname { color: #ffe17d; }
+  #action-text .more { color: #a8a184; font-size: 14px; }
+  #action-text.far { opacity: 0.55; }
+
+  /* chatbox — the narrator */
+  #chatbox {
+    position: absolute; left: 10px; bottom: 10px; width: 460px; max-width: 44vw;
+    height: 148px; display: flex; flex-direction: column;
+    background: rgba(28, 26, 20, 0.82); border: 2px solid #55503c; border-radius: 4px;
+    pointer-events: auto;
+  }
+  #chat-log {
+    flex: 1; overflow-y: auto; padding: 6px 9px; font-size: 14px; line-height: 1.45;
+    scrollbar-width: thin; scrollbar-color: #55503c transparent;
+  }
+  .chat-line { color: #e8dfc0; }
+  .chat-examine { color: #a9c79b; }
+  .chat-system { color: #c9a232; }
+
+  /* right-side tab panel */
+  #side-panel {
+    position: absolute; right: 10px; top: 76px; width: 204px;
+    background: rgba(28, 26, 20, 0.88); border: 2px solid #55503c; border-radius: 4px;
+    pointer-events: auto; user-select: none;
+  }
+  #tab-strip { display: flex; border-bottom: 2px solid #55503c; }
+  .tab-btn {
+    flex: 1; padding: 6px 0; background: none; border: none; cursor: pointer;
+    color: #a8a184; font-family: inherit; font-size: 13px; letter-spacing: 1px;
+  }
+  .tab-btn.active { color: #ffe17d; background: rgba(85, 80, 60, 0.35); }
+  .tab-page { padding: 8px; }
+  .tab-page.hidden { display: none; }
+
+  #tab-inventory {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+  }
+  .inv-slot {
+    aspect-ratio: 1; background: rgba(20, 18, 14, 0.7); border: 1px solid #454031;
+    border-radius: 3px; position: relative; cursor: pointer;
+  }
+  .inv-slot svg { width: 78%; height: 78%; margin: 11%; display: block; }
+  .inv-slot:hover { border-color: #8a7f57; }
+  .inv-count {
+    position: absolute; top: 1px; right: 3px; font-size: 11px; color: #ffe17d;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  .skill-row {
+    display: flex; justify-content: space-between; padding: 2.5px 6px;
+    font-size: 13.5px; color: #e8dfc0;
+  }
+  .skill-row:nth-child(odd) { background: rgba(85, 80, 60, 0.18); }
+  .skill-lvl { color: #ffe17d; }
+  .skill-total {
+    margin-top: 7px; padding-top: 6px; border-top: 1px solid #55503c;
+    text-align: center; font-size: 13.5px; color: #c9a232;
+  }
+
+  /* context menu */
+  #ctx-menu {
+    position: fixed; min-width: 190px; z-index: 20;
+    background: rgba(28, 26, 20, 0.96); border: 2px solid #6a6248; border-radius: 4px;
+    pointer-events: auto; user-select: none;
+  }
+  #ctx-menu.hidden { display: none; }
+  #ctx-menu.centered { left: 50%; top: 52%; transform: translate(-50%, 0); }
+  #ctx-menu-header {
+    padding: 5px 10px; font-size: 12px; letter-spacing: 2px; color: #c9a232;
+    border-bottom: 1px solid #55503c;
+  }
+  .ctx-row { padding: 5px 12px; font-size: 14.5px; color: #e8dfc0; cursor: pointer; }
+  .ctx-row.hl { background: rgba(201, 162, 50, 0.25); color: #ffe17d; }
+
+  #cursor-hint {
+    position: absolute; top: 8px; right: 224px;
+    font-size: 12.5px; color: rgba(255, 245, 200, 0.65); text-shadow: 1px 1px 0 #000;
+  }
+  #cursor-hint.hidden { display: none; }
+
   #region-banner {
     position: absolute; top: 18%; left: 0; right: 0; text-align: center;
     color: #f4e6b8; font-size: 44px; letter-spacing: 10px; font-variant: small-caps;
@@ -86,9 +174,26 @@
   <div id="hud">
     <div id="crosshair"></div>
     <div id="fps"></div>
+    <div id="action-text" class="hidden"></div>
+    <div id="cursor-hint" class="hidden">cursor mode — TAB for mouse-look</div>
     <div id="run-label">RUN</div>
     <div id="run-orb"><div id="run-fill"></div><div id="run-text">100</div></div>
     <div id="region-banner"></div>
+
+    <div id="chatbox"><div id="chat-log"></div></div>
+
+    <div id="side-panel">
+      <div id="tab-strip"></div>
+      <div id="tab-content">
+        <div id="tab-skills" class="tab-page hidden"></div>
+        <div id="tab-inventory" class="tab-page hidden"></div>
+      </div>
+    </div>
+
+    <div id="ctx-menu" class="hidden">
+      <div id="ctx-menu-header">CHOOSE OPTION</div>
+      <div id="ctx-menu-list"></div>
+    </div>
   </div>
 
   <div id="lock-overlay">
@@ -96,7 +201,8 @@
     <div class="sub">The Realm of Aldera awaits. It is in no hurry.</div>
     <div class="controls">
       WASD — walk &nbsp;·&nbsp; Mouse — look &nbsp;·&nbsp; Shift — toggle run<br>
-      Space — ignored. This is a civilized game.
+      Left click — act &nbsp;·&nbsp; Right click / E — options &nbsp;·&nbsp; TAB — cursor mode<br>
+      F2 — skills &nbsp;·&nbsp; F4 — pack &nbsp;·&nbsp; Space — ignored. This is a civilized game.
     </div>
     <div class="enter">Click to enter Aldera</div>
   </div>

@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import { REGIONS } from '../data/regions.js';
 import { World } from './world.js';
 import { Player } from './player.js';
-import { HUD } from './ui.js';
+import { UI } from './ui.js';
+import { Interactions } from './interact.js';
 
 export const TICK_MS = 600;
 
@@ -43,26 +44,41 @@ scene.add(sun);
 const world = new World(scene, def);
 const player = new Player(camera, world, def.spawn);
 player.attach(canvas);
-const hud = new HUD();
-hud.showBanner(def.name.toUpperCase());
+const ui = new UI(player);
+ui.bind({ world });
+const interactions = new Interactions(camera, world, player, ui);
+interactions.attach(canvas);
+ui.showBanner(def.name.toUpperCase());
+ui.chat.add('Welcome to OLDHOLM.', 'system');
+ui.chat.add('Left click acts. Right click (or E) offers options. TAB frees the cursor.');
 
 clock.on((tick) => {
   clock.gameMinutes = (clock.gameMinutes + 1) % (24 * 60); // one game minute per tick
   world.onTick(tick);
 });
 
-// --- pointer lock overlay ------------------------------------------------------
+// --- pointer lock / cursor mode ----------------------------------------------
+// The title overlay appears once, at boot. After that, losing pointer lock
+// (Esc) just enters cursor mode: the cursor is free for panels and menus,
+// WASD still walks, TAB toggles back to mouse-look.
 
 const overlay = document.getElementById('lock-overlay');
+let entered = false;
 overlay.addEventListener('click', () => {
+  entered = true;
   overlay.classList.add('hidden');
   player.inputEnabled = true;
   player.requestLock();
 });
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === canvas;
-  overlay.classList.toggle('hidden', locked);
-  player.inputEnabled = locked; // overlay back up -> keyboard goes back to it
+  ui.setCursorMode(entered && !locked);
+});
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Tab' || !entered) return;
+  e.preventDefault();
+  if (player.pointerLocked) document.exitPointerLock();
+  else player.requestLock();
 });
 
 window.addEventListener('resize', () => {
@@ -126,12 +142,13 @@ function frame(now) {
   }
 
   player.update(dt);
+  interactions.updateHover();
   applyDayTint();
-  hud.setRun(player.energy, player.runOn);
+  ui.setRun(player.energy, player.runOn);
 
   fpsFrames++;
   if (now - fpsLast >= 500) {
-    hud.setFps(Math.round((fpsFrames * 1000) / (now - fpsLast)));
+    ui.setFps(Math.round((fpsFrames * 1000) / (now - fpsLast)));
     fpsFrames = 0; fpsLast = now;
   }
 
@@ -141,7 +158,7 @@ requestAnimationFrame(frame);
 
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
-  world, player, clock, camera, renderer, scene,
+  world, player, clock, camera, renderer, scene, ui, interactions,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
@@ -153,6 +170,7 @@ window.__OLDHOLM = {
       }
       player.update(dt);
     }
+    interactions.updateHover();
     applyDayTint();
     renderer.render(scene, camera);
   },

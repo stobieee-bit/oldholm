@@ -1,8 +1,14 @@
 // OLDHOLM — world.js
 // Chunked heightfield terrain on a 1-unit tile grid, tile collision flags,
 // and the built environment (castle, bridge, trees) for a region definition.
+//
+// Planes: plane 0 is the terrain. Higher planes are building floors — sparse
+// per-tile maps of {h, blocked}; a tile absent from a plane's map is air
+// (blocked). Stairs and ladders are interactables that teleport between
+// planes, per the spec.
 
 import * as THREE from 'three';
+import { ITEMS } from '../data/items.js';
 
 export const FLAG_BLOCKED = 1;
 export const FLAG_WATER = 2;
@@ -66,6 +72,11 @@ export class World {
     this.heights = new Float32Array((this.size + 1) * (this.size + 1));
     this.flags = new Uint8Array(this.size * this.size);
     this.overrides = new Map(); // "tx,tz" -> { h, blocked } (bridge deck, etc.)
+    this.planes = [null];       // planes[1..] = { tiles: Map("tx,tz"->{h,blocked}), fallbackH }
+    this.interactables = [];    // registry read by interact.js
+    this.raycastTargets = [];   // meshes with userData.interactable
+    this.occluders = [];        // solid meshes that block targeting rays (walls, terrain)
+    this.pickPool = [];         // raycastTargets ∪ occluders, kept deduplicated
     this.group = new THREE.Group();
     this.group.name = 'world:' + def.id;
     scene.add(this.group);
@@ -78,11 +89,18 @@ export class World {
     this._flattenBridgeApproaches();
     this._computeFlags();
     this._applyBridgeOverrides();
-    this._buildCastle();      // marks its own blocked tiles
+    this._buildCastle();      // marks its own blocked tiles; builds keep planes
     this._buildChunks();
     this._buildWater();
     this._buildBridgeMeshes();
     this._plantTrees();
+    this._buildFurniture();
+    this._spawnGroundItems();
+    this._rebuildPickPool();
+  }
+
+  _rebuildPickPool() {
+    this.pickPool = [...new Set([...this.raycastTargets, ...this.occluders])];
   }
 
   onTick(tick) {
@@ -104,9 +122,24 @@ export class World {
     return this.heights[cz * (this.size + 1) + cx];
   }
 
-  /** Ground height at a world position (bridge decks override the terrain). */
-  getGroundHeight(x, z) {
+  /** Register a building floor; returns its plane index. */
+  addPlane(fallbackH) {
+    this.planes.push({ tiles: new Map(), fallbackH });
+    return this.planes.length - 1;
+  }
+
+  setPlaneTile(plane, tx, tz, h, blocked = false) {
+    this.planes[plane].tiles.set(tx + ',' + tz, { h, blocked });
+  }
+
+  /** Ground height at a world position (decks/floors override the terrain). */
+  getGroundHeight(x, z, plane = 0) {
     const tx = Math.floor(x), tz = Math.floor(z);
+    if (plane > 0) {
+      const p = this.planes[plane];
+      const t = p.tiles.get(tx + ',' + tz);
+      return t ? t.h : p.fallbackH;
+    }
     const ov = this.overrides.get(tx + ',' + tz);
     if (ov) return ov.h;
     const x0 = clamp(Math.floor(x), 0, this.size - 1);
@@ -117,12 +150,44 @@ export class World {
     return (h00 + (h10 - h00) * fx) * (1 - fz) + (h01 + (h11 - h01) * fx) * fz;
   }
 
-  /** Tile-truth collision: is this tile a blocker? Out of bounds is a wall. */
-  isBlocked(tx, tz) {
+  /** Tile-truth collision: is this tile a blocker? Out of bounds (or off a floor) is a wall. */
+  isBlocked(tx, tz, plane = 0) {
     if (tx < 0 || tz < 0 || tx >= this.size || tz >= this.size) return true;
+    if (plane > 0) {
+      const t = this.planes[plane].tiles.get(tx + ',' + tz);
+      return !t || t.blocked;
+    }
     const ov = this.overrides.get(tx + ',' + tz);
     if (ov) return ov.blocked;
     return (this.flags[tz * this.size + tx] & FLAG_BLOCKED) !== 0;
+  }
+
+  setTileBlocked(tx, tz, blocked) { // dynamic blockers (doors)
+    if (tx < 0 || tz < 0 || tx >= this.size || tz >= this.size) return;
+    const i = tz * this.size + tx;
+    if (blocked) this.flags[i] |= FLAG_BLOCKED;
+    else this.flags[i] &= ~FLAG_BLOCKED;
+  }
+
+  /** Register something the crosshair can target. Every entry has an examine line. */
+  addInteractable(entry) {
+    this.interactables.push(entry);
+    for (const m of entry.meshes) {
+      m.userData.interactable = entry;
+      this.raycastTargets.push(m);
+    }
+    this._rebuildPickPool();
+    return entry;
+  }
+
+  removeInteractable(entry) {
+    this.interactables = this.interactables.filter((e) => e !== entry);
+    this.raycastTargets = this.raycastTargets.filter((m) => m.userData.interactable !== entry);
+    for (const m of entry.meshes) {
+      this.group.remove(m);
+      if (m.geometry) m.geometry.dispose();
+    }
+    this._rebuildPickPool();
   }
 
   isWater(tx, tz) {
@@ -336,6 +401,7 @@ export class World {
         const mesh = new THREE.Mesh(geo, mat);
         mesh.matrixAutoUpdate = false;
         this.group.add(mesh);
+        this.occluders.push(mesh); // terrain blocks targeting rays
       }
     }
   }
@@ -361,6 +427,7 @@ export class World {
     mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
     this.group.add(mesh);
+    this.occluders.push(mesh);
     return mesh;
   }
 
@@ -369,9 +436,6 @@ export class World {
     const base = c.plateauH;
     const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
     const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
-    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
-    const roof = new THREE.MeshLambertMaterial({ color: 0x7a4a36, flatShading: true });
-    const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
 
     const wallH = c.wallH, sink = 0.5;
     const wallY = base - sink + (wallH + sink) / 2;
@@ -407,6 +471,7 @@ export class World {
       tower.position.set(txx, base - sink + 3.75, tzz);
       tower.matrixAutoUpdate = false; tower.updateMatrix();
       this.group.add(tower);
+      this.occluders.push(tower);
       const cap = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 0.8, 9), stone);
       cap.position.set(txx, base + 7.2, tzz);
       cap.matrixAutoUpdate = false; cap.updateMatrix();
@@ -433,28 +498,193 @@ export class World {
     merlons.frustumCulled = false;
     this.group.add(merlons);
 
-    // the keep
-    const k = c.keep;
+    // the keep — hollow, three levels (built by its own method)
+    this._buildKeep(c);
+  }
+
+  /**
+   * The keep: ground floor (plane 0), upper floor (plane 1), roof terrace
+   * (plane 2). Conventions: door in the middle of the east wall, staircase
+   * along the north interior wall (NW), roof ladder in the NE corner.
+   */
+  _buildKeep(c) {
+    const k = c.keep, base = c.plateauH;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
+
     const kw = k.x1 - k.x0, kd = k.z1 - k.z0;
     const kx = (k.x0 + k.x1) / 2, kz = (k.z0 + k.z1) / 2;
-    this._addBox(kw, k.bodyH + 0.3, kd, kx, base - 0.3 + (k.bodyH + 0.3) / 2, kz, stone);
-    const topY = base + k.bodyH;
-    this._addBox(kw - 4, k.topH, kd - 3, kx, topY + k.topH / 2, kz, darkStone);
-    const roofBase = topY + k.topH;
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(Math.hypot(kw - 4, kd - 3) / 2 + 0.6, 2.6, 4), roof);
-    cone.position.set(kx, roofBase + 1.3, kz);
-    cone.rotation.y = Math.PI / 4;
-    this.group.add(cone);
-    // banner of Aurel on the roof
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.4, 5), darkStone);
-    pole.position.set(kx, roofBase + 2.6 + 1.0, kz);
+    const wallH = k.wallH, sink = 0.3;
+    const wy = base - sink + (wallH + sink) / 2;
+    const doorRow = Math.floor(kz); // east-wall door tile row (center of the wall)
+
+    // shell walls (0.9 thick, on the perimeter ring tiles)
+    this._addBox(kw, wallH + sink, 0.9, kx, wy, k.z0 + 0.5, stone);           // north
+    this._addBox(kw, wallH + sink, 0.9, kx, wy, k.z1 - 0.5, stone);           // south
+    this._addBox(0.9, wallH + sink, kd - 2, k.x0 + 0.5, wy, kz, stone);       // west
+    const eA = doorRow - (k.z0 + 1);                                           // east, north of door
+    const eB = (k.z1 - 1) - (doorRow + 1);                                     // east, south of door
+    this._addBox(0.9, wallH + sink, eA, k.x1 - 0.5, wy, k.z0 + 1 + eA / 2, stone);
+    this._addBox(0.9, wallH + sink, eB, k.x1 - 0.5, wy, doorRow + 1 + eB / 2, stone);
+    this._addBox(0.9, wallH - 2.6, 1, k.x1 - 0.5, base + 2.6 + (wallH - 2.6) / 2, doorRow + 0.5, stone);
+    // perimeter collision (door tile stays dynamic)
+    this.markBlockedRect(k.x0, k.z0, k.x1 - 1, k.z0);
+    this.markBlockedRect(k.x0, k.z1 - 1, k.x1 - 1, k.z1 - 1);
+    this.markBlockedRect(k.x0, k.z0 + 1, k.x0, k.z1 - 2);
+    this.markBlockedRect(k.x1 - 1, k.z0 + 1, k.x1 - 1, doorRow - 1);
+    this.markBlockedRect(k.x1 - 1, doorRow + 1, k.x1 - 1, k.z1 - 2);
+
+    // upper-floor slab (= ground-floor ceiling) and roof slab
+    const floorY = base + k.floorH;
+    this._addBox(kw - 1.1, 0.22, kd - 1.1, kx, floorY - 0.11, kz, wood);
+    const roofY = base + wallH + 0.3;
+    this._addBox(kw + 0.6, 0.3, kd + 0.6, kx, roofY - 0.15, kz, darkStone);
+    // roof parapet fills the ring tiles (collision face == visible face)
+    this._addBox(kw, 0.85, 1.0, kx, roofY + 0.425, k.z0 + 0.5, stone);
+    this._addBox(kw, 0.85, 1.0, kx, roofY + 0.425, k.z1 - 0.5, stone);
+    this._addBox(1.0, 0.85, kd - 2, k.x0 + 0.5, roofY + 0.425, kz, stone);
+    this._addBox(1.0, 0.85, kd - 2, k.x1 - 0.5, roofY + 0.425, kz, stone);
+    // roof merlons
+    const pts = [];
+    for (let x = k.x0 + 1; x <= k.x1 - 1; x += 1.4) pts.push([x, k.z0 + 0.5], [x, k.z1 - 0.5]);
+    for (let z = k.z0 + 2; z <= k.z1 - 2; z += 1.4) pts.push([k.x0 + 0.5, z], [k.x1 - 0.5, z]);
+    const merlons = new THREE.InstancedMesh(new THREE.BoxGeometry(0.45, 0.5, 0.45), stone, pts.length);
+    const m4 = new THREE.Matrix4();
+    pts.forEach(([mx, mz], i) => { m4.makeTranslation(mx, roofY + 0.85 + 0.25, mz); merlons.setMatrixAt(i, m4); });
+    merlons.frustumCulled = false;
+    this.group.add(merlons);
+    // banner of Aurel, now flown from the roof terrace
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.0, 5), darkStone);
+    pole.position.set(kx, roofY + 1.5, kz - 2);
     this.group.add(pole);
-    this._addBox(0.8, 0.5, 0.06, kx + 0.45, roofBase + 3.3, kz, gold);
-    // door + windows on the east face
-    this._addBox(0.3, 2.4, 1.8, k.x1 + 0.05, base + 0.9, (k.z0 + k.z1) / 2, dark);
-    for (const wz of [k.z0 + 2, (k.z0 + k.z1) / 2, k.z1 - 2])
-      this._addBox(0.2, 1.0, 0.7, k.x1 + 0.05, base + 4.4, wz, dark);
-    this.markBlockedRect(k.x0, k.z0, k.x1 - 1, k.z1 - 1);
+    this._addBox(0.8, 0.5, 0.06, kx + 0.45, roofY + 2.6, kz - 2, gold);
+    // upper-floor windows (dark insets) on the east, south, and west faces
+    for (const wz of [doorRow - 1.5, doorRow + 2.5])
+      this._addBox(0.2, 1.0, 0.7, k.x1 - 0.03, base + 4.5, wz, dark);
+    for (const wx of [kx - 3, kx + 3]) {
+      this._addBox(0.7, 1.0, 0.2, wx, base + 4.5, k.z1 - 0.03, dark);
+      this._addBox(0.7, 1.0, 0.2, wx, base + 4.5, k.z0 + 0.03, dark);
+    }
+    this._addBox(0.2, 1.0, 0.7, k.x0 + 0.03, base + 4.5, kz, dark);
+
+    // walkable plane maps: interior 12x8 on both upper levels
+    const pFloor = this.addPlane(floorY);
+    const pRoof = this.addPlane(roofY);
+    this.keepPlanes = { floor: pFloor, roof: pRoof };
+    for (let tz = k.z0 + 1; tz <= k.z1 - 2; tz++)
+      for (let tx = k.x0 + 1; tx <= k.x1 - 2; tx++) {
+        this.setPlaneTile(pFloor, tx, tz, floorY);
+        this.setPlaneTile(pRoof, tx, tz, roofY);
+      }
+    // the stairwell opening is a hole in the upper floor — blocked, banister on its edge
+    for (let tx = k.x0 + 1; tx <= k.x0 + 4; tx++)
+      this.setPlaneTile(pFloor, tx, k.z0 + 1, floorY, true);
+
+    // ---- the door (hinged, opens inward) ----
+    const doorTile = { x: k.x1 - 1, z: doorRow };
+    this.setTileBlocked(doorTile.x, doorTile.z, true); // starts closed
+    const hinge = new THREE.Group();
+    hinge.position.set(k.x1 - 0.5, base, doorRow + 0.02);
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.5, 0.98), wood);
+    panel.position.set(0, 1.25, 0.49);
+    hinge.add(panel);
+    this.group.add(hinge);
+    const door = { open: false };
+    this.addInteractable({
+      kind: 'door', name: 'Door', meshes: [panel],
+      examine: 'Solid oak. It judges visitors silently.',
+      actions: [{
+        label: () => (door.open ? 'Close' : 'Open'),
+        fn: (ctx) => {
+          door.open = !door.open;
+          hinge.rotation.y = door.open ? -Math.PI / 2 : 0;
+          this.setTileBlocked(doorTile.x, doorTile.z, !door.open);
+          ctx.ui.chat.add(door.open ? 'The door creaks open.' : 'You close the door.');
+        },
+      }],
+    });
+
+    // ---- staircase: ground floor <-> upper floor (teleporting, per spec) ----
+    const stepMeshes = [];
+    for (let i = 0; i < 6; i++) {
+      const h = 0.45 * (i + 1);
+      stepMeshes.push(this._addBox(0.55, h, 1.0, k.x0 + 1.6 + i * 0.55, base + h / 2, k.z0 + 1.5, darkStone));
+    }
+    this.markBlockedRect(k.x0 + 1, k.z0 + 1, k.x0 + 4, k.z0 + 1); // tiles under the steps
+    const stairTop = { x: k.x0 + 3.2, z: k.z0 + 2.7 };            // arrival spot on both levels
+    this.addInteractable({
+      kind: 'stairs', name: 'Staircase', meshes: stepMeshes,
+      examine: 'Stairs. They go up. Also down.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => {
+          ctx.player.setPosition(stairTop.x, stairTop.z, undefined, pFloor);
+          ctx.ui.chat.add('You climb up the stairs.');
+        },
+      }],
+    });
+    // the stairwell opening seen from the upper floor
+    const stairWell = this._addBox(3.3, 0.06, 1.0, k.x0 + 2.9, floorY + 0.03, k.z0 + 1.5, dark);
+    const banister = this._addBox(3.3, 0.75, 0.09, k.x0 + 2.9, floorY + 0.4, k.z0 + 1.96, wood);
+    this.addInteractable({
+      kind: 'stairs', name: 'Staircase', meshes: [stairWell, banister],
+      examine: 'Stairs. They go down. Also up.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => {
+          ctx.player.setPosition(stairTop.x, stairTop.z, undefined, 0);
+          ctx.ui.chat.add('You climb down the stairs.');
+        },
+      }],
+    });
+
+    // ---- ladder: upper floor <-> roof terrace ----
+    const ladderX = k.x1 - 2.5, ladderZ = k.z0 + 1.3;
+    const ladderMeshes = [];
+    const railGeo = new THREE.CylinderGeometry(0.05, 0.05, wallH - k.floorH + 0.6, 5);
+    for (const dx of [-0.25, 0.25]) {
+      const rail = new THREE.Mesh(railGeo, wood);
+      rail.position.set(ladderX + dx, floorY + (wallH - k.floorH + 0.6) / 2, ladderZ);
+      this.group.add(rail);
+      ladderMeshes.push(rail);
+    }
+    for (let i = 0; i < 6; i++)
+      ladderMeshes.push(this._addBox(0.5, 0.07, 0.06, ladderX, floorY + 0.5 + i * 0.5, ladderZ, wood));
+    const ladderSpot = { x: ladderX, z: k.z0 + 3.0 };
+    this.addInteractable({
+      kind: 'ladder', name: 'Ladder', meshes: ladderMeshes,
+      examine: 'Leads to fresh air and pigeons.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => {
+          ctx.player.setPosition(ladderSpot.x, ladderSpot.z, undefined, pRoof);
+          ctx.ui.chat.add('You climb the ladder to the roof.');
+        },
+      }],
+    });
+    // hatch + ladder stub on the roof
+    const hatch = this._addBox(0.95, 0.09, 0.95, ladderX, roofY + 0.045, ladderZ + 0.4, dark);
+    const stubs = [];
+    for (const dx of [-0.25, 0.25]) {
+      const stub = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8, 5), wood);
+      stub.position.set(ladderX + dx, roofY + 0.4, ladderZ);
+      this.group.add(stub);
+      stubs.push(stub);
+    }
+    this.addInteractable({
+      kind: 'ladder', name: 'Ladder', meshes: [hatch, ...stubs],
+      examine: 'Back down to carpets and candles.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => {
+          ctx.player.setPosition(ladderSpot.x, ladderSpot.z, undefined, pFloor);
+          ctx.ui.chat.add('You climb down the ladder.');
+        },
+      }],
+    });
   }
 
   // ---- bridge ---------------------------------------------------------------
@@ -467,10 +697,10 @@ export class World {
     const cx = (this.bridgeX0 + this.bridgeX1) / 2;
     // deck covers exactly the walk + rail rows
     const depth = this.bridgeZ1 - this.bridgeZ0;
-    this._addBox(len, 0.4, depth, cx, b.deckH - 0.2, this.bridgeZC, stone);
+    const bridgeMeshes = [this._addBox(len, 0.4, depth, cx, b.deckH - 0.2, this.bridgeZC, stone)];
     // parapets fill their blocked rail tiles so the collision face is the visible face
     for (const rz of b.railRows) {
-      this._addBox(len, 0.9, 0.95, cx, b.deckH + 0.45, rz + 0.5, darker);
+      bridgeMeshes.push(this._addBox(len, 0.9, 0.95, cx, b.deckH + 0.45, rz + 0.5, darker));
       // support piers down into the river, under the parapet lines
       for (let x = this.bridgeX0 + 2.5; x < this.bridgeX1 - 1; x += 4) {
         const pier = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 5.5, 7), darker);
@@ -479,6 +709,11 @@ export class World {
         this.group.add(pier);
       }
     }
+    this.addInteractable({
+      kind: 'scenery', name: 'Bridge', meshes: bridgeMeshes,
+      examine: 'Aldern stonework. Older than everyone you know.',
+      actions: [],
+    });
   }
 
   // ---- trees ----------------------------------------------------------------
@@ -553,5 +788,104 @@ export class World {
       mesh.frustumCulled = false; // instanced bounds don't cover instances
       this.group.add(mesh);
     }
+    this.addInteractable({
+      kind: 'scenery', name: 'Tree', meshes: [trunks, lows, highs],
+      examine: 'A tree. Notably wooden.',
+      actions: [], // Chop-down arrives with Woodcutting in Phase 4
+    });
+  }
+
+  // ---- furniture -------------------------------------------------------------
+
+  _buildFurniture() {
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    for (const f of this.def.furniture ?? []) {
+      if (f.kind !== 'table') continue;
+      const y = this.getGroundHeight(f.x, f.z, f.plane);
+      const meshes = [this._addBox(1.6, 0.12, 0.9, f.x, y + 0.78, f.z, wood)];
+      for (const [lx, lz] of [[-0.65, -0.32], [0.65, -0.32], [-0.65, 0.32], [0.65, 0.32]])
+        meshes.push(this._addBox(0.12, 0.72, 0.12, f.x + lx, y + 0.36, f.z + lz, wood));
+      for (let tx = Math.floor(f.x - 0.8); tx <= Math.floor(f.x + 0.8); tx++)
+        for (let tz = Math.floor(f.z - 0.45); tz <= Math.floor(f.z + 0.45); tz++)
+          if (f.plane === 0) this.setTileBlocked(tx, tz, true);
+      this.addInteractable({
+        kind: 'scenery', name: 'Table', meshes,
+        examine: 'Four legs and ambitions of stability.',
+        actions: [],
+      });
+    }
+  }
+
+  // ---- ground items ----------------------------------------------------------
+
+  _spawnGroundItems() {
+    for (const g of this.def.groundItems ?? [])
+      this.addGroundItem(g.item, g.count ?? 1, g.x, g.z, g.plane ?? 0, g.dy ?? 0);
+  }
+
+  /** Drop an item into the world; it becomes a takeable interactable. */
+  addGroundItem(id, count, x, z, plane = 0, dy = 0) {
+    const def = ITEMS[id];
+    const { root, meshes } = this._buildItemModel(def);
+    root.position.set(x, this.getGroundHeight(x, z, plane) + dy + 0.01, z);
+    root.rotation.y = hash2(this.def.seed, Math.round(x * 7), Math.round(z * 7)) * Math.PI * 2;
+    this.group.add(root);
+    let entry;
+    entry = this.addInteractable({
+      kind: 'ground-item', name: def.name, itemId: id, count,
+      meshes, examine: def.examine, plane, root,
+      actions: [{
+        label: 'Take',
+        fn: (ctx) => {
+          if (!ctx.player.inventory.add(id, count)) {
+            ctx.ui.chat.add("You can't carry any more.");
+            return;
+          }
+          this.group.remove(root);
+          this.removeInteractable(entry);
+          ctx.ui.chat.add('You take the ' + def.name.toLowerCase() + '.');
+          ctx.ui.refreshInventory();
+        },
+      }],
+    });
+    return entry;
+  }
+
+  /** Build a small low-poly mesh for an item def; origin at its base. */
+  _buildItemModel(def) {
+    const m = def.model;
+    const mat = new THREE.MeshLambertMaterial({ color: m.color, flatShading: true });
+    const root = new THREE.Group();
+    const meshes = [];
+    const add = (geo, x, y, z, material = mat) => {
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.position.set(x, y, z);
+      root.add(mesh);
+      meshes.push(mesh);
+      return mesh;
+    };
+    switch (m.kind) {
+      case 'cylinder': add(new THREE.CylinderGeometry(m.rTop, m.rBot, m.h, 8), 0, m.h / 2, 0); break;
+      case 'sphere': add(new THREE.IcosahedronGeometry(m.r, 0), 0, m.r, 0); break;
+      case 'box': add(new THREE.BoxGeometry(m.w, m.h, m.d), 0, m.h / 2, 0); break;
+      case 'log': {
+        const mesh = add(new THREE.CylinderGeometry(m.r, m.r, m.len, 7), 0, m.r, 0);
+        mesh.rotation.z = Math.PI / 2;
+        break;
+      }
+      case 'bones': {
+        add(new THREE.BoxGeometry(0.5, 0.05, 0.08), 0, 0.04, 0).rotation.y = 0.5;
+        add(new THREE.BoxGeometry(0.42, 0.05, 0.08), 0.05, 0.09, 0.03).rotation.y = -0.7;
+        break;
+      }
+      case 'blade': {
+        const handleMat = new THREE.MeshLambertMaterial({ color: m.handle, flatShading: true });
+        add(new THREE.BoxGeometry(0.42, 0.03, 0.1), -0.08, 0.03, 0);
+        add(new THREE.BoxGeometry(0.05, 0.05, 0.2), 0.16, 0.03, 0, handleMat);
+        add(new THREE.BoxGeometry(0.16, 0.045, 0.06), 0.26, 0.03, 0, handleMat);
+        break;
+      }
+    }
+    return { root, meshes };
   }
 }
