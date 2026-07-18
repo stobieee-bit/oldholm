@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OLDHOLM</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #4a5548; }
+  #game { display: block; width: 100%; height: 100%; }
+
+  #hud { position: fixed; inset: 0; pointer-events: none; font-family: Georgia, 'Times New Roman', serif; }
+
+  #crosshair {
+    position: absolute; left: 50%; top: 50%; width: 6px; height: 6px;
+    margin: -3px 0 0 -3px; border-radius: 50%;
+    background: rgba(255, 245, 200, 0.85);
+    box-shadow: 0 0 3px rgba(0,0,0,0.8);
+  }
+
+  #fps {
+    position: absolute; top: 8px; left: 10px;
+    color: rgba(255, 245, 200, 0.7); font-size: 13px;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  /* run-energy orb, bottom right */
+  #run-orb {
+    position: absolute; right: 18px; bottom: 18px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: #2b2b22; border: 3px solid #55503c;
+    overflow: hidden;
+  }
+  #run-orb.active { border-color: #d8b13a; box-shadow: 0 0 10px rgba(216, 177, 58, 0.5); }
+  #run-fill {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 100%;
+    background: linear-gradient(#e0c460, #a8862a);
+    transition: height 0.15s linear;
+  }
+  #run-text {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff5c8; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 0 #000;
+  }
+  #run-label {
+    position: absolute; right: 18px; bottom: 76px; width: 54px; text-align: center;
+    color: rgba(255,245,200,0.75); font-size: 11px; letter-spacing: 1px; text-shadow: 1px 1px 0 #000;
+  }
+
+  #region-banner {
+    position: absolute; top: 18%; left: 0; right: 0; text-align: center;
+    color: #f4e6b8; font-size: 44px; letter-spacing: 10px; font-variant: small-caps;
+    text-shadow: 2px 2px 0 #201c12, 0 0 24px rgba(0,0,0,0.4);
+    opacity: 0;
+  }
+  #region-banner.show { animation: banner 5s ease-out forwards; }
+  @keyframes banner {
+    0% { opacity: 0; } 12% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; }
+  }
+
+  #lock-overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    background: rgba(20, 24, 18, 0.82); color: #f4e6b8; cursor: pointer;
+    font-family: Georgia, 'Times New Roman', serif; text-align: center;
+    user-select: none; z-index: 10;
+  }
+  #lock-overlay.hidden { display: none; }
+  #lock-overlay h1 { font-size: 64px; letter-spacing: 14px; font-variant: small-caps;
+    text-shadow: 3px 3px 0 #000; }
+  #lock-overlay .sub { font-size: 16px; color: #cbbf98; font-style: italic; }
+  #lock-overlay .controls { margin-top: 18px; font-size: 14px; color: #a8a184; line-height: 1.8; }
+  #lock-overlay .enter { margin-top: 12px; font-size: 18px; color: #ffe9a0; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div id="crosshair"></div>
+    <div id="fps"></div>
+    <div id="run-label">RUN</div>
+    <div id="run-orb"><div id="run-fill"></div><div id="run-text">100</div></div>
+    <div id="region-banner"></div>
+  </div>
+
+  <div id="lock-overlay">
+    <h1>Oldholm</h1>
+    <div class="sub">The Realm of Aldera awaits. It is in no hurry.</div>
+    <div class="controls">
+      WASD — walk &nbsp;·&nbsp; Mouse — look &nbsp;·&nbsp; Shift — toggle run<br>
+      Space — ignored. This is a civilized game.
+    </div>
+    <div class="enter">Click to enter Aldera</div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
