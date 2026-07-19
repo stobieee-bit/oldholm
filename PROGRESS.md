@@ -1,6 +1,65 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 8 — NPCs, Shops, Banking — COMPLETE
+## Current status: Phase 9 — Quest Engine + Quests 1–5 — COMPLETE
+
+## What was built (Phase 9)
+
+- **Quest engine** (`src/quests.js` + `data/quests.js`): stage ints (0 → N → 100),
+  journal lines per stage, reward execution (xp + items), QP totals, and the
+  completion fanfare screen ("QUEST COMPLETE … Quest points: X/Y", click to dismiss).
+  Journal tab (F3): five quests colored red/yellow/green per §11, click for the
+  current objective, QP footer.
+- **Dialogue upgrades**: stage-conditional tree starts and options ({quest, is/gte/lt},
+  {hasAll}), quest action strings (quest:/complete:/give:/take:/unhide:), deferred
+  shop/bank opens. All five quests are pure dialogue + world data.
+- **The five quests, fully playable**:
+  1. *The Cook's Calamity* — egg (coop spawn), bucket of milk (Milk action on the
+     dairy cow), flour via the WINDMILL two-floor hopper mechanic (fill hopper up
+     top, pull the lever, collect from the bin below; sails turn). Completing it
+     unlocks the castle range (which now bodily refuses strangers).
+  2. *The Unquiet Grave* — churchyard graves behind the church, a ghost who speaks
+     only through the priest's Spectral Charm, the wizard tower's basement (a plane
+     7 units underground) guarded by a bolt-casting lv-20 Vex cultist, and a skull
+     whose pickup advances the quest (item-triggered advance). 1,125 Prayer xp.
+  3. *Beads of the Magus* — four teleporting imps (blink mid-fight) dropping four
+     bead colors; Magus Orin pays 875 Magic xp + the amulet of accuracy.
+  4. *The Severed Circle* — talisman loop Orin → Fenwick → Orin (the academy features
+     narratively; Corvath arrives in Phase 10). Completing it mends the circle:
+     GLYPHCRAFT unlocks — mine blank slates from the pale vein, imbue at the Gale
+     altar (stones per slate scale with level), 12 starter slates.
+  5. *A Matter of Colors* — redberry bushes and marsh greens feed Old Maud's dye
+     cart; both dyes get rejected by chiefs Wartfang and Grubnose; Grubfoot the
+     Uniter (hidden until summoned by dialogue) rules for goblin-colored armor.
+     250 Crafting xp and peace, by goblin standards.
+- **New machinery**: mob attackRange (casters bolt from distance with projectiles),
+  imp blink, hidden-until-unhidden NPCs, pickable plants (wheat/berries/greens with
+  deplete + respawn), the windmill/tower/churchyard/altar/dye-cart builders, plane
+  resolution for data ('towerBasement'), onTake quest hooks on ground items.
+
+## Phase 9 — tested: THE FULL DoD PLAYTHROUGH (fresh save, real pipelines)
+
+- Journal starts all red; range refuses; altar refuses ("Their circle is severed").
+- Q1: talk → fetch (egg/milk/mill-flour incl. hopper→lever→bin) → deliver → fanfare,
+  +300 Cooking exactly, range opens, journal [green, red×4].
+- Q2: ghost mute without the charm → priest gives it → stage flow 1→2→3 (skull
+  onTake) → 100; cultist aggroed and bolted us in the cellar; exactly 1,125 Prayer.
+- Q3: 8 imp kills with 18 observed blinks → all four beads → exactly 875 Magic +
+  amulet (spare beads correctly kept).
+- Q4: talisman loop → complete → mined a slate from the pale vein → imbued 15 slates
+  → 15 gale glyphs + exactly 135 Glyphcraft xp (level 2).
+- Q5: berries → red dye (stage flow) → Wartfang rejects → Grubfoot UNHIDES → wake →
+  verdict → 250 Crafting. Final journal: five greens, "Quest points: 5 / 5",
+  epilogue dialogue live.
+- Regressions green; 1.18 ms/frame.
+
+## Definition of Done — Phase 9
+
+- [x] Complete all 5 quests in sequence from a fresh save
+- [x] Journal states correct throughout
+
+---
+
+## Phase 8 — NPCs, Shops, Banking — COMPLETE
 
 ## What was built (Phase 8)
 
@@ -494,16 +553,16 @@
 
 ## Exact next step
 
-**Phase 9 — Quest Engine + Quests 1–5**: quest state machine (int stage per quest),
-journal tab (F3) with red/yellow/green statuses, dialogue gates on stage (the dialogue
-engine needs stage-conditional trees + quest actions beyond openShop/openBank),
-item-triggered advances, completion fanfare screen listing rewards ("You have
-completed X! Quest points: +1"). Quests: The Cook's Calamity (egg/milk/flour — needs
-the windmill with its two-floor hopper mechanic, a dairy cow interaction, wheat, and
-the coop's egg), The Unquiet Grave (churchyard spirit + wizard tower basement +
-Spectral Charm), Beads of the Magus (imps — new teleporting mob — and 4 bead colors),
-The Severed Circle (talisman delivery; unlocks Glyphcraft + first altar), A Matter of
-Colors (goblin diplomacy + dyes + Grubfoot the Uniter). Sequencing note: this needs
-the windmill building, wizard tower, imps, dye-maker stand-in, Glyphcraft skill
-actions, and quest data files (data/quests.js). DoD: complete all 5 in sequence from
-a fresh save with correct journal states throughout.
+**Phase 10 — World Expansion I**: build Murkwell, Corvath (walled capital with palace,
+fountain square, Grand Market order book, east/west banks, sword/staff shops, church,
+anvil district, guards, and the sewers dungeon: rats → zombies → skeletons → ghoul
+den), Whitehold (+ dwarven mine + Mining Guild at Mining 60), Skalvik, Brinkton,
+roads + signposts between everything, mid-tier bestiary (Guard 21, Skeleton 21,
+Zombie 24, Vex cultist camps, Highwayman 5, Bear 19, Hill giant 28 w/ big bones,
+Moss giant 42), second/third bank branches (the shared vault already supports them),
+the Grand Market simulated order book, and teleport spells becoming meaningful
+(Holmbridge 25 / Corvath 31 / Whitehold 37). This means multi-region world support —
+regions.js has one region today; world.js should build several connected chunks or
+one larger heightfield with region bands. DoD: walk Holmbridge → Corvath by road,
+clear a sewers lap, post and get a Grand Market sell order filled. NOTE: save system
+(§14) still unimplemented — consider folding autosave in here or Phase 12.

@@ -316,6 +316,35 @@
   .dlg-opt:hover { color: #fff; background: rgba(201,162,50,0.14); }
   .dlg-continue { color: #a8a184; font-size: 13px; text-align: center; padding: 4px; cursor: pointer; }
 
+  /* quest journal (spec §11: red / yellow / green) */
+  .quest-row {
+    padding: 4px 8px; font-size: 13.5px; cursor: pointer;
+    border-bottom: 1px solid rgba(85,80,60,0.3);
+  }
+  .quest-row.selected { background: rgba(201,162,50,0.12); }
+  .quest-locked { color: #c05a4a; }
+  .quest-active { color: #ffe17d; }
+  .quest-done { color: #7fdf5f; }
+  .quest-detail {
+    margin-top: 8px; padding: 7px 8px; font-size: 12.5px; line-height: 1.5;
+    color: #e8dfc0; background: rgba(20,18,14,0.6); border-radius: 3px; min-height: 46px;
+  }
+
+  /* quest completion fanfare */
+  #quest-fanfare {
+    position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%);
+    min-width: 380px; text-align: center; z-index: 30; cursor: pointer;
+    background: rgba(28, 26, 20, 0.97); border: 3px solid #c9a232; border-radius: 6px;
+    padding: 22px 30px; pointer-events: auto; user-select: none;
+    box-shadow: 0 0 60px rgba(216, 177, 58, 0.25);
+  }
+  #quest-fanfare.hidden { display: none; }
+  #qf-title { color: #c9a232; letter-spacing: 6px; font-size: 14px; }
+  #qf-name { color: #ffe17d; font-size: 26px; font-variant: small-caps; margin: 8px 0 12px; }
+  #qf-rewards { color: #e8dfc0; font-size: 14px; line-height: 1.7; }
+  #qf-points { color: #c9a232; font-size: 15px; margin-top: 12px; }
+  #qf-hint { color: #a8a184; font-size: 11.5px; margin-top: 10px; }
+
   /* overhead chatter */
   .overhead-say {
     position: absolute; left: 0; top: 0; color: #fff2b8; font-size: 13.5px;
@@ -404,6 +433,7 @@
       <div id="tab-content">
         <div id="tab-combat" class="tab-page hidden"></div>
         <div id="tab-skills" class="tab-page hidden"></div>
+        <div id="tab-quests" class="tab-page hidden"></div>
         <div id="tab-inventory" class="tab-page hidden"></div>
         <div id="tab-equipment" class="tab-page hidden"></div>
         <div id="tab-prayer" class="tab-page hidden"></div>
@@ -441,6 +471,14 @@
     <div id="dlg-name"></div>
     <div id="dlg-text"></div>
     <div id="dlg-options"></div>
+  </div>
+
+  <div id="quest-fanfare" class="hidden">
+    <div id="qf-title">QUEST COMPLETE</div>
+    <div id="qf-name"></div>
+    <div id="qf-rewards"></div>
+    <div id="qf-points"></div>
+    <div id="qf-hint">Click to continue your adventures</div>
   </div>
 
   <div id="lock-overlay">

@@ -11,6 +11,7 @@ import {
   GEM_WEIGHTS, JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING,
 } from '../data/crafting.js';
 import { BONES } from '../data/prayers.js';
+import { GLYPHCRAFT } from '../data/quests.js';
 import { METAL_SMITHING } from '../data/items.js';
 
 const MAX_LEVEL = 99;
@@ -573,6 +574,49 @@ export class Actions {
     this.ui.refreshInventory();
   }
 
+  /** Instant: milk the dairy cow into an empty bucket. */
+  milkCow(mob) {
+    if (mob.dead) return;
+    const i = this.player.inventory.slots.findIndex((s) => s && s.id === 'bucket');
+    if (i === -1) { this.ui.chat.add('You need an empty bucket to milk the cow.'); return; }
+    this.player.inventory.slots[i] = { id: 'bucket_of_milk', count: 1 };
+    this.ui.chat.add('You milk the cow. It tolerates you magnificently.');
+    this.ui.refreshInventory();
+  }
+
+  /** Glyphcraft: imbue blank slates at an elemental altar (quest-gated). */
+  imbueSlates(altarEntry) {
+    if (!this.quests?.glyphcraftUnlocked()) {
+      this.ui.chat.add('The stones are silent. Their circle is severed — someone cut this knowledge, long ago.');
+      return;
+    }
+    if (this._countItem('blank_slate') < 1) {
+      this.ui.chat.add('You have no blank slates. A pale vein at the mine yields them.');
+      return;
+    }
+    let cadence = 0;
+    this._start({
+      kind: 'imbue',
+      startMsg: 'You lay a slate on the altar. The wind leans in.',
+      validate: () => this._countItem('blank_slate') >= 1,
+      onTick: () => {
+        if (++cadence % 2 !== 0) return;
+        const level = this.player.skillByName('Glyphcraft').level;
+        const stones = GLYPHCRAFT.stonesPerSlate(level);
+        this._takeItems('blank_slate', 1);
+        if (!this.player.inventory.add(GLYPHCRAFT.altarElement + '_glyph', stones)) {
+          this.ui.chat.add('Your pack is too full for the glyphs.');
+          this.cancel();
+          return;
+        }
+        this.ui.refreshInventory();
+        this.ui.chat.add(`The wind writes itself into the stone. ${stones} gale glyph${stones > 1 ? 's' : ''}.`);
+        this._grant('Glyphcraft', GLYPHCRAFT.xpPerSlate);
+        if (this._countItem('blank_slate') < 1) { this.ui.chat.add('Your slates are spent.'); this.cancel(); }
+      },
+    });
+  }
+
   /** Instant: shear a sheep (shears required, dignity optional). */
   shearSheep(mob) {
     if (!this.findTool('shears')) { this.ui.chat.add('You need shears to shear a sheep.'); return; }
@@ -596,6 +640,10 @@ export class Actions {
   startCook(fireEntry, rawId) {
     const def = COOKING[rawId];
     if (!def) return;
+    if (fireEntry.isRange && this.quests && !this.quests.rangeUnlocked()) {
+      this.ui.chat.add('Cook Bramble bodily blocks the range. "Duke\'s oven! Help me with the cake first!"');
+      return;
+    }
     const level = this.player.skillByName('Cooking').level;
     if (level < def.req) {
       this.ui.chat.add(`You need a Cooking level of ${def.req} to cook this.`);

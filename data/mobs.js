@@ -180,6 +180,65 @@ export const MOBS = {
     },
   },
 
+  imp: {
+    name: 'Imp',
+    examine: 'A small red menace with pockets full of other people’s things.',
+    stats: { att: 1, str: 2, def: 1, hp: 4 },
+    bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'stab',
+    speed: 4, aggroRadius: 0, wanderRadius: 6, respawnTicks: 25,
+    blinky: true, // teleports short hops when harassed (spec §7)
+    drops: [
+      { item: 'red_bead', count: 1, weight: 3 },
+      { item: 'yellow_bead', count: 1, weight: 3 },
+      { item: 'black_bead', count: 1, weight: 3 },
+      { item: 'white_bead', count: 1, weight: 3 },
+      { weight: 4 },
+    ],
+    alwaysDrops: 0,
+    model: {
+      height: 0.85,
+      parts: [
+        { kind: 'box', size: [0.3, 0.34, 0.2], at: [0, 0.42, 0], color: 0xb03030 },
+        { kind: 'box', size: [0.3, 0.28, 0.28], at: [0, 0.72, 0], color: 0xc23a3a },
+        { kind: 'cone', r: 0.05, h: 0.16, at: [-0.1, 0.92, 0], color: 0xb03030 },
+        { kind: 'cone', r: 0.05, h: 0.16, at: [0.1, 0.92, 0], color: 0xb03030 },
+        { kind: 'box', size: [0.08, 0.26, 0.08], at: [-0.19, 0.4, 0], color: 0xc23a3a },
+        { kind: 'box', size: [0.08, 0.26, 0.08], at: [0.19, 0.4, 0], color: 0xc23a3a },
+        { kind: 'box', size: [0.09, 0.26, 0.09], at: [-0.08, 0.13, 0], color: 0xb03030 },
+        { kind: 'box', size: [0.09, 0.26, 0.09], at: [0.08, 0.13, 0], color: 0xb03030 },
+        { kind: 'cone', r: 0.04, h: 0.3, at: [0, 0.35, 0.22], rotX: 1.2, color: 0xb03030 },
+      ],
+    },
+  },
+
+  vex_cultist: {
+    name: 'Vex cultist',
+    examine: 'Robes, chanting, and a deeply punchable aura.',
+    stats: { att: 12, str: 14, def: 16, hp: 32 }, // combat level 20 per the formula
+    bonuses: { att: 6, str: 4, def: 8 },
+    attackType: 'magic',
+    attackRange: 6, projectileColor: 0x8f3fbf, // casts weak bolts (spec §7)
+    speed: 5, aggroRadius: 6, wanderRadius: 2, respawnTicks: 80,
+    drops: [
+      { item: 'bones', count: 1, weight: 1 },
+      { item: 'sigil_glyph', count: [1, 4], weight: 3 },
+      { item: 'void_glyph', count: 1, weight: 1 },
+      { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 1.6,
+      parts: [
+        { kind: 'box', size: [0.46, 0.85, 0.3], at: [0, 0.85, 0], color: 0x3a2a4a },
+        { kind: 'cone', r: 0.24, h: 0.4, at: [0, 1.5, 0], color: 0x2a1f38 },
+        { kind: 'box', size: [0.26, 0.2, 0.24], at: [0, 1.28, 0.02], color: 0x1a1422 },
+        { kind: 'box', size: [0.1, 0.5, 0.12], at: [-0.29, 0.85, 0], color: 0x3a2a4a },
+        { kind: 'box', size: [0.1, 0.5, 0.12], at: [0.29, 0.85, 0], color: 0x3a2a4a },
+      ],
+    },
+  },
+
   spider: {
     name: 'Spider',
     examine: 'Eight legs, zero manners.',

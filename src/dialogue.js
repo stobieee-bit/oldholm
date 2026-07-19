@@ -1,8 +1,13 @@
 // OLDHOLM — dialogue.js
 // Branching, data-driven dialogue (spec §12): big-name header, typewriter
 // text, numbered options, "Click here to continue". Modal while open.
+// Phase 9: stage-conditional starts/options and quest action strings —
+//   'quest:id:stage'  'complete:id'  'give:item:n'  'take:item:n'
+//   'unhide:npcId'    'openShop'     'openBank'     'end'
+// Conditions: { quest, is|gte|lt } and { hasAll: [itemIds] }.
 
 import { TREES } from '../data/dialogue/holmbridge.js';
+import { ITEMS } from '../data/items.js';
 
 const CHARS_PER_SEC = 45;
 
@@ -31,6 +36,49 @@ export class Dialogue {
     }, true);
   }
 
+  _cond(c) {
+    if (!c) return true;
+    if (c.quest) {
+      const s = this.quests?.stage(c.quest) ?? 0;
+      if (c.is !== undefined && s !== c.is) return false;
+      if (c.gte !== undefined && s < c.gte) return false;
+      if (c.lt !== undefined && s >= c.lt) return false;
+    }
+    if (c.hasAll) {
+      const count = (id) => this.player.inventory.slots.reduce(
+        (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+      for (const id of c.hasAll) if (count(id) < 1) return false;
+    }
+    return true;
+  }
+
+  _exec(act) {
+    const [verb, a, b] = act.split(':');
+    if (verb === 'openShop') this._deferred = () => this.ui.openShop(this.npc?.def?.shop);
+    else if (verb === 'openBank') this._deferred = () => this.ui.openBank();
+    else if (verb === 'quest') this.quests?.setStage(a, Number(b));
+    else if (verb === 'complete') this.quests?.setStage(a, 100);
+    else if (verb === 'give') {
+      const n = Number(b ?? 1);
+      if (this.player.inventory.add(a, n)) {
+        this.ui.chat.add('You receive ' + (n > 1 ? n + ' × ' : '') + ITEMS[a].name.toLowerCase() + '.');
+        this.ui.refreshInventory();
+      } else this.ui.chat.add('Your pack is too full to accept it. It will be offered again.');
+    } else if (verb === 'take') {
+      let left = Number(b ?? 1);
+      const slots = this.player.inventory.slots;
+      for (let i = 0; i < slots.length && left > 0; i++) {
+        const s = slots[i];
+        if (!s || s.id !== a) continue;
+        const take = Math.min(left, s.count ?? 1);
+        if ((s.count ?? 1) > take) s.count -= take;
+        else slots[i] = null;
+        left -= take;
+      }
+      this.ui.refreshInventory();
+    } else if (verb === 'unhide') this.npcsRef?.unhide(a);
+  }
+
   /** Begin a tree with an NPC (its name is the header for npc lines). */
   start(treeId, npc) {
     const tree = TREES[treeId];
@@ -41,9 +89,14 @@ export class Dialogue {
     this.player.menuOpen = true; // freeze look/movement; we own the keyboard
     this.player.clearKeys();
     this.box.classList.remove('hidden');
-    const start = Array.isArray(tree.start)
-      ? tree.start[Math.floor(Math.random() * tree.start.length)]
-      : tree.start;
+    let start = tree.start;
+    if (Array.isArray(start)) {
+      if (typeof start[0] === 'string') {
+        start = start[Math.floor(Math.random() * start.length)];
+      } else {
+        start = (start.find((s) => this._cond(s.if)) ?? start[start.length - 1]).node;
+      }
+    }
     this._show(start);
   }
 
@@ -76,8 +129,9 @@ export class Dialogue {
     this._typing = false;
     this.textEl.textContent = this.node.text;
     this.optsEl.innerHTML = '';
+    this._visibleOptions = (this.node.options ?? []).filter((o) => this._cond(o.if));
     if (this.node.options) {
-      this.node.options.forEach((opt, i) => {
+      this._visibleOptions.forEach((opt, i) => {
         const row = document.createElement('div');
         row.className = 'dlg-opt';
         row.textContent = `${i + 1}. ${opt.label}`;
@@ -105,19 +159,23 @@ export class Dialogue {
 
   _pick(i) {
     if (this._typing) { this._finishTyping(); return; }
-    const opt = this.node.options?.[i];
+    const opt = this._visibleOptions?.[i];
     if (!opt) return;
-    if (opt.action === 'end') { this.close(); return; }
-    if (opt.action === 'openShop') {
+    this._deferred = null;
+    const acts = opt.actions ?? (opt.action ? [opt.action] : []);
+    let ended = false;
+    for (const act of acts) {
+      if (act === 'end') { ended = true; continue; }
+      this._exec(act);
+    }
+    if (this._deferred) { // shop/bank open after the box closes
+      const fn = this._deferred;
+      this._deferred = null;
       this.close();
-      this.ui.openShop(this.npc?.def?.shop);
+      fn();
       return;
     }
-    if (opt.action === 'openBank') {
-      this.close();
-      this.ui.openBank();
-      return;
-    }
+    if (ended) { this.close(); return; }
     if (opt.next) this._show(opt.next);
     else this.close();
   }

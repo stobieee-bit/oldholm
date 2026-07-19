@@ -111,6 +111,12 @@ export class World {
     this._buildChurch();
     this._buildStore();
     this._buildBankChest();
+    this._buildWindmill();
+    this._buildWizardTower();
+    this._buildChurchyard();
+    this._buildGaleAltar();
+    this._buildPickables();
+    this._buildDyeCart();
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -140,6 +146,12 @@ export class World {
     // resources respawn
     for (const t of this.trees ?? []) if (t.depleted && tick >= t.respawnAt) this.respawnTree(t);
     for (const r of this._rocks) if (r.depleted && tick >= r.respawnAt) this.respawnRock(r);
+    for (const p of this._pickables ?? []) {
+      if (p.depleted && tick >= p.respawnAt) {
+        p.depleted = false;
+        for (const m of p.meshes) m.visible = true;
+      }
+    }
     // fires age out into ashes
     for (const f of this._fires.filter((f) => tick >= f.expireAt)) {
       f.entry.expired = true;
@@ -1296,6 +1308,324 @@ export class World {
     });
   }
 
+  // ---- Phase 9: windmill, wizard tower, churchyard, gale altar, pickables ------------
+
+  _buildWindmill() {
+    const m = this.def.windmill;
+    if (!m) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const cloth = new THREE.MeshLambertMaterial({ color: 0xe8e2d0, flatShading: true });
+    const y = this.getGroundHeight(m.x, m.z);
+
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 3.0, 7.5, 10), stone);
+    tower.position.set(m.x, y + 3.45, m.z);
+    this.group.add(tower); this.occluders.push(tower);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(2.8, 1.8, 10), darkStone);
+    cap.position.set(m.x, y + 8.1, m.z);
+    this.group.add(cap); this.occluders.push(cap);
+    // sails on a hub, gently turning
+    const hub = new THREE.Group();
+    hub.position.set(m.x, y + 6.4, m.z - 3.0);
+    for (let i = 0; i < 4; i++) {
+      const sail = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.4, 0.08), cloth);
+      sail.position.set(0, 1.9, 0);
+      const arm = new THREE.Group();
+      arm.rotation.z = (i / 4) * Math.PI * 2;
+      arm.add(sail);
+      hub.add(arm);
+    }
+    this.group.add(hub);
+    (this._spinners ??= []).push({ obj: hub, axis: 'z', speed: 0.35 });
+    this.markBlockedCircle(m.x, m.z, 3.0);
+
+    // interior planes: ground bin room + top hopper floor (teleport ladder)
+    const gy = y, ty = y + 3.4;
+    const pTop = this.addPlane(ty);
+    for (let tx = Math.floor(m.x) - 1; tx <= Math.floor(m.x) + 1; tx++)
+      for (let tz = Math.floor(m.z) - 1; tz <= Math.floor(m.z) + 1; tz++) {
+        this.setTileBlocked(tx, tz, false);        // hollow the ground floor
+        this.setPlaneTile(pTop, tx, tz, ty);
+      }
+    // re-block the ring wall on the ground floor except the south door
+    const cxT = Math.floor(m.x), czT = Math.floor(m.z);
+    for (let tx = cxT - 2; tx <= cxT + 2; tx++)
+      for (let tz = czT - 2; tz <= czT + 2; tz++) {
+        const edge = Math.max(Math.abs(tx - cxT), Math.abs(tz - czT)) === 2;
+        if (edge && !(tx === cxT && tz === czT + 2)) this.setTileBlocked(tx, tz, true);
+      }
+    this._addBox(3.2, 0.2, 3.2, m.x, ty - 0.1, m.z, wood); // the upper floor slab
+
+    this.windmill = { loaded: 0, flourReady: 0 };
+    // ladder up/down
+    const rail1 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.4, 5), wood);
+    rail1.position.set(m.x - 0.9, y + 1.7, m.z - 0.8);
+    const rail2 = rail1.clone(); rail2.position.x = m.x - 0.4;
+    this.group.add(rail1, rail2);
+    this.addInteractable({
+      kind: 'ladder', name: 'Mill ladder', meshes: [rail1, rail2],
+      examine: 'Up to the hopper floor.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => { ctx.player.setPosition(m.x + 0.6, m.z + 0.4, undefined, pTop); ctx.ui.chat.add('You climb to the hopper floor.'); },
+      }],
+    });
+    const stub = this._addBox(0.9, 0.1, 0.9, m.x - 0.65, ty + 0.05, m.z - 0.8, new THREE.MeshLambertMaterial({ color: 0x2e2a24 }));
+    this.addInteractable({
+      kind: 'ladder', name: 'Mill ladder', meshes: [stub],
+      examine: 'Down to the flour bin.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => { ctx.player.setPosition(m.x - 0.6, m.z + 0.4, undefined, 0); ctx.ui.chat.add('You climb back down.'); },
+      }],
+    });
+    // hopper + lever (top floor), bin (ground floor) — the two-floor mechanic
+    const hopper = this._addBox(1.0, 0.7, 1.0, m.x + 0.8, ty + 0.35, m.z - 0.6, darkStone);
+    const lever = this._addBox(0.08, 0.7, 0.08, m.x + 1.3, ty + 0.45, m.z + 0.5, wood);
+    const bin = this._addBox(1.2, 0.8, 1.2, m.x + 0.8, y + 0.4, m.z + 0.6, wood);
+    this.addInteractable({
+      kind: 'mill', name: 'Hopper', meshes: [hopper],
+      examine: 'Wheat goes in hopeful, comes out useful.',
+      actions: [{
+        label: 'Fill-hopper',
+        fn: (ctx) => {
+          const i = ctx.player.inventory.slots.findIndex((s) => s && s.id === 'wheat');
+          if (i === -1) { ctx.ui.chat.add('You have no wheat to mill.'); return; }
+          ctx.player.inventory.removeSlot(i);
+          this.windmill.loaded++;
+          ctx.ui.chat.add('You tip the wheat into the hopper.');
+          ctx.ui.refreshInventory();
+        },
+      }],
+    });
+    this.addInteractable({
+      kind: 'mill', name: 'Lever', meshes: [lever],
+      examine: 'Pulling levers is its own reward. This one also mills.',
+      actions: [{
+        label: 'Pull-lever',
+        fn: (ctx) => {
+          if (this.windmill.loaded <= 0) { ctx.ui.chat.add('The hopper is empty.'); return; }
+          this.windmill.loaded--;
+          this.windmill.flourReady++;
+          ctx.ui.chat.add('The mill groans, the stones turn — flour tumbles into the bin below.');
+        },
+      }],
+    });
+    this.addInteractable({
+      kind: 'mill', name: 'Flour bin', meshes: [bin],
+      examine: 'A bin for catching ground ambitions.',
+      actions: [{
+        label: 'Collect-flour',
+        fn: (ctx) => {
+          if (this.windmill.flourReady <= 0) { ctx.ui.chat.add('The bin is empty. The hopper and lever are upstairs.'); return; }
+          if (!ctx.player.inventory.add('flour', 1)) { ctx.ui.chat.add('Your pack is full.'); return; }
+          this.windmill.flourReady--;
+          ctx.ui.chat.add('You scoop the flour into a pot.');
+          ctx.ui.refreshInventory();
+        },
+      }],
+    });
+  }
+
+  _buildWizardTower() {
+    const t = this.def.wizardTower;
+    if (!t) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a92, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const y = this.getGroundHeight(t.x, t.z);
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.0, 9, 10), stone);
+    tower.position.set(t.x, y + 4.2, t.z);
+    this.group.add(tower); this.occluders.push(tower);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(3.1, 2.4, 10), darkStone);
+    cap.position.set(t.x, y + 9.9, t.z);
+    this.group.add(cap); this.occluders.push(cap);
+    this.markBlockedCircle(t.x, t.z, 3.0);
+    // hollow interior with an east door
+    const cxT = Math.floor(t.x), czT = Math.floor(t.z);
+    for (let tx = cxT - 1; tx <= cxT + 1; tx++)
+      for (let tz = czT - 1; tz <= czT + 1; tz++) this.setTileBlocked(tx, tz, false);
+    for (let tx = cxT - 2; tx <= cxT + 2; tx++)
+      for (let tz = czT - 2; tz <= czT + 2; tz++) {
+        const edge = Math.max(Math.abs(tx - cxT), Math.abs(tz - czT)) === 2;
+        if (edge && !(tz === czT && tx === cxT + 2)) this.setTileBlocked(tx, tz, true);
+      }
+    // the basement: a stone cell far below (its own plane)
+    const by = y - 7;
+    const pBase = this.addPlane(by);
+    this.towerBasementPlane = pBase;
+    for (let tx = cxT - 2; tx <= cxT + 2; tx++)
+      for (let tz = czT - 2; tz <= czT + 2; tz++)
+        this.setPlaneTile(pBase, tx, tz, by,
+          Math.max(Math.abs(tx - cxT), Math.abs(tz - czT)) === 2);
+    this._addBox(5.4, 0.3, 5.4, t.x, by - 0.15, t.z, darkStone);              // floor
+    this._addBox(5.4, 0.3, 5.4, t.x, by + 3.1, t.z, darkStone);               // ceiling
+    for (const [dx, dz, w, d] of [[0, -2.6, 5.6, 0.4], [0, 2.6, 5.6, 0.4], [-2.6, 0, 0.4, 5.2], [2.6, 0, 0.4, 5.2]])
+      this._addBox(w, 3.2, d, t.x + dx, by + 1.6, t.z + dz, stone);
+    const candle = this._addBox(0.1, 0.3, 0.1, t.x - 1.6, by + 0.15, t.z - 1.6,
+      new THREE.MeshLambertMaterial({ color: 0xf0e8d8, emissive: 0x6a5a2a }));
+    this.addInteractable({
+      kind: 'scenery', name: 'Candle', meshes: [candle],
+      examine: 'It has watched unspeakable chanting.', actions: [],
+    });
+    // trapdoor down / ladder up
+    const trap = this._addBox(0.9, 0.08, 0.9, t.x - 0.8, y + 0.05, t.z - 0.8, dark);
+    this.addInteractable({
+      kind: 'ladder', name: 'Trapdoor', meshes: [trap],
+      examine: 'Cold air seeps up. Something hums beneath.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => { ctx.player.setPosition(t.x - 0.5, t.z + 0.5, undefined, pBase); ctx.ui.chat.add('You descend into the cellar dark.'); },
+      }],
+    });
+    const upStub = this._addBox(0.9, 0.08, 0.9, t.x - 0.8, by + 0.06, t.z - 0.8, dark);
+    this.addInteractable({
+      kind: 'ladder', name: 'Ladder', meshes: [upStub],
+      examine: 'Back to the sensible surface.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => { ctx.player.setPosition(t.x - 0.5, t.z + 0.5, undefined, 0); ctx.ui.chat.add('You climb back into daylight.'); },
+      }],
+    });
+  }
+
+  _buildChurchyard() {
+    const c = this.def.church;
+    if (!c) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
+    const graves = [];
+    const spots = [[c.x0 + 1.5, c.z0 - 2.2], [c.x0 + 3.6, c.z0 - 1.6], [c.x0 + 5.8, c.z0 - 2.4], [c.x0 + 7.6, c.z0 - 1.8]];
+    for (const [gx, gz] of spots) {
+      const y = this.getGroundHeight(gx, gz);
+      graves.push(this._addBox(0.55, 0.8, 0.14, gx, y + 0.4, gz, stone));
+      graves.push(this._addBox(0.75, 0.16, 0.2, gx, y + 0.06, gz + 0.18, stone));
+      this.setTileBlocked(Math.floor(gx), Math.floor(gz), true);
+    }
+    this.addInteractable({
+      kind: 'scenery', name: 'Gravestone', meshes: graves,
+      examine: 'The names are worn soft. The grief kept its edges.',
+      actions: [],
+    });
+  }
+
+  _buildGaleAltar() {
+    const g = this.def.galeAltar;
+    if (!g) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x9aa8a2, flatShading: true });
+    const y = this.getGroundHeight(g.x, g.z);
+    const meshes = [];
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      const s = this._addBox(0.4, 1.1 + (i % 2) * 0.35, 0.4, g.x + Math.cos(a) * 1.4, y + 0.55, g.z + Math.sin(a) * 1.4, stone);
+      meshes.push(s);
+    }
+    const slab = this._addBox(1.0, 0.5, 1.0, g.x, y + 0.25, g.z, stone);
+    meshes.push(slab);
+    this.markBlockedCircle(g.x, g.z, 0.8);
+    let entry;
+    entry = this.addInteractable({
+      kind: 'altar-glyph', name: 'Gale altar', meshes,
+      examine: 'Weathered stones in a broken ring. The wind circles them, waiting.',
+      actions: [{
+        label: 'Imbue-slates',
+        fn: (ctx) => ctx.actions.imbueSlates(entry),
+      }],
+    });
+  }
+
+  _buildPickables() {
+    for (const p of this.def.pickables ?? []) {
+      const y = this.getGroundHeight(p.x, p.z);
+      const meshes = [];
+      let name, examine;
+      if (p.kind === 'wheat') {
+        name = 'Wheat'; examine = 'Bread, at the inconvenient stage.';
+        const mat = new THREE.MeshLambertMaterial({ color: 0xd8b13a, flatShading: true });
+        for (let i = 0; i < 4; i++) {
+          const stalk = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.8, 5), mat);
+          stalk.position.set(p.x + (i % 2) * 0.35 - 0.17, y + 0.4, p.z + Math.floor(i / 2) * 0.35 - 0.17);
+          this.group.add(stalk);
+          meshes.push(stalk);
+        }
+      } else if (p.kind === 'bush') {
+        name = 'Redberry bush'; examine = 'Heavy with berries and self-importance.';
+        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 0),
+          new THREE.MeshLambertMaterial({ color: 0x3f6f34, flatShading: true }));
+        leaf.position.set(p.x, y + 0.45, p.z);
+        this.group.add(leaf);
+        meshes.push(leaf);
+        const bmat = new THREE.MeshLambertMaterial({ color: 0xc23a3a });
+        for (let i = 0; i < 3; i++) {
+          const berry = new THREE.Mesh(new THREE.IcosahedronGeometry(0.08, 0), bmat);
+          const a = i * 2.1;
+          berry.position.set(p.x + Math.cos(a) * 0.4, y + 0.5 + (i % 2) * 0.2, p.z + Math.sin(a) * 0.4);
+          this.group.add(berry);
+          meshes.push(berry);
+        }
+        this.setTileBlocked(Math.floor(p.x), Math.floor(p.z), true);
+      } else {
+        name = 'Marsh greens'; examine = 'Defiantly green about it.';
+        const mat = new THREE.MeshLambertMaterial({ color: 0x4a7a3a, flatShading: true });
+        for (let i = 0; i < 3; i++) {
+          const blade = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 4), mat);
+          blade.position.set(p.x + (i - 1) * 0.28, y + 0.3, p.z + (i % 2) * 0.2);
+          this.group.add(blade);
+          meshes.push(blade);
+        }
+      }
+      const state = { depleted: false, respawnAt: 0, meshes, item: p.item, respawn: p.respawn ?? 25 };
+      (this._pickables ??= []).push(state);
+      this.addInteractable({
+        kind: 'pickable', name, meshes, examine,
+        actions: [{
+          label: 'Pick',
+          fn: (ctx) => {
+            if (state.depleted) { ctx.ui.chat.add('Picked clean. Give it a moment.'); return; }
+            if (!ctx.player.inventory.add(p.item, 1)) { ctx.ui.chat.add('Your pack is full.'); return; }
+            ctx.ui.chat.add('You pick some ' + name.toLowerCase().replace(' bush', '') + '.');
+            ctx.ui.refreshInventory();
+            state.depleted = true;
+            state.respawnAt = this._tick + state.respawn;
+            for (const m of meshes) m.visible = false;
+          },
+        }],
+      });
+    }
+  }
+
+  _buildDyeCart() {
+    const c = this.def.dyeCart;
+    if (!c) return;
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const y = this.getGroundHeight(c.x, c.z);
+    const meshes = [this._addBox(1.8, 0.7, 1.0, c.x, y + 0.75, c.z, wood)];
+    for (const dx of [-0.7, 0.7]) {
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.12, 8), wood);
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(c.x + dx, y + 0.4, c.z + 0.55);
+      this.group.add(wheel);
+      meshes.push(wheel);
+    }
+    for (let i = 0; i < 3; i++) {
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.24, 6),
+        new THREE.MeshLambertMaterial({ color: [0xc23a3a, 0x4a8f3a, 0x3a5fbf][i] }));
+      pot.position.set(c.x - 0.5 + i * 0.5, y + 1.22, c.z);
+      this.group.add(pot);
+      meshes.push(pot);
+    }
+    this.setTileBlocked(Math.floor(c.x), Math.floor(c.z), true);
+    this.addInteractable({
+      kind: 'scenery', name: 'Dye cart', meshes,
+      examine: "Old Maud's rolling rainbow. Do not tip it.",
+      actions: [],
+    });
+  }
+
+  updateSpinners(dt) {
+    for (const s of this._spinners ?? []) s.obj.rotation[s.axis] += s.speed * dt;
+  }
+
   // ---- the general store + bank chest ------------------------------------------------
 
   _buildStore() {
@@ -1509,9 +1839,17 @@ export class World {
   // ---- ground items ----------------------------------------------------------
 
   _spawnGroundItems() {
-    for (const g of this.def.groundItems ?? [])
-      this.addGroundItem(g.item, g.count ?? 1, g.x, g.z, g.plane ?? 0, g.dy ?? 0,
-        g.respawn ? { respawnTicks: g.respawn } : {});
+    for (const g of this.def.groundItems ?? []) {
+      const plane = g.plane === 'towerBasement' ? this.towerBasementPlane : (g.plane ?? 0);
+      const opts = g.respawn ? { respawnTicks: g.respawn } : {};
+      if (g.onTakeQuest) {
+        const [q, from, to] = g.onTakeQuest;
+        opts.onTake = (ctx) => {
+          if (ctx.quests && ctx.quests.stage(q) === from) ctx.quests.setStage(q, to);
+        };
+      }
+      this.addGroundItem(g.item, g.count ?? 1, g.x, g.z, plane, g.dy ?? 0, opts);
+    }
   }
 
   /** Cosmetic projectile: a small bolt gliding from A to B. */
@@ -1571,6 +1909,7 @@ export class World {
             this._respawnQueue.push({ id, count, x, z, plane, dy, opts, at: this._tick + opts.respawnTicks });
           ctx.ui.chat.add('You take the ' + def.name.toLowerCase() + '.');
           ctx.ui.refreshInventory();
+          if (opts.onTake) opts.onTake(ctx);
         },
       }],
     });

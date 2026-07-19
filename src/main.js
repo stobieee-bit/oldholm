@@ -15,6 +15,7 @@ import { Magic } from './magic.js';
 import { Dialogue } from './dialogue.js';
 import { Shops } from './shop.js';
 import { Bank } from './bank.js';
+import { Quests } from './quests.js';
 
 export const TICK_MS = 600;
 
@@ -63,15 +64,20 @@ const magic = new Magic(player, ui);
 const dialogue = new Dialogue(player, ui);
 const shops = new Shops(player, ui);
 const bank = new Bank(player, ui);
+const quests = new Quests(player, ui);
 combat.prayers = prayers;
 combat.magic = magic;
+dialogue.quests = quests;       // stage conditions + quest actions
+dialogue.npcsRef = npcs;        // 'unhide:' summons quest characters
+actions.quests = quests;        // range + Glyphcraft gates
 interactions.combat = combat;   // action ctx + nameplate level colors
 interactions.actions = actions; // gathering verbs
 interactions.prayers = prayers; // the altar's Pray-at
 interactions.dialogue = dialogue;
+interactions.quests = quests;   // item-triggered advances (the skull)
 ui.bind({
   world, combatLevelFn: () => combat.playerCombatLevel(),
-  actions, prayers, magic, shops, bank, dialogue,
+  actions, prayers, magic, shops, bank, dialogue, quests,
 });
 npcs.spawnAll();
 ui.showBanner(def.name.toUpperCase());
@@ -177,6 +183,7 @@ function frame(now) {
   player.update(dt);
   npcs.updateVisuals(dt, player.pos);
   world.updateProjectiles(dt);
+  world.updateSpinners(dt);
   interactions.updateHover();
   applyDayTint();
   ui.setRun(player.energy, player.runOn);
@@ -197,7 +204,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank,
+  prayers, magic, dialogue, shops, bank, quests,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

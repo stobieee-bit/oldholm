@@ -511,6 +511,63 @@ for (const [id, name, slot, def, examine] of WIZARD_WEAR) {
   };
 }
 
+// ---- quest & Glyphcraft items (Phase 9) --------------------------------------
+const QUEST_ITEMS = {
+  egg: ['Egg', 'Fragile hope, oval edition.', 2, '<ellipse cx="12" cy="13" rx="5" ry="6.5" fill="#f0e8d8"/>',
+    { kind: 'sphere', color: 0xf0e8d8, r: 0.1 }],
+  bucket_of_milk: ['Bucket of milk', 'The cow’s parting gift.', 3, '<path d="M5 7h14l-2 13H7Z" fill="#8d939c"/><ellipse cx="12" cy="8.5" rx="5.6" ry="1.6" fill="#f2efe6"/>',
+    { kind: 'cylinder', color: 0xf2efe6, rTop: 0.17, rBot: 0.13, h: 0.24 }],
+  wheat: ['Wheat', 'Bread’s humble ancestor.', 1, '<path d="M12 21V8M12 8l-3-3M12 8l3-3M12 12l-3-3M12 12l3-3M12 16l-3-3M12 16l3-3" stroke="#d8b13a" stroke-width="1.6" fill="none"/>',
+    { kind: 'box', color: 0xd8b13a, w: 0.05, h: 0.3, d: 0.05 }],
+  flour: ['Pot of flour', 'Ground patience.', 4, '<path d="M7 9h10l1 11H6Z" fill="#b08d57"/><ellipse cx="12" cy="9" rx="5" ry="1.6" fill="#f2efe6"/>',
+    { kind: 'cylinder', color: 0xb08d57, rTop: 0.12, rBot: 0.14, h: 0.2 }],
+  spectral_charm: ['Spectral charm', 'Cold to the touch. Hears what you cannot.', 0, '<circle cx="12" cy="12" r="6" fill="none" stroke="#8fb2e8" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#8fb2e8"/>',
+    { kind: 'cylinder', color: 0x8fb2e8, rTop: 0.08, rBot: 0.08, h: 0.03 }],
+  skull: ['Skull', 'Somebody misses this. Specifically.', 0, '<circle cx="12" cy="11" r="6" fill="#e8e2d0"/><rect x="9" y="15" width="6" height="4" rx="1" fill="#e8e2d0"/><circle cx="10" cy="10.5" r="1.4" fill="#2a2624"/><circle cx="14" cy="10.5" r="1.4" fill="#2a2624"/>',
+    { kind: 'sphere', color: 0xe8e2d0, r: 0.13 }],
+  strange_talisman: ['Strange talisman', 'A broken circle etched in old stone.', 0, '<circle cx="12" cy="12" r="6.5" fill="none" stroke="#c9a232" stroke-width="2.2" stroke-dasharray="8 4"/>',
+    { kind: 'cylinder', color: 0xc9a232, rTop: 0.1, rBot: 0.1, h: 0.03 }],
+  redberries: ['Redberries', 'Stains everything it loves.', 2, '<circle cx="9" cy="12" r="3" fill="#c23a3a"/><circle cx="14" cy="10" r="3" fill="#d84a4a"/><circle cx="13" cy="15" r="3" fill="#b02f2f"/>',
+    { kind: 'sphere', color: 0xc23a3a, r: 0.09 }],
+  marsh_greens: ['Marsh greens', 'Green, damp, and oddly proud.', 2, '<path d="M8 20c0-6 1-10 4-14 3 4 4 8 4 14" fill="#4a7a3a"/>',
+    { kind: 'box', color: 0x4a7a3a, w: 0.12, h: 0.22, d: 0.05 }],
+  red_dye: ['Red dye', 'War paint, pending.', 5, '<path d="M9 5h6v4l2 2v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-8l2-2Z" fill="#c23a3a"/>',
+    { kind: 'cylinder', color: 0xc23a3a, rTop: 0.07, rBot: 0.09, h: 0.16 }],
+  green_dye: ['Green dye', 'The other war paint, pending.', 5, '<path d="M9 5h6v4l2 2v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-8l2-2Z" fill="#4a8f3a"/>',
+    { kind: 'cylinder', color: 0x4a8f3a, rTop: 0.07, rBot: 0.09, h: 0.16 }],
+  blank_slate: ['Blank slate', 'Stone that listens for a word.', 3, '<rect x="7" y="6" width="10" height="13" rx="1.5" fill="#8a8a92"/>',
+    { kind: 'box', color: 0x8a8a92, w: 0.14, h: 0.05, d: 0.18 }],
+};
+for (const [id, [name, examine, value, icon, model]] of Object.entries(QUEST_ITEMS)) {
+  ITEMS[id] = { name, examine, value, stackable: false, icon, model };
+}
+ITEMS.blank_slate.stackable = true;
+ITEMS.wheat.stackable = false;
+
+const BEAD_DEFS = [
+  ['red_bead', '#c23a3a', 0xc23a3a], ['yellow_bead', '#d8b13a', 0xd8b13a],
+  ['black_bead', '#3a3632', 0x3a3632], ['white_bead', '#e8e4da', 0xe8e4da],
+];
+for (const [id, css, hex] of BEAD_DEFS) {
+  const label = id.replace('_bead', '');
+  ITEMS[id] = {
+    name: label[0].toUpperCase() + label.slice(1) + ' bead',
+    examine: 'A magus’s bead, briefly an imp’s treasure.',
+    value: 4, stackable: false,
+    icon: `<circle cx="12" cy="12" r="5" fill="${css}"/><circle cx="12" cy="12" r="1.6" fill="#00000050"/>`,
+    model: { kind: 'sphere', color: hex, r: 0.07 },
+  };
+}
+
+ITEMS.amulet_of_accuracy = {
+  name: 'Amulet of accuracy',
+  examine: 'It hums when you aim true.',
+  value: 120, stackable: false,
+  slot: 'neck', reqs: {}, atk: [4, 4, 4, 2, 4], str: 0, def: [0, 0, 0, 0, 0],
+  icon: '<path d="M5 5c2 4 5 6 7 6s5-2 7-6" fill="none" stroke="#c9bf98" stroke-width="1.4"/><circle cx="12" cy="14" r="4" fill="#4a72e0"/>',
+  model: { kind: 'cylinder', color: 0x4a72e0, rTop: 0.09, rBot: 0.09, h: 0.03 },
+};
+
 // ---------------------------------------------------------------------------
 // Generated gear: metals × smithable shapes, plus leather wearables.
 // One compact table each; the loop below writes full ITEMS entries.

@@ -9,6 +9,7 @@ import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRING
 import { SPELLS } from '../data/spells.js';
 import { PRAYERS } from '../data/prayers.js';
 import { BONES } from '../data/prayers.js';
+import { QUESTS, QUEST_ORDER } from '../data/quests.js';
 
 // ---------------------------------------------------------------------------
 
@@ -237,6 +238,7 @@ export class FX {
 const TABS = [
   { id: 'combat', label: 'Fight', key: 'F1' },
   { id: 'skills', label: 'Skills', key: 'F2' },
+  { id: 'quests', label: 'Quests', key: 'F3' },
   { id: 'inventory', label: 'Pack', key: 'F4' },
   { id: 'equipment', label: 'Gear', key: 'F5' },
   { id: 'prayer', label: 'Pray', key: 'F6' },
@@ -266,11 +268,13 @@ export class TabPanel {
     this.pages = {
       combat: document.getElementById('tab-combat'),
       skills: document.getElementById('tab-skills'),
+      quests: document.getElementById('tab-quests'),
       inventory: document.getElementById('tab-inventory'),
       equipment: document.getElementById('tab-equipment'),
       prayer: document.getElementById('tab-prayer'),
       spellbook: document.getElementById('tab-spellbook'),
     };
+    this.selectedQuest = QUEST_ORDER[0];
     for (const t of TABS) {
       const b = document.createElement('button');
       b.className = 'tab-btn';
@@ -290,7 +294,30 @@ export class TabPanel {
     this.renderEquipment();
     this.renderPrayers();
     this.renderSpellbook();
+    this.renderJournal();
     this.show(this.active);
+  }
+
+  renderJournal() {
+    const el = this.pages.quests;
+    el.innerHTML = '';
+    const quests = this.ui.quests;
+    for (const id of QUEST_ORDER) {
+      const row = document.createElement('div');
+      const st = quests ? quests.status(id) : 'locked';
+      row.className = 'quest-row quest-' + st + (this.selectedQuest === id ? ' selected' : '');
+      row.textContent = QUESTS[id].name;
+      row.addEventListener('click', () => { this.selectedQuest = id; this.renderJournal(); });
+      el.appendChild(row);
+    }
+    const detail = document.createElement('div');
+    detail.className = 'quest-detail';
+    detail.textContent = quests ? quests.journalLine(this.selectedQuest) : '';
+    el.appendChild(detail);
+    const foot = document.createElement('div');
+    foot.className = 'skill-total';
+    foot.textContent = quests ? `Quest points: ${quests.questPoints()} / ${quests.totalQp()}` : '';
+    el.appendChild(foot);
   }
 
   renderPrayers() {
@@ -480,7 +507,7 @@ export class UI {
   }
 
   /** Late-bound refs the item menus / combat displays need. */
-  bind({ world, combatLevelFn, actions, prayers, magic, shops, bank, dialogue }) {
+  bind({ world, combatLevelFn, actions, prayers, magic, shops, bank, dialogue, quests }) {
     this.world = world;
     if (combatLevelFn) this._combatLevelFn = combatLevelFn;
     if (actions) this.actions = actions;
@@ -489,6 +516,27 @@ export class UI {
     if (shops) this.shops = shops;
     if (bank) this.bank = bank;
     if (dialogue) this.dialogue = dialogue;
+    if (quests) this.quests = quests;
+  }
+
+  refreshJournal() { this.panel.renderJournal(); }
+
+  /** The completion fanfare screen (spec §11). */
+  questFanfare(q, qp, totalQp) {
+    const el = document.getElementById('quest-fanfare');
+    document.getElementById('qf-name').textContent = q.name;
+    const list = document.getElementById('qf-rewards');
+    list.innerHTML = '';
+    for (const r of q.rewards) {
+      const li = document.createElement('div');
+      li.textContent = '· ' + r;
+      list.appendChild(li);
+    }
+    document.getElementById('qf-points').textContent = `Quest points: ${qp} / ${totalQp}`;
+    el.classList.remove('hidden');
+    for (const f of [this.levelFlash]) { f.classList.remove('show'); void f.offsetWidth; f.classList.add('show'); }
+    const dismiss = () => { el.classList.add('hidden'); el.removeEventListener('mousedown', dismiss); };
+    el.addEventListener('mousedown', dismiss);
   }
 
   coins() {

@@ -144,6 +144,22 @@ class Mob {
     this.entry.hidden = false;
   }
 
+  /** Imp trick: hop to a random nearby walkable tile. */
+  blink() {
+    for (let tries = 0; tries < 8; tries++) {
+      const nx = this.tile.x + randInt(-4, 4), nz = this.tile.z + randInt(-4, 4);
+      if (this.world.isBlocked(nx, nz, this.plane)) continue;
+      if (Math.abs(nx - this.spawnTile.x) > this.def.wanderRadius + 4 ||
+          Math.abs(nz - this.spawnTile.z) > this.def.wanderRadius + 4) continue;
+      this.tile = { x: nx, z: nz };
+      this._from = { x: nx + 0.5, z: nz + 0.5 };
+      this._to = { ...this._from };
+      this._t = 1;
+      this.mesh.position.set(nx + 0.5, this.world.getGroundHeight(nx + 0.5, nz + 0.5, this.plane), nz + 0.5);
+      return;
+    }
+  }
+
   /** Abandon the chase for any reason: walk home and shrug off all damage. */
   giveUp() {
     this.target = null;
@@ -184,6 +200,7 @@ class Mob {
   }
 
   tick(tickNo, combat) {
+    if (this.hiddenNpc) return; // asleep in a tent, awaiting the plot
     if (this.dead) {
       if (tickNo >= this.respawnAt) this.respawn();
       return;
@@ -218,9 +235,18 @@ class Mob {
 
     if (this.target === 'player') {
       if (player.plane !== this.plane) { this.giveUp(); return; }
+      // imps blink away mid-fight (spec §7: teleports short hops)
+      if (this.def.blinky && Math.random() < 0.12) this.blink();
       const cheb = Math.max(Math.abs(pTile.x - this.tile.x), Math.abs(pTile.z - this.tile.z));
-      if (cheb <= 1) {
+      const range = this.def.attackRange ?? 1;
+      if (cheb <= range) {
         if (this.cooldown === 0) {
+          if (range > 1) { // a caster: send a bolt
+            const from = this.splatAnchor();
+            const to = new (from.constructor)(player.pos.x,
+              this.world.getGroundHeight(player.pos.x, player.pos.z, player.plane) + 1.2, player.pos.z);
+            this.world.spawnProjectile(from, to, this.def.projectileColor ?? 0xffffff, 0.03);
+          }
           combat.mobAttack(this, tickNo);
           this.lastCombatTick = tickNo;
           this.cooldown = this.def.speed;
@@ -284,13 +310,24 @@ export class NPCManager {
     this.mobs = [];
   }
 
+  _resolvePlane(p) {
+    if (p === 'towerBasement') return this.world.towerBasementPlane ?? 0;
+    return p ?? 0;
+  }
+
   spawnAll(ui, getCombat) {
     const spawnOne = (defId, def, x, z, plane) => {
       const mob = new Mob(defId, def, { x: Math.floor(x), z: Math.floor(z) }, this.world, plane);
       const actions = [];
       if (def.talk) actions.push({
         label: 'Talk-to',
-        fn: (ctx) => ctx.dialogue.start(def.talk, mob),
+        fn: (ctx) => {
+          if (def.needsCharm && !ctx.player.inventory.slots.some((s) => s && s.id === 'spectral_charm')) {
+            ctx.ui.chat.add('A sorrowful presence stirs the air — but you hear only wind.');
+            return;
+          }
+          ctx.dialogue.start(def.talk, mob);
+        },
       });
       if (def.shop) actions.push({
         label: 'Trade',
@@ -304,6 +341,10 @@ export class NPCManager {
         label: 'Shear',
         fn: (ctx) => ctx.actions.shearSheep(mob),
       });
+      if (def.milkable) actions.push({
+        label: 'Milk',
+        fn: (ctx) => ctx.actions.milkCow(mob),
+      });
       if (def.attackable !== false) actions.push({
         label: 'Attack',
         fn: (ctx) => ctx.combat.playerEngage(mob),
@@ -313,13 +354,27 @@ export class NPCManager {
         meshes: [mob.mesh], examine: def.examine,
         actions,
       });
+      if (def.hidden) { // quest characters awaiting their cue
+        mob.hiddenNpc = true;
+        mob.mesh.visible = false;
+        mob.entry.hidden = true;
+      }
       this.mobs.push(mob);
       return mob;
     };
     for (const s of this.world.def.spawns ?? [])
-      spawnOne(s.mob, MOBS[s.mob], s.x, s.z, s.plane ?? 0);
+      spawnOne(s.mob, MOBS[s.mob], s.x, s.z, this._resolvePlane(s.plane));
     for (const s of this.world.def.npcs ?? [])
-      spawnOne(s.npc, NPCS[s.npc], s.x, s.z, s.plane ?? 0);
+      spawnOne(s.npc, NPCS[s.npc], s.x, s.z, this._resolvePlane(s.plane));
+  }
+
+  /** Reveal a hidden quest NPC (dialogue action 'unhide:<defId>'). */
+  unhide(defId) {
+    const mob = this.mobs.find((m) => m.defId === defId && m.hiddenNpc);
+    if (!mob) return;
+    mob.hiddenNpc = false;
+    mob.mesh.visible = true;
+    mob.entry.hidden = false;
   }
 
   tick(tickNo, combat) {

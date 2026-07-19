@@ -28,7 +28,7 @@ export class Interactions {
     return {
       player: this.player, world: this.world, ui: this.ui,
       combat: this.combat, actions: this.actions, prayers: this.prayers,
-      dialogue: this.dialogue,
+      dialogue: this.dialogue, quests: this.quests,
     };
   }
 

@@ -69,6 +69,7 @@ export const REGIONS = {
         ['iron', -3, 0], ['iron', 4, 0],
         ['coal', 1, -2],
         ['gold', 5, 2],
+        ['slate', -4, 3],
       ],
     },
 
@@ -88,6 +89,20 @@ export const REGIONS = {
     // The bank chest, upstairs in the keep (per the atlas).
     bankChest: { x: 59.5, z: 87.6 },
 
+    // Phase 9 sites
+    windmill: { x: 94.5, z: 40.5 },
+    wizardTower: { x: 46.5, z: 112.5 },
+    galeAltar: { x: 136.5, z: 42.5 },       // NE, among the pines
+    dyeCart: { x: 125.5, z: 91.5 },
+    pickables: [
+      { kind: 'wheat', item: 'wheat', x: 90.5, z: 43.5 }, { kind: 'wheat', item: 'wheat', x: 91.5, z: 45.0 },
+      { kind: 'wheat', item: 'wheat', x: 89.5, z: 46.2 }, { kind: 'wheat', item: 'wheat', x: 92.3, z: 42.2 },
+      { kind: 'bush', item: 'redberries', x: 96.5, z: 129.5 }, { kind: 'bush', item: 'redberries', x: 99.5, z: 133.5 },
+      { kind: 'bush', item: 'redberries', x: 93.5, z: 135.5 },
+      { kind: 'marsh', item: 'marsh_greens', x: 88.5, z: 146.5 }, { kind: 'marsh', item: 'marsh_greens', x: 92.5, z: 149.5 },
+      { kind: 'marsh', item: 'marsh_greens', x: 84.5, z: 150.5 },
+    ],
+
     // Townsfolk. plane 1 = the keep's upper floor.
     npcs: [
       { npc: 'shopkeeper', x: 68.5, z: 55.5 },
@@ -99,6 +114,14 @@ export const REGIONS = {
       { npc: 'villager_man', x: 76.5, z: 95.5 },
       { npc: 'villager_man', x: 70.5, z: 62.5 },
       { npc: 'villager_woman', x: 77.5, z: 70.5 },
+      // Phase 9 quest folk
+      { npc: 'magus_orin', x: 46.5, z: 111.5 },
+      { npc: 'maud', x: 124.3, z: 91.0 },
+      { npc: 'ghost', x: 84.5, z: 55.8 },
+      { npc: 'wartfang', x: 119.5, z: 56.8 },
+      { npc: 'grubnose', x: 123.5, z: 57.2 },
+      { npc: 'grubfoot', x: 118.2, z: 54.2 },
+      { npc: 'dairy_cow', x: 128.5, z: 81.5 },
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
@@ -139,6 +162,10 @@ export const REGIONS = {
       { mob: 'spider', x: 137.5, z: 94.5 },
       { mob: 'sheep', x: 120.5, z: 76.5 }, { mob: 'sheep', x: 123.5, z: 75.5 },
       { mob: 'sheep', x: 126.5, z: 77.5 },
+      // Phase 9: imps in the meadows south of the wizard tower; a cultist below it
+      { mob: 'imp', x: 50.5, z: 118.5 }, { mob: 'imp', x: 55.5, z: 112.5 },
+      { mob: 'imp', x: 42.5, z: 119.5 }, { mob: 'imp', x: 58.5, z: 118.5 },
+      { mob: 'vex_cultist', x: 47.5, z: 111.5, plane: 'towerBasement' },
     ],
 
     // Items lying about the region at boot. plane: 0 ground, 1 keep floor 2, 2 keep roof.
@@ -170,6 +197,10 @@ export const REGIONS = {
       { item: 'thread', count: 40, x: 128.2, z: 89.8, respawn: 200 },
       // fletching onboarding (bows, arrows, staves & glyphs now sold in shops)
       { item: 'knife', x: 55.5, z: 89.8, respawn: 150 },             // keep ground floor
+      // Phase 9: the coop lays, the cellar hoards
+      { item: 'egg', x: 131.9, z: 78.6, respawn: 60 },
+      { item: 'skull', x: 48.2, z: 113.5, plane: 'towerBasement', respawn: 80,
+        onTakeQuest: ['unquiet_grave', 2, 3] },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate

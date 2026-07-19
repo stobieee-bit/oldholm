@@ -23,6 +23,8 @@ export const ROCKS = {
     examine: 'A rock veined with coal.' },
   gold: { label: 'Gold rocks', req: 40, xp: 65, ore: 'gold_ore', respawnTicks: 90, vein: 0xe0b83a,
     examine: 'A rock with expensive opinions.' },
+  slate: { label: 'Pale vein', req: 1, xp: 5, ore: 'blank_slate', respawnTicks: 10, vein: 0xb8b8c2,
+    examine: 'A pale seam of listening stone.' },
 };
 
 // Fishing. Each spot type: required tool, optional consumable per catch, and
