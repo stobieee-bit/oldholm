@@ -38,6 +38,8 @@ const canvas = document.getElementById('game');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // soft contact shadows ground the world
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 90);
@@ -47,11 +49,96 @@ const fogBase = new THREE.Color(def.fog.color);
 scene.fog = new THREE.Fog(def.fog.color, def.fog.near, def.fog.far);
 renderer.setClearColor(def.fog.color);
 
-const hemi = new THREE.HemisphereLight(0xd8e0cc, 0x59684a, 1.0);
+const hemi = new THREE.HemisphereLight(0xdfe6d2, 0x6d7a58, 1.12); // brighter, lighter ground bounce
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff3da, 1.0);
 sun.position.set(60, 100, 25);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 12;
+sun.shadow.camera.far = 210;
+sun.shadow.camera.left = -48; sun.shadow.camera.right = 48;
+sun.shadow.camera.top = 48; sun.shadow.camera.bottom = -48;
+sun.shadow.bias = -0.0005;
+sun.shadow.normalBias = 0.7;      // low-poly flat faces need a generous normal bias vs acne
+sun.target = new THREE.Object3D();
 scene.add(sun);
+scene.add(sun.target);
+const SUN_OFFSET = new THREE.Vector3(44, 58, 28); // ~46° elevation → readable shadows, follows the player
+// cool fill from the opposite side so sun-shadowed faces keep their form
+const fill = new THREE.DirectionalLight(0x9fb3d8, 0.32);
+fill.position.set(-55, 42, -30);
+scene.add(fill);
+
+// --- gradient sky dome -------------------------------------------------------
+// A camera-following inverted sphere with a vertical gradient. Its horizon band
+// is driven to match the (tinted) fog colour each frame so distant terrain melts
+// into it; the zenith deepens for painterly sky. Unfogged so the gradient holds.
+const skyUniforms = {
+  uHorizon: { value: new THREE.Color(def.fog.color) },
+  uTop: { value: new THREE.Color(def.fog.color) },
+  uExp: { value: 0.46 },
+};
+const skyDome = new THREE.Mesh(
+  new THREE.SphereGeometry(72, 28, 16),
+  new THREE.ShaderMaterial({
+    uniforms: skyUniforms,
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    vertexShader: `
+      varying vec3 vDir;
+      void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `
+      uniform vec3 uHorizon; uniform vec3 uTop; uniform float uExp;
+      varying vec3 vDir;
+      void main() {
+        float h = normalize(vDir).y;
+        float t = pow(clamp(h, 0.0, 1.0), uExp);
+        gl_FragColor = vec4(mix(uHorizon, uTop, t), 1.0);
+      }`,
+  }),
+);
+skyDome.renderOrder = -1000;
+scene.add(skyDome);
+
+// --- drifting clouds ---------------------------------------------------------
+// Soft billboard puffs high in the sky, in a group that follows the player so
+// they stay far; they drift slowly and tint with the hour.
+const cloudTex = (() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const g = cv.getContext('2d');
+  const blob = (x, y, r, a) => {
+    const rg = g.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, `rgba(255,255,255,${a})`); rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  };
+  for (let i = 0; i < 7; i++) blob(28 + i * 11, 58 + Math.sin(i) * 16, 22 + (i % 3) * 8, 0.85);
+  return new THREE.CanvasTexture(cv);
+})();
+const cloudGroup = new THREE.Group();
+scene.add(cloudGroup);
+const clouds = [];
+for (let i = 0; i < 11; i++) {
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: cloudTex, transparent: true, opacity: 0.42, depthWrite: false, fog: false,
+  }));
+  const ang = (i / 11) * Math.PI * 2, rad = 26 + (i % 4) * 6;
+  spr.position.set(Math.cos(ang) * rad, 26 + (i % 5) * 4, Math.sin(ang) * rad);
+  spr.scale.set(16 + (i % 4) * 7, 8 + (i % 3) * 3, 1);
+  spr.renderOrder = -900;
+  cloudGroup.add(spr);
+  clouds.push({ spr, drift: 0.25 + (i % 5) * 0.12, span: rad + 20 });
+}
+const _cloudTint = new THREE.Color();
+const WHITE = new THREE.Color(0xffffff);
+function updateClouds(dt) {
+  cloudGroup.position.set(camera.position.x, 0, camera.position.z);
+  _cloudTint.copy(_fogNow).lerp(WHITE, 0.35); // clouds ride a touch lighter than the haze
+  for (const c of clouds) {
+    c.spr.position.x += c.drift * dt;
+    if (c.spr.position.x > c.span) c.spr.position.x = -c.span;
+    c.spr.material.color.copy(_cloudTint);
+  }
+}
 
 // --- world / player / hud ----------------------------------------------------
 
@@ -94,6 +181,12 @@ ui.bind({
 });
 ui.bindMarket(market);
 npcs.spawnAll();
+
+// Let the world and its inhabitants cast + receive the sun's shadow.
+// Water casts nothing (it's transparent); everything else grounds itself.
+world.group.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+if (world.water) { world.water.castShadow = false; world.water.receiveShadow = false; }
+for (const m of npcs.mobs) m.mesh.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 
 // --- audio / minimap / persistence ------------------------------------------
 
@@ -203,6 +296,9 @@ const TINTS = [ // [dayFraction, fogTint, sunColor, sunIntensity, hemiIntensity]
 ].map(([t, f, s, si, hi]) => ({ t, fog: new THREE.Color(f), sun: new THREE.Color(s), si, hi }));
 
 const _tintFog = new THREE.Color(), _tintSun = new THREE.Color(), _fogNow = new THREE.Color();
+const _skyTop = new THREE.Color();
+const DEEP_SKY = new THREE.Color(0x2b4a5e); // the midday zenith; the hour-tint warms/cools it
+const HEMI_BOOST = 1.06; // lift ambient, but leave room for shadows to read
 
 function applyDayTint() {
   const frac = clock.gameMinutes / (24 * 60);
@@ -219,8 +315,22 @@ function applyDayTint() {
   scene.fog.color.copy(_fogNow);
   renderer.setClearColor(_fogNow);
   sun.color.copy(_tintSun);
-  sun.intensity = a.si + (b.si - a.si) * tt;
-  hemi.intensity = a.hi + (b.hi - a.hi) * tt;
+  const si = a.si + (b.si - a.si) * tt;
+  const hi = a.hi + (b.hi - a.hi) * tt;
+  sun.intensity = si;
+  hemi.intensity = hi * HEMI_BOOST;
+  fill.intensity = 0.26 * hi;          // fill fades with the day
+  fill.color.copy(_tintFog);           // and warms/cools with the hour
+  // the sun (and its shadow frustum) rides along with the player
+  sun.position.set(player.pos.x + SUN_OFFSET.x, SUN_OFFSET.y, player.pos.z + SUN_OFFSET.z);
+  sun.target.position.set(player.pos.x, 0, player.pos.z);
+  sun.target.updateMatrixWorld();
+  // sky dome: horizon melts into the fog, the zenith is a cool blue-slate that
+  // rides the hour-tint (warm at dawn/dusk, dim at night)
+  skyUniforms.uHorizon.value.copy(_fogNow);
+  _skyTop.copy(DEEP_SKY).multiply(_tintFog);
+  skyUniforms.uTop.value.copy(_skyTop);
+  skyDome.position.copy(camera.position);
 }
 
 // --- main loop -------------------------------------------------------------------
@@ -254,6 +364,7 @@ function frame(now) {
   ui.setPrayerOrb(prayers.points, prayers.maxPoints());
   ui.fx.update(camera);
   minimap.update();
+  updateClouds(dt);
   audio.setTheme(world.regionAt(player.pos.x, player.pos.z, player.plane).theme);
 
   // autosave every 30s once the player is actually in the world
@@ -293,6 +404,7 @@ window.__OLDHOLM = {
     ui.setPrayerOrb(prayers.points, prayers.maxPoints());
     ui.fx.update(camera);
     minimap.update();
+    updateClouds(dt);
     renderer.render(scene, camera);
   },
   audio, minimap, save, titleCastle,

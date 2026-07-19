@@ -11,6 +11,14 @@
 
   #hud { position: fixed; inset: 0; pointer-events: none; font-family: Georgia, 'Times New Roman', serif; }
 
+  /* subtle cinematic vignette to frame the view (over the world, under the HUD).
+     No z-index: DOM order puts it above the canvas and below #hud. */
+  #vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 74% 74% at 50% 46%, transparent 58%, rgba(12, 16, 12, 0.42) 100%);
+    mix-blend-mode: multiply;
+  }
+
   #crosshair {
     position: absolute; left: 50%; top: 50%; width: 6px; height: 6px;
     margin: -3px 0 0 -3px; border-radius: 50%;
@@ -498,6 +506,7 @@
 </head>
 <body>
   <canvas id="game"></canvas>
+  <div id="vignette"></div>
 
   <div id="hud">
     <div id="crosshair"></div>

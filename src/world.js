@@ -646,9 +646,29 @@ export class World {
     const d = this.def, size = this.size;
     const geo = new THREE.PlaneGeometry(size, size);
     geo.rotateX(-Math.PI / 2);
-    const mat = new THREE.MeshLambertMaterial({
-      color: 0x35594e, transparent: true, opacity: 0.8,
+    // Phong for a sun glint; a shader injection wobbles the normal over time so
+    // the highlight shimmers like ripples — no geometry, no per-frame CPU cost.
+    const mat = new THREE.MeshPhongMaterial({
+      color: 0x2f5a52, transparent: true, opacity: 0.86,
+      specular: 0x9fd8c8, shininess: 90,
     });
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = { value: 0 };
+      this._waterUniforms = shader.uniforms;
+      shader.vertexShader = 'varying vec3 vWorldW;\n' + shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\n vWorldW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      shader.fragmentShader = 'uniform float uTime;\nvarying vec3 vWorldW;\n' + shader.fragmentShader.replace(
+        '#include <normal_fragment_begin>',
+        `#include <normal_fragment_begin>
+         {
+           float t = uTime;
+           vec2 g = vec2(
+             0.50 * cos(vWorldW.x * 0.50 + t * 1.2) + 0.30 * cos(vWorldW.x * 0.19 - t * 0.6),
+             0.42 * cos(vWorldW.z * 0.42 - t * 1.0) + 0.30 * cos(vWorldW.z * 0.25 + t * 0.7));
+           normal = normalize(normal - vec3(g.x, 0.0, g.y) * 0.32);
+         }`);
+    };
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(size / 2, d.waterLevel, size / 2);
     this.group.add(mesh);
@@ -2602,6 +2622,7 @@ export class World {
 
   updateSpinners(dt) {
     for (const s of this._spinners ?? []) s.obj.rotation[s.axis] += s.speed * dt;
+    if (this._waterUniforms) this._waterUniforms.uTime.value = (this._waterUniforms.uTime.value + dt) % 6283.0;
   }
 
   // ---- the general store + bank chest ------------------------------------------------
