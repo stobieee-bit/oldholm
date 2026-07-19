@@ -290,6 +290,7 @@ export class Combat {
     const p = this.player;
     const def = MOBS[mob.defId];
     const vsType = def.attackType ?? 'crush';
+    mob.lungeAttack?.(); // a visible forward strike
 
     // Cindermaw's dragonfire: lethal (40) unless an anti-flame shield is worn.
     if (def.dragonfire && Math.random() < 0.28) {

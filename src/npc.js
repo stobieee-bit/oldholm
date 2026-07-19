@@ -304,20 +304,44 @@ class Mob {
   updateVisual(dt, playerPos) {
     if (this.dead) return;
     // model fronts are built toward -z, so face = atan2(dx, dz) + PI
+    let gy;
     if (this._t < 1) {
       this._t = Math.min(1, this._t + dt / 0.6); // glide one tile per tick
       const x = this._from.x + (this._to.x - this._from.x) * this._t;
       const z = this._from.z + (this._to.z - this._from.z) * this._t;
-      this.mesh.position.set(x, this.world.getGroundHeight(x, z, this.plane), z);
+      gy = this.world.getGroundHeight(x, z, this.plane);
+      this.mesh.position.set(x, gy, z);
       this._faceY = Math.atan2(this._to.x - this._from.x, this._to.z - this._from.z) + Math.PI;
     } else {
       const p = this.mesh.position;
-      this.mesh.position.y = this.world.getGroundHeight(p.x, p.z, this.plane);
+      gy = this.world.getGroundHeight(p.x, p.z, this.plane);
+      this.mesh.position.y = gy;
       if (this.target === 'player' && playerPos)
         this._faceY = Math.atan2(playerPos.x - p.x, playerPos.z - p.z) + Math.PI;
     }
-    this.mesh.rotation.y = this._faceY;
+    this._animate(dt, gy);
   }
+
+  /** Procedural life on the single merged mesh — a bobbing/swaying gait while
+   *  moving, gentle breathing at rest, and a forward lunge when it strikes.
+   *  Visual only: never touches tile/collision, so combat is unaffected. */
+  _animate(dt, gy) {
+    const moving = this._t < 1;
+    this._amt = (this._amt ?? 0) + ((moving ? 1 : 0) - (this._amt ?? 0)) * Math.min(1, dt * 9);
+    this._phase = (this._phase ?? 0) + (moving ? dt * 12 : 0);
+    this._lunge = Math.max(0, (this._lunge ?? 0) - dt * 3.2);
+    const amt = this._amt, ph = this._phase;
+    const h = this.def.model.height || 1.4;
+    const hop = 0.055 * (1.4 / Math.max(0.55, h));   // smaller creatures bounce more
+    this.mesh.position.y = gy + Math.abs(Math.sin(ph)) * hop * amt;
+    const lunge = Math.sin(this._lunge * Math.PI);   // 0..1..0 as it decays from 1
+    this.mesh.rotation.set(-lunge * 0.38, this._faceY, Math.sin(ph) * 0.07 * amt);
+    this._breathe = (this._breathe ?? 0) + dt * 2.2;
+    this.mesh.scale.y = 1 + (1 - amt) * Math.sin(this._breathe) * 0.02;
+  }
+
+  /** Kick a quick forward lunge (called when the mob lands a hit). */
+  lungeAttack() { this._lunge = 1; }
 }
 
 // ---- the manager --------------------------------------------------------------
