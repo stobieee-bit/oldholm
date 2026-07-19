@@ -14,6 +14,8 @@ export class TitleCastle {
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this._resize();
 
     this.scene = new THREE.Scene();
@@ -25,6 +27,12 @@ export class TitleCastle {
     this.scene.add(new THREE.HemisphereLight(0x9fb0d0, 0x3a3020, 1.15));
     const key = new THREE.DirectionalLight(0xffe6b8, 1.5);
     key.position.set(-9, 16, 12);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.near = 4; key.shadow.camera.far = 60;
+    key.shadow.camera.left = -16; key.shadow.camera.right = 16;
+    key.shadow.camera.top = 20; key.shadow.camera.bottom = -8;
+    key.shadow.bias = -0.0006; key.shadow.normalBias = 0.4;
     this.scene.add(key);
     const rim = new THREE.DirectionalLight(0x7f92cf, 0.7);
     rim.position.set(10, 6, -9);
@@ -33,6 +41,8 @@ export class TitleCastle {
     this.pivot = new THREE.Group();
     this.scene.add(this.pivot);
     this._buildCastle();
+    // let the castle self-shadow and drop onto its rocky base
+    this.pivot.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 
     this._onResize = () => this._resize();
     window.addEventListener('resize', this._onResize);
