@@ -567,15 +567,20 @@ export const MOBS = {
     drops: [],
     alwaysDrops: 0,
     model: {
-      height: 1.85,
+      height: 2.05,
       parts: [
-        { kind: 'box', size: [0.5, 1.0, 0.3], at: [0, 1.0, 0], color: 0x2a2430 },
-        { kind: 'box', size: [0.3, 0.32, 0.3], at: [0, 1.6, 0], color: 0xc8c0d0 },
-        { kind: 'box', size: [0.5, 0.5, 0.06], at: [0, 1.05, -0.2], color: 0x8a1a2a }, // cape
-        { kind: 'box', size: [0.12, 0.8, 0.14], at: [-0.32, 1.0, 0], color: 0x2a2430 },
-        { kind: 'box', size: [0.12, 0.8, 0.14], at: [0.32, 1.0, 0], color: 0x2a2430 },
-        { kind: 'box', size: [0.15, 0.65, 0.16], at: [-0.13, 0.32, 0], color: 0x1a1620 },
-        { kind: 'box', size: [0.15, 0.65, 0.16], at: [0.13, 0.32, 0], color: 0x1a1620 },
+        // gaunt noble in black, tall and slim, deathly-pale face
+        ...figure({ scale: 1.16, build: 0.86, skin: 0xd6d0dc, shirt: 0x241f2c, sleeve: 0x1f1a26, pants: 0x18141e, hair: 0x100c16, boot: 0x0c0a12, headScale: 0.94 }),
+        // floor-length cloak: a dark flared drape behind, blood-red lining
+        { kind: 'cone', r: 0.62, h: 1.75, seg: 10, scale: [1.15, 1, 0.32], at: [0, 0.9, -0.16], color: 0x14111c },
+        { kind: 'cone', r: 0.5, h: 1.55, seg: 8, scale: [1.05, 1, 0.22], at: [0, 0.86, -0.02], color: 0x5a0e1c },
+        // high vampiric collar rising behind the head
+        { kind: 'cone', r: 0.17, h: 0.5, seg: 6, scale: [1, 1, 0.35], rotX: -0.5, at: [-0.17, 1.62, -0.16], color: 0x120a16 },
+        { kind: 'cone', r: 0.17, h: 0.5, seg: 6, scale: [1, 1, 0.35], rotX: -0.5, at: [0.17, 1.62, -0.16], color: 0x120a16 },
+        // red chest V + glowing eyes
+        { kind: 'box', size: [0.18, 0.42, 0.05], at: [0, 1.22, 0.16], color: 0x5a0e1c },
+        { kind: 'sphere', r: 0.035, detail: 0, at: [-0.07, 1.58, 0.15], color: 0xe23636 },
+        { kind: 'sphere', r: 0.035, detail: 0, at: [0.07, 1.58, 0.15], color: 0xe23636 },
       ],
     },
   },
@@ -590,18 +595,26 @@ export const MOBS = {
     drops: [],
     alwaysDrops: 0,
     model: {
-      height: 2.6,
+      height: 2.9,
       parts: [
-        { kind: 'box', size: [0.8, 1.3, 0.5], at: [0, 1.4, 0], color: 0x6a1a1a },
-        { kind: 'box', size: [0.5, 0.5, 0.5], at: [0, 2.3, 0], color: 0x8a2010 },
-        { kind: 'cone', r: 0.14, h: 0.5, at: [-0.22, 2.75, 0], color: 0x1a0a0a },
-        { kind: 'cone', r: 0.14, h: 0.5, at: [0.22, 2.75, 0], color: 0x1a0a0a },
-        { kind: 'box', size: [0.12, 0.1, 0.06], at: [-0.12, 2.35, 0.24], color: 0xe0a83a },
-        { kind: 'box', size: [0.12, 0.1, 0.06], at: [0.12, 2.35, 0.24], color: 0xe0a83a },
-        { kind: 'box', size: [0.24, 1.1, 0.26], at: [-0.56, 1.35, 0], color: 0x6a1a1a },
-        { kind: 'box', size: [0.24, 1.1, 0.26], at: [0.56, 1.35, 0], color: 0x6a1a1a },
-        { kind: 'box', size: [0.3, 0.8, 0.32], at: [-0.24, 0.4, 0], color: 0x4a1010 },
-        { kind: 'box', size: [0.3, 0.8, 0.32], at: [0.24, 0.4, 0], color: 0x4a1010 },
+        // huge charred demon, broad and bald, ember-lit
+        ...figure({ scale: 1.68, build: 1.42, skin: 0x3a1414, shirt: 0x4a1614, sleeve: 0x3a1212, pants: 0x280e0e, boot: 0x180808, bald: true, headScale: 1.12 }),
+        // great swept horns
+        { kind: 'cone', r: 0.14, h: 0.85, seg: 6, rotZ: 0.55, rotX: -0.25, at: [-0.26, 2.6, -0.05], color: 0x120808 },
+        { kind: 'cone', r: 0.14, h: 0.85, seg: 6, rotZ: -0.55, rotX: -0.25, at: [0.26, 2.6, -0.05], color: 0x120808 },
+        // burning eyes + brow
+        { kind: 'sphere', r: 0.06, detail: 0, at: [-0.11, 2.34, 0.26], color: 0xffa32a },
+        { kind: 'sphere', r: 0.06, detail: 0, at: [0.11, 2.34, 0.26], color: 0xffa32a },
+        // ember cracks blazing across the chest + belly
+        { kind: 'box', size: [0.09, 0.7, 0.05], at: [0, 1.55, 0.4], color: 0xff7a1e },
+        { kind: 'box', size: [0.52, 0.08, 0.05], at: [0, 1.72, 0.4], color: 0xff7a1e },
+        { kind: 'box', size: [0.34, 0.08, 0.05], at: [-0.02, 1.32, 0.41], rotZ: 0.5, color: 0xf06a1a },
+        { kind: 'box', size: [0.3, 0.07, 0.05], at: [0.16, 1.46, 0.41], rotZ: -0.6, color: 0xf06a1a },
+        { kind: 'sphere', r: 0.09, detail: 0, at: [0, 0.95, 0.42], color: 0xff8a2a }, // ember core
+        // jagged shoulder + back spikes
+        { kind: 'cone', r: 0.14, h: 0.5, seg: 5, rotX: -0.7, at: [-0.56, 2.02, -0.12], color: 0x120808 },
+        { kind: 'cone', r: 0.14, h: 0.5, seg: 5, rotX: -0.7, at: [0.56, 2.02, -0.12], color: 0x120808 },
+        { kind: 'cone', r: 0.1, h: 0.34, at: [0, 2.0, -0.2], color: 0x180a0a },
       ],
     },
   },
@@ -616,21 +629,49 @@ export const MOBS = {
     drops: [],
     alwaysDrops: 0,
     model: {
-      height: 2.2,
+      height: 2.75,
       parts: [
-        { kind: 'box', size: [1.1, 1.0, 2.4], at: [0, 1.0, 0], color: 0x6a2a1a },
-        { kind: 'box', size: [0.7, 0.7, 0.9], at: [0, 1.2, -1.5], color: 0x8a3a20 },
-        { kind: 'cone', r: 0.16, h: 0.5, at: [-0.24, 1.7, -1.6], color: 0x2a1410 },
-        { kind: 'cone', r: 0.16, h: 0.5, at: [0.24, 1.7, -1.6], color: 0x2a1410 },
-        { kind: 'box', size: [0.16, 0.14, 0.08], at: [-0.2, 1.25, -1.95], color: 0xe0a83a },
-        { kind: 'box', size: [0.16, 0.14, 0.08], at: [0.2, 1.25, -1.95], color: 0xe0a83a },
-        { kind: 'box', size: [1.9, 0.1, 1.0], at: [-1.1, 1.3, 0.2], rotZ: 0.5, color: 0x4a1810 },
-        { kind: 'box', size: [1.9, 0.1, 1.0], at: [1.1, 1.3, 0.2], rotZ: -0.5, color: 0x4a1810 },
-        { kind: 'box', size: [0.26, 0.7, 0.28], at: [-0.5, 0.4, 0.7], color: 0x4a1810 },
-        { kind: 'box', size: [0.26, 0.7, 0.28], at: [0.5, 0.4, 0.7], color: 0x4a1810 },
-        { kind: 'box', size: [0.26, 0.7, 0.28], at: [-0.5, 0.4, -0.7], color: 0x4a1810 },
-        { kind: 'box', size: [0.26, 0.7, 0.28], at: [0.5, 0.4, -0.7], color: 0x4a1810 },
-        { kind: 'cone', r: 0.2, h: 1.4, at: [0, 1.0, 1.5], rotX: 1.57, color: 0x4a1810 },
+        // barrel body (chest thick at front -z, hips narrower at back +z)
+        { kind: 'cyl', rt: 0.56, rb: 0.34, h: 1.9, seg: 12, rotX: 1.5708, at: [0, 1.05, 0.15], color: 0x6a2418 },
+        { kind: 'cyl', rt: 0.42, rb: 0.24, h: 1.75, seg: 10, scale: [1, 0.5, 1], rotX: 1.5708, at: [0, 0.74, 0.15], color: 0xc24e1a }, // glowing ember belly
+        // long serpentine neck (two segments) rising up and forward
+        { kind: 'cyl', rt: 0.36, rb: 0.28, h: 0.85, seg: 10, rotX: 0.95, at: [0, 1.6, -0.7], color: 0x7a2c1a },
+        { kind: 'cyl', rt: 0.28, rb: 0.24, h: 0.78, seg: 10, rotX: 0.42, at: [0, 2.2, -1.28], color: 0x7a2c1a },
+        // elongated head, clearly the highest point of the silhouette
+        { kind: 'sphere', r: 0.37, scale: [1, 0.95, 1.5], at: [0, 2.52, -1.74], color: 0x7a2c1a },
+        { kind: 'box', size: [0.34, 0.2, 0.52], at: [0, 2.44, -2.16], color: 0x8a3a20 }, // snout / upper jaw
+        { kind: 'box', size: [0.3, 0.12, 0.44], at: [0, 2.28, -2.12], color: 0x261008 }, // lower jaw
+        { kind: 'box', size: [0.24, 0.1, 0.3], at: [0, 2.35, -2.06], color: 0xff8a2a }, // glowing maw
+        { kind: 'cone', r: 0.03, h: 0.11, rotX: 3.14, at: [-0.1, 2.33, -2.32], color: 0xe8e0d0 }, // fangs
+        { kind: 'cone', r: 0.03, h: 0.11, rotX: 3.14, at: [0.1, 2.33, -2.32], color: 0xe8e0d0 },
+        // great swept-back horns, brow spikes, glowing eyes
+        { kind: 'cone', r: 0.1, h: 0.82, seg: 5, rotX: -1.2, at: [-0.2, 2.74, -1.5], color: 0x241008 },
+        { kind: 'cone', r: 0.1, h: 0.82, seg: 5, rotX: -1.2, at: [0.2, 2.74, -1.5], color: 0x241008 },
+        { kind: 'cone', r: 0.05, h: 0.24, seg: 5, rotX: -0.6, at: [-0.15, 2.62, -1.92], color: 0x241008 },
+        { kind: 'cone', r: 0.05, h: 0.24, seg: 5, rotX: -0.6, at: [0.15, 2.62, -1.92], color: 0x241008 },
+        { kind: 'sphere', r: 0.055, detail: 0, at: [-0.18, 2.54, -2.0], color: 0xffd23a },
+        { kind: 'sphere', r: 0.055, detail: 0, at: [0.18, 2.54, -2.0], color: 0xffd23a },
+        // grand membranous wings: leading-edge spar + a thin triangular membrane
+        { kind: 'cyl', rt: 0.05, rb: 0.02, h: 2.0, seg: 5, rotZ: -0.8, at: [-0.72, 1.95, 0.25], color: 0x3a1810 },
+        { kind: 'cone', r: 1.15, h: 2.1, seg: 3, scale: [1, 1, 0.05], rotZ: 0.72, rotY: 0.3, at: [-1.02, 1.9, 0.28], color: 0x5a1e14 },
+        { kind: 'cyl', rt: 0.05, rb: 0.02, h: 2.0, seg: 5, rotZ: 0.8, at: [0.72, 1.95, 0.25], color: 0x3a1810 },
+        { kind: 'cone', r: 1.15, h: 2.1, seg: 3, scale: [1, 1, 0.05], rotZ: -0.72, rotY: -0.3, at: [1.02, 1.9, 0.28], color: 0x5a1e14 },
+        // spinal ridge of spikes down the back
+        { kind: 'cone', r: 0.1, h: 0.34, at: [0, 1.62, -0.35], color: 0x3a1810 },
+        { kind: 'cone', r: 0.11, h: 0.38, at: [0, 1.64, 0.15], color: 0x3a1810 },
+        { kind: 'cone', r: 0.09, h: 0.32, at: [0, 1.55, 0.62], color: 0x3a1810 },
+        // long tapering tail with a spade tip
+        { kind: 'cone', r: 0.3, h: 1.95, seg: 8, rotX: -1.5708, at: [0, 0.92, 1.55], color: 0x6a2418 },
+        { kind: 'cone', r: 0.14, h: 0.42, seg: 5, rotX: 1.4, at: [0, 0.98, 2.45], color: 0x3a1810 },
+        // four clawed legs
+        { kind: 'cyl', rt: 0.17, rb: 0.12, h: 0.72, at: [-0.44, 0.36, -0.5], color: 0x5a2014 },
+        { kind: 'cyl', rt: 0.17, rb: 0.12, h: 0.72, at: [0.44, 0.36, -0.5], color: 0x5a2014 },
+        { kind: 'cyl', rt: 0.19, rb: 0.13, h: 0.72, at: [-0.48, 0.36, 0.7], color: 0x5a2014 },
+        { kind: 'cyl', rt: 0.19, rb: 0.13, h: 0.72, at: [0.48, 0.36, 0.7], color: 0x5a2014 },
+        { kind: 'box', size: [0.32, 0.12, 0.34], at: [-0.44, 0.06, -0.58], color: 0x261008 },
+        { kind: 'box', size: [0.32, 0.12, 0.34], at: [0.44, 0.06, -0.58], color: 0x261008 },
+        { kind: 'box', size: [0.34, 0.12, 0.36], at: [-0.48, 0.06, 0.78], color: 0x261008 },
+        { kind: 'box', size: [0.34, 0.12, 0.36], at: [0.48, 0.06, 0.78], color: 0x261008 },
       ],
     },
   },
