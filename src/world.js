@@ -109,6 +109,8 @@ export class World {
     this._buildSmithy();
     this._buildTanningRack();
     this._buildChurch();
+    this._buildStore();
+    this._buildBankChest();
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -849,6 +851,8 @@ export class World {
       if (gc && Math.hypot(tx + 0.5 - gc.x, tz + 0.5 - gc.z) < 9) return true;
       const ch = d.church;
       if (ch && tx >= ch.x0 - 2 && tx < ch.x1 + 2 && tz >= ch.z0 - 2 && tz < ch.z1 + 2) return true;
+      const st = d.store;
+      if (st && tx >= st.x0 - 2 && tx < st.x1 + 2 && tz >= st.z0 - 2 && tz < st.z1 + 2) return true;
       const s = d.trees.minSpacing;
       for (let dz = -s; dz <= s; dz++)
         for (let dx = -s; dx <= s; dx++)
@@ -1289,6 +1293,76 @@ export class World {
       kind: 'scenery', name: 'Tanning rack', meshes,
       examine: 'Where hides go to become useful.',
       actions: [{ label: 'Tan-hides', fn: (ctx) => ctx.actions.startTan() }],
+    });
+  }
+
+  // ---- the general store + bank chest ------------------------------------------------
+
+  _buildStore() {
+    const c = this.def.store;
+    if (!c) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const { x0, x1, z0, z1 } = c;
+    const y = this.getGroundHeight((x0 + x1) / 2, (z0 + z1) / 2);
+    const w = x1 - x0, d = z1 - z0;
+    const midX = (x0 + x1) / 2, midZ = (z0 + z1) / 2;
+    const wallH = 3.2, sink = 0.4;
+    const wy = y - sink + (wallH + sink) / 2;
+    // door on the EAST wall (facing the road)
+    const doorZ = Math.floor(midZ);
+    this._addBox(w, wallH + sink, 0.8, midX, wy, z0 + 0.5, stone);
+    this._addBox(w, wallH + sink, 0.8, midX, wy, z1 - 0.5, stone);
+    this._addBox(0.8, wallH + sink, d - 2, x0 + 0.5, wy, midZ, stone);
+    const aLen = doorZ - (z0 + 1), bLen = (z1 - 1) - (doorZ + 1);
+    this._addBox(0.8, wallH + sink, aLen, x1 - 0.5, wy, z0 + 1 + aLen / 2, stone);
+    this._addBox(0.8, wallH + sink, bLen, x1 - 0.5, wy, doorZ + 1 + bLen / 2, stone);
+    this._addBox(0.8, wallH - 2.3, 1, x1 - 0.5, y + 2.3 + (wallH - 2.3) / 2, doorZ + 0.5, stone);
+    this._addBox(w + 0.4, 0.14, d + 0.4, midX, y + wallH + 0.05, midZ, wood);   // ceiling
+    this._addBox(w + 0.7, 0.22, d + 0.7, midX, y + wallH + 0.35, midZ, darkStone); // flat cap
+    this.markBlockedRect(x0, z0, x1 - 1, z0);
+    this.markBlockedRect(x0, z1 - 1, x1 - 1, z1 - 1);
+    this.markBlockedRect(x0, z0 + 1, x0, z1 - 2);
+    this.markBlockedRect(x1 - 1, z0 + 1, x1 - 1, doorZ - 1);
+    this.markBlockedRect(x1 - 1, doorZ + 1, x1 - 1, z1 - 2);
+    // counter + shelves
+    const counter = [this._addBox(0.7, 1.0, d - 3.4, x0 + 2.2, y + 0.5, midZ, wood)];
+    for (let tz = Math.floor(midZ - (d - 3.4) / 2); tz <= Math.floor(midZ + (d - 3.4) / 2 - 0.01); tz++)
+      this.setTileBlocked(x0 + 2, tz, true);
+    const shelves = [];
+    for (const sz of [z0 + 1.6, z1 - 1.6]) {
+      shelves.push(this._addBox(2.6, 0.1, 0.5, midX + 1, y + 1.1, sz, wood));
+      shelves.push(this._addBox(2.6, 0.1, 0.5, midX + 1, y + 1.8, sz, wood));
+    }
+    this.addInteractable({
+      kind: 'scenery', name: 'Counter', meshes: counter,
+      examine: 'Polished by ten thousand small transactions.', actions: [],
+    });
+    this.addInteractable({
+      kind: 'scenery', name: 'Shelves', meshes: shelves,
+      examine: 'Mostly buckets, structurally.', actions: [],
+    });
+  }
+
+  _buildBankChest() {
+    const c = this.def.bankChest;
+    if (!c) return;
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
+    const plane = this.keepPlanes?.floor ?? 0;
+    const y = this.getGroundHeight(c.x, c.z, plane);
+    const meshes = [
+      this._addBox(0.9, 0.5, 0.6, c.x, y + 0.25, c.z, wood),
+      this._addBox(0.94, 0.18, 0.64, c.x, y + 0.56, c.z, wood),
+      this._addBox(0.96, 0.08, 0.12, c.x, y + 0.36, c.z, gold),
+    ];
+    this.setPlaneTile(plane, Math.floor(c.x), Math.floor(c.z),
+      this.planes[plane].fallbackH, true);
+    this.addInteractable({
+      kind: 'bank', name: 'Bank chest', meshes,
+      examine: 'Your gold is safe with the Bank of Aldera. Probably.',
+      actions: [{ label: 'Bank', fn: (ctx) => ctx.ui.openBank() }],
     });
   }
 

@@ -90,6 +90,7 @@ export class Player {
     this.lockTarget = lockTarget;
 
     window.addEventListener('keydown', (e) => {
+      if (e.target instanceof HTMLInputElement) return; // typing in a search box, not walking
       if (!this.inputEnabled || this.menuOpen) return; // overlay/menu owns the keyboard
       if (e.code === 'Space') e.preventDefault(); // no jumping — this is a civilized game
       if (e.repeat) return;

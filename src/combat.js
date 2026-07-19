@@ -151,7 +151,7 @@ export class Combat {
   }
 
   inReach(mob) {
-    if (this.player.plane !== 0) return false;
+    if (this.player.plane !== (mob.plane ?? 0)) return false;
     const v = mob.visualPos();
     return Math.hypot(v.x - this.player.pos.x, v.z - this.player.pos.z) <= this.attackReach();
   }

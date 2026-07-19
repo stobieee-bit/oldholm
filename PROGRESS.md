@@ -1,6 +1,58 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 7 — Magic, Ranged, Prayer — COMPLETE
+## Current status: Phase 8 — NPCs, Shops, Banking — COMPLETE
+
+## What was built (Phase 8)
+
+- **Human NPCs** (`data/npcs.js`): nine townsfolk on the mob chassis (planes supported —
+  the banker and Wizard Fenwick live on the keep's upper floor): Shopkeeper, Banker,
+  Wizard Fenwick, Smith Hilda, Cook Bramble (quest hook foreshadowed), Father Merrit,
+  and wandering villagers with overhead idle chatter ("Lovely day, if you like fog.").
+  Talk-to / Trade / Bank actions per def; non-attackable; no combat-level nameplates.
+- **Dialogue engine** (`src/dialogue.js` + `data/dialogue/holmbridge.js`): branching
+  data-driven trees, big-name header, typewriter text (skippable), numbered options
+  (keyboard 1–9 or click), "Click here to continue", modal freeze, option actions
+  (end/openShop/openBank), random-start trees for villagers.
+- **Shops** (`src/shop.js` + `data/shops.js`): general store (buys ANYTHING at 40%,
+  sells at 130%, sold surplus enters stock and drains back out over restocks),
+  Fenwick's Focus & Fizzle (staves/glyphs/robes — replacing the Phase 7 free spawns),
+  and Hilda's Arms (bronze→steel weapons/armor; buys metal, bars, ores). Stock steps
+  toward its maximum every restockTicks. Shop panel: stock/qty/price rows, Buy 1/5;
+  while trading, your pack's click menu becomes Sell 1/5/All with live prices.
+- **Bank of Aldera** (`src/bank.js`): one shared vault (everything stacks, 240 kinds),
+  deposit/withdraw 1/5/10/All/X (inline X prompt), live search filter; the bank chest
+  sits upstairs in the keep per the atlas, beside the Banker ("Your gold is safe with
+  the Bank of Aldera. Probably." — delivered verbatim in dialogue and examine).
+- **The general store building** west of the road (door facing it, counter + shelves),
+  villagers seeded along the town street.
+
+## Phase 8 — tested (live browser, real pipelines)
+
+- **DoD, poetically exact**: killed 100 cows (2,023 ticks), looted 100 cowhides, sold
+  all 100 at the general store for exactly 100 coins (1c each at 40% of value 3),
+  banked them at the chest upstairs, withdrew X=37 (63 left), withdrew all, and bought
+  the iron scimitar at Hilda's for exactly 100 coins — 0 left — then wielded it
+  (Chop/Slash/Lunge/Block).
+- Dialogue through the real DOM: typewriter → skip → verbatim spec line → option 2
+  branches → option 1 opens the bank and unfreezes the player.
+- Bank: search filters ("bone" → Bones), non-stackable withdrawal fills discrete
+  slots; deposit revalidates.
+- Shops: DOM-path buy (row → Buy 1: bucket for 3c), restock (cabbage 3→8 over 5
+  cycles), transient sold-surplus drains to nothing; "no use for that" on refusals.
+- Villager chatter appears overhead near the player. Store door admits (an earlier
+  "blocked door" was a test-side yaw sign error — flag map proved the tile open),
+  walls block. Regressions green; 1.43 ms/frame.
+- Fixed during testing: interactions ctx never exposed `dialogue` (Talk-to crashed).
+
+## Definition of Done — Phase 8
+
+- [x] Sell 100 cowhides
+- [x] Bank the gold in Holmbridge (deposit + withdraw incl. X-amounts)
+- [x] Buy an iron scimitar
+
+---
+
+## Phase 7 — Magic, Ranged, Prayer — COMPLETE
 
 ## What was built (Phase 7)
 
@@ -442,11 +494,16 @@
 
 ## Exact next step
 
-**Phase 8 — NPCs, Shops, Banking**: dialogue engine (branching data-driven trees in
-data/dialogue/), general store + specialty shops with restock ticks (the staff shop
-can absorb the arcane-corner glyph spawns; a sword shop the courtyard smithy spares),
-bank UI with deposit/withdraw 1/5/10/All/X and search (bank chest upstairs in the keep
-per the atlas), gold as the universal medium, ambient villager NPCs with idle chatter
-(Talk-to on mobs/NPCs, typewriter dialogue box with numbered options per §12).
-DoD: sell 100 cowhides, bank the gold, buy an iron scimitar. Needs data/npcs.js,
-data/shops.js, data/dialogue/*.js, src/dialogue.js, src/bank.js, src/shop.js.
+**Phase 9 — Quest Engine + Quests 1–5**: quest state machine (int stage per quest),
+journal tab (F3) with red/yellow/green statuses, dialogue gates on stage (the dialogue
+engine needs stage-conditional trees + quest actions beyond openShop/openBank),
+item-triggered advances, completion fanfare screen listing rewards ("You have
+completed X! Quest points: +1"). Quests: The Cook's Calamity (egg/milk/flour — needs
+the windmill with its two-floor hopper mechanic, a dairy cow interaction, wheat, and
+the coop's egg), The Unquiet Grave (churchyard spirit + wizard tower basement +
+Spectral Charm), Beads of the Magus (imps — new teleporting mob — and 4 bead colors),
+The Severed Circle (talisman delivery; unlocks Glyphcraft + first altar), A Matter of
+Colors (goblin diplomacy + dyes + Grubfoot the Uniter). Sequencing note: this needs
+the windmill building, wizard tower, imps, dye-maker stand-in, Glyphcraft skill
+actions, and quest data files (data/quests.js). DoD: complete all 5 in sequence from
+a fresh save with correct journal states throughout.

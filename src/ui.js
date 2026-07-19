@@ -161,6 +161,15 @@ export class FX {
     this.drops.push({ el, born: performance.now() });
   }
 
+  /** Overhead speech: idle chatter and future quest barks. */
+  say(anchorFn, text) {
+    const el = document.createElement('div');
+    el.className = 'overhead-say';
+    el.textContent = text;
+    this.layer.appendChild(el);
+    (this.sayings ??= []).push({ el, anchorFn, until: performance.now() + 3800 });
+  }
+
   /** Show/refresh a mob's overhead hp bar for a few seconds. */
   bar(mob) {
     let b = this.bars.get(mob);
@@ -200,6 +209,15 @@ export class FX {
       d.el.style.transform =
         `translate(${window.innerWidth / 2 + 26}px, ${window.innerHeight / 2 - 30 - rise}px)`;
       d.el.style.opacity = String(1 - age / 1100);
+      return true;
+    });
+    if (this.sayings) this.sayings = this.sayings.filter((s) => {
+      if (now > s.until) { s.el.remove(); return false; }
+      const a = s.anchorFn();
+      if (!a) { s.el.remove(); return false; }
+      project(a, camera, _proj);
+      s.el.style.opacity = _proj.behind ? '0' : '1';
+      s.el.style.transform = `translate(calc(${_proj.x}px - 50%), ${_proj.y - 34}px)`;
       return true;
     });
     for (const [mob, b] of this.bars) {
@@ -456,15 +474,141 @@ export class UI {
     this.levelBanner = document.getElementById('level-banner');
     this.deathFade = document.getElementById('death-fade');
     document.getElementById('anvil-close').addEventListener('click', () => this.closeAnvil());
+    document.getElementById('shop-close').addEventListener('click', () => this.closeShop());
+    document.getElementById('bank-close').addEventListener('click', () => this.closeBank());
+    document.getElementById('bank-search').addEventListener('input', () => this.refreshBank());
   }
 
   /** Late-bound refs the item menus / combat displays need. */
-  bind({ world, combatLevelFn, actions, prayers, magic }) {
+  bind({ world, combatLevelFn, actions, prayers, magic, shops, bank, dialogue }) {
     this.world = world;
     if (combatLevelFn) this._combatLevelFn = combatLevelFn;
     if (actions) this.actions = actions;
     if (prayers) this.prayers = prayers;
     if (magic) this.magic = magic;
+    if (shops) this.shops = shops;
+    if (bank) this.bank = bank;
+    if (dialogue) this.dialogue = dialogue;
+  }
+
+  coins() {
+    return this.player.inventory.slots.reduce(
+      (a, s) => a + (s && s.id === 'coins' ? s.count : 0), 0);
+  }
+
+  // ---- shop panel -----------------------------------------------------------
+
+  openShop(shopId) {
+    if (!shopId || !this.shops?.get(shopId)) return;
+    this.closeBank(); this.closeAnvil();
+    this.activeShop = shopId;
+    if (document.pointerLockElement) document.exitPointerLock();
+    document.getElementById('shop-panel').classList.remove('hidden');
+    this.refreshShop();
+    this._shopEsc = (e) => { if (e.code === 'Escape') this.closeShop(); };
+    window.addEventListener('keydown', this._shopEsc);
+  }
+
+  closeShop() {
+    this.activeShop = null;
+    document.getElementById('shop-panel').classList.add('hidden');
+    if (this._shopEsc) { window.removeEventListener('keydown', this._shopEsc); this._shopEsc = null; }
+  }
+
+  refreshShop() {
+    if (!this.activeShop) return;
+    const shop = this.shops.get(this.activeShop);
+    document.getElementById('shop-name').textContent = shop.def.name.toUpperCase();
+    document.getElementById('shop-coins').textContent = this.coins() + ' coins';
+    const body = document.getElementById('shop-body');
+    body.innerHTML = '';
+    for (const s of shop.stock) {
+      if (s.qty <= 0 && s.transient) continue;
+      const row = document.createElement('div');
+      row.className = 'anvil-row' + (s.qty <= 0 ? ' locked' : '');
+      row.innerHTML = `<span>${ITEMS[s.item].name} <em class="shop-qty">×${s.qty}</em></span>` +
+        `<span class="anvil-meta">${this.shops.buyPrice(shop, s.item)}c</span>`;
+      row.addEventListener('mouseup', (e) => {
+        if (e.button !== 0) return;
+        this.menu.open([
+          { label: 'Buy 1', run: () => this.shops.buy(shop.id, s.item, 1) },
+          { label: 'Buy 5', run: () => this.shops.buy(shop.id, s.item, 5) },
+          { label: 'Examine', run: () => this.chat.add(ITEMS[s.item].examine, 'examine') },
+        ], { x: e.clientX, y: e.clientY }, e);
+      });
+      body.appendChild(row);
+    }
+  }
+
+  // ---- bank panel -----------------------------------------------------------
+
+  openBank() {
+    this.closeShop(); this.closeAnvil();
+    this.bankOpen = true;
+    if (document.pointerLockElement) document.exitPointerLock();
+    document.getElementById('bank-panel').classList.remove('hidden');
+    this.refreshBank();
+    this._bankEsc = (e) => { if (e.code === 'Escape') this.closeBank(); };
+    window.addEventListener('keydown', this._bankEsc);
+  }
+
+  closeBank() {
+    this.bankOpen = false;
+    document.getElementById('bank-panel').classList.add('hidden');
+    if (this._bankEsc) { window.removeEventListener('keydown', this._bankEsc); this._bankEsc = null; }
+  }
+
+  refreshBank() {
+    if (!this.bankOpen) return;
+    const filter = document.getElementById('bank-search').value ?? '';
+    const body = document.getElementById('bank-body');
+    body.innerHTML = '';
+    const entries = this.bank.entries(filter);
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'anvil-metal';
+      empty.textContent = filter ? 'Nothing matches.' : 'The vault awaits your fortune.';
+      body.appendChild(empty);
+      return;
+    }
+    for (const [id, n] of entries) {
+      const row = document.createElement('div');
+      row.className = 'anvil-row';
+      row.innerHTML = `<span>${ITEMS[id].name}</span><span class="anvil-meta">×${n}</span>`;
+      row.addEventListener('mouseup', (e) => {
+        if (e.button !== 0) return;
+        this.menu.open([
+          { label: 'Withdraw 1', run: () => this.bank.withdraw(id, 1) },
+          { label: 'Withdraw 5', run: () => this.bank.withdraw(id, 5) },
+          { label: 'Withdraw 10', run: () => this.bank.withdraw(id, 10) },
+          { label: 'Withdraw All', run: () => this.bank.withdraw(id, this.bank.count(id)) },
+          { label: 'Withdraw X…', run: () => this.askAmount('Withdraw how many?', (x) => this.bank.withdraw(id, x)) },
+        ], { x: e.clientX, y: e.clientY }, e);
+      });
+      body.appendChild(row);
+    }
+  }
+
+  /** Small inline amount prompt (the X in 1/5/10/All/X). */
+  askAmount(label, cb) {
+    const wrap = document.getElementById('ask-x');
+    const input = document.getElementById('ask-x-input');
+    document.getElementById('ask-x-label').textContent = label;
+    wrap.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+    const done = (commit) => {
+      wrap.classList.add('hidden');
+      input.removeEventListener('keydown', onKey);
+      const n = parseInt(input.value, 10);
+      if (commit && Number.isFinite(n) && n > 0) cb(n);
+    };
+    const onKey = (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') done(true);
+      if (e.key === 'Escape') done(false);
+    };
+    input.addEventListener('keydown', onKey);
   }
 
   refreshPrayers() { this.panel.renderPrayers(); }
@@ -632,6 +776,33 @@ export class UI {
     const slot = this.player.inventory.slots[slotIndex];
     if (!slot) return;
     const def = ITEMS[slot.id];
+    // trading contexts take over the pack's click meaning
+    if (this.activeShop) {
+      const shop = this.shops.get(this.activeShop);
+      const price = this.shops.sellPrice(shop, slot.id);
+      const sells = this.shops.shopBuys(shop, slot.id);
+      this.menu.open([
+        ...(sells ? [
+          { label: `Sell 1 (${price}c)`, run: () => this.shops.sell(shop.id, slotIndex, 1) },
+          { label: `Sell 5`, run: () => this.shops.sell(shop.id, slotIndex, 5) },
+          { label: `Sell All`, run: () => this.shops.sell(shop.id, slotIndex, 999) },
+        ] : [{ label: 'Value: not wanted here', run: () => this.chat.add('"I have no use for that," the merchant says.') }]),
+        { label: 'Examine ' + def.name, run: () => this.chat.add(def.examine, 'examine') },
+      ], { x: e.clientX, y: e.clientY }, e);
+      return;
+    }
+    if (this.bankOpen) {
+      const inPack = this.player.inventory.slots.reduce(
+        (a, s) => a + (s && s.id === slot.id ? (s.count ?? 1) : 0), 0);
+      this.menu.open([
+        { label: 'Deposit 1', run: () => this.bank.deposit(slotIndex, 1) },
+        { label: 'Deposit 5', run: () => this.bank.deposit(slotIndex, 5) },
+        { label: 'Deposit All (' + inPack + ')', run: () => this.bank.deposit(slotIndex, inPack) },
+        { label: 'Deposit X…', run: () => this.askAmount('Deposit how many?', (x) => this.bank.deposit(slotIndex, x)) },
+        { label: 'Examine ' + def.name, run: () => this.chat.add(def.examine, 'examine') },
+      ], { x: e.clientX, y: e.clientY }, e);
+      return;
+    }
     const entries = [];
     if (def.slot) entries.push({
       label: (def.slot === 'weapon' ? 'Wield ' : 'Wear ') + def.name,

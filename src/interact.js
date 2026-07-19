@@ -24,10 +24,11 @@ export class Interactions {
   }
 
   get ctx() {
-    // combat/actions/prayers are wired in by main.js after construction
+    // combat/actions/prayers/dialogue are wired in by main.js after construction
     return {
       player: this.player, world: this.world, ui: this.ui,
       combat: this.combat, actions: this.actions, prayers: this.prayers,
+      dialogue: this.dialogue,
     };
   }
 
@@ -109,7 +110,7 @@ export class Interactions {
     const first = it.actions[0];
     const verb = first ? resolveLabel(first.label) : 'Examine';
     const desc = { verb, name: it.name, more: it.actions.length, inReach };
-    if (it.kind === 'mob' && this.combat) {
+    if (it.kind === 'mob' && this.combat && it.mob.def.attackable !== false) {
       // spec §3.3: level color-coded vs yours — green weaker, yellow even, red stronger
       desc.level = it.mob.cl;
       const diff = it.mob.cl - this.combat.playerCombatLevel();

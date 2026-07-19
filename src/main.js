@@ -12,6 +12,9 @@ import { Combat } from './combat.js';
 import { Actions } from './skills.js';
 import { Prayers } from './prayer.js';
 import { Magic } from './magic.js';
+import { Dialogue } from './dialogue.js';
+import { Shops } from './shop.js';
+import { Bank } from './bank.js';
 
 export const TICK_MS = 600;
 
@@ -57,12 +60,19 @@ const combat = new Combat(player, world, npcs, ui);
 const actions = new Actions(player, world, ui);
 const prayers = new Prayers(player, ui);
 const magic = new Magic(player, ui);
+const dialogue = new Dialogue(player, ui);
+const shops = new Shops(player, ui);
+const bank = new Bank(player, ui);
 combat.prayers = prayers;
 combat.magic = magic;
 interactions.combat = combat;   // action ctx + nameplate level colors
 interactions.actions = actions; // gathering verbs
 interactions.prayers = prayers; // the altar's Pray-at
-ui.bind({ world, combatLevelFn: () => combat.playerCombatLevel(), actions, prayers, magic });
+interactions.dialogue = dialogue;
+ui.bind({
+  world, combatLevelFn: () => combat.playerCombatLevel(),
+  actions, prayers, magic, shops, bank, dialogue,
+});
 npcs.spawnAll();
 ui.showBanner(def.name.toUpperCase());
 ui.chat.add('Welcome to OLDHOLM.', 'system');
@@ -72,6 +82,7 @@ clock.on((tick) => {
   clock.gameMinutes = (clock.gameMinutes + 1) % (24 * 60); // one game minute per tick
   world.onTick(tick);
   prayers.tick();          // faith drains by the tick
+  shops.tick();            // stock creeps back toward its maximums
   combat.tick(tick);       // the player swings first…
   actions.tick(tick);      // …or keeps working…
   npcs.tick(tick, combat); // …then the realm answers
@@ -186,7 +197,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic,
+  prayers, magic, dialogue, shops, bank,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

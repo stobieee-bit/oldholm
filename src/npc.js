@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MOBS } from '../data/mobs.js';
+import { NPCS } from '../data/npcs.js';
 import { combatLevel } from './combat.js';
 
 const CHASE_LIMIT = 12;   // BFS search window half-size, tiles
@@ -50,11 +51,12 @@ const mobMaterial = new THREE.MeshLambertMaterial({ vertexColors: true });
 // ---- a single mob -----------------------------------------------------------
 
 class Mob {
-  constructor(defId, def, spawnTile, world) {
+  constructor(defId, def, spawnTile, world, plane = 0) {
     this.defId = defId;
     this.def = def;
     this.name = def.name;
     this.world = world;
+    this.plane = plane;
     this.cl = combatLevel({ ...def.stats, prayer: 1 });
     this.maxHp = def.stats.hp;
     this.hp = this.maxHp;
@@ -136,7 +138,8 @@ class Mob {
     this._from = { x: this.tile.x + 0.5, z: this.tile.z + 0.5 };
     this._to = { ...this._from };
     this._t = 1;
-    this.mesh.position.set(this._from.x, this.world.getGroundHeight(this._from.x, this._from.z), this._from.z);
+    this.mesh.position.set(this._from.x,
+      this.world.getGroundHeight(this._from.x, this._from.z, this.plane), this._from.z);
     this.mesh.visible = true;
     this.entry.hidden = false;
   }
@@ -171,7 +174,7 @@ class Mob {
         if (Math.abs(nx - sx) > CHASE_LIMIT || Math.abs(nz - sz) > CHASE_LIMIT) continue;
         if (seen.has(key(nx, nz))) continue;
         seen.add(key(nx, nz));
-        if (this.world.isBlocked(nx, nz, 0)) continue;
+        if (this.world.isBlocked(nx, nz, this.plane)) continue;
         const first = cur.first ?? { x: nx, z: nz };
         if (nx === goal.x && nz === goal.z) return first;
         queue.push({ x: nx, z: nz, first });
@@ -207,14 +210,14 @@ class Mob {
     }
 
     // aggression (spec §7): only onto players of <= 2x our combat level
-    if (!this.target && this.def.aggroRadius > 0 && player.plane === 0 &&
+    if (!this.target && this.def.aggroRadius > 0 && player.plane === this.plane &&
         combat.playerCombatLevel() <= 2 * this.cl) {
       const d = Math.max(Math.abs(pTile.x - this.tile.x), Math.abs(pTile.z - this.tile.z));
       if (d <= this.def.aggroRadius) this.target = 'player';
     }
 
     if (this.target === 'player') {
-      if (player.plane !== 0) { this.giveUp(); return; }
+      if (player.plane !== this.plane) { this.giveUp(); return; }
       const cheb = Math.max(Math.abs(pTile.x - this.tile.x), Math.abs(pTile.z - this.tile.z));
       if (cheb <= 1) {
         if (this.cooldown === 0) {
@@ -230,13 +233,24 @@ class Mob {
       return;
     }
 
+    // idle chatter for townsfolk
+    if (this.def.chatter && player.plane === this.plane) {
+      const d = Math.hypot(player.pos.x - this.mesh.position.x, player.pos.z - this.mesh.position.z);
+      if (d < 7 && tickNo > (this._chatterAt ?? 0) && Math.random() < 0.02) {
+        this._chatterAt = tickNo + 40;
+        const line = this.def.chatter[randInt(0, this.def.chatter.length - 1)];
+        combat.ui.fx.say(() => this.splatAnchor(), line);
+      }
+    }
+
     // idle wander
+    if (this.def.wanderRadius === 0) return;
     if (--this.wanderWait <= 0) {
       this.wanderWait = randInt(5, 14);
       const dx = randInt(-1, 1), dz = randInt(-1, 1);
       if (dx === 0 && dz === 0) return;
       const nx = this.tile.x + dx, nz = this.tile.z + dz;
-      if (this.world.isBlocked(nx, nz, 0)) return;
+      if (this.world.isBlocked(nx, nz, this.plane)) return;
       if (Math.abs(nx - this.spawnTile.x) > this.def.wanderRadius ||
           Math.abs(nz - this.spawnTile.z) > this.def.wanderRadius) return;
       this.stepTo(nx, nz);
@@ -250,11 +264,11 @@ class Mob {
       this._t = Math.min(1, this._t + dt / 0.6); // glide one tile per tick
       const x = this._from.x + (this._to.x - this._from.x) * this._t;
       const z = this._from.z + (this._to.z - this._from.z) * this._t;
-      this.mesh.position.set(x, this.world.getGroundHeight(x, z), z);
+      this.mesh.position.set(x, this.world.getGroundHeight(x, z, this.plane), z);
       this._faceY = Math.atan2(this._to.x - this._from.x, this._to.z - this._from.z) + Math.PI;
     } else {
       const p = this.mesh.position;
-      this.mesh.position.y = this.world.getGroundHeight(p.x, p.z);
+      this.mesh.position.y = this.world.getGroundHeight(p.x, p.z, this.plane);
       if (this.target === 'player' && playerPos)
         this._faceY = Math.atan2(playerPos.x - p.x, playerPos.z - p.z) + Math.PI;
     }
@@ -271,10 +285,21 @@ export class NPCManager {
   }
 
   spawnAll(ui, getCombat) {
-    for (const s of this.world.def.spawns ?? []) {
-      const def = MOBS[s.mob];
-      const mob = new Mob(s.mob, def, { x: Math.floor(s.x), z: Math.floor(s.z) }, this.world);
+    const spawnOne = (defId, def, x, z, plane) => {
+      const mob = new Mob(defId, def, { x: Math.floor(x), z: Math.floor(z) }, this.world, plane);
       const actions = [];
+      if (def.talk) actions.push({
+        label: 'Talk-to',
+        fn: (ctx) => ctx.dialogue.start(def.talk, mob),
+      });
+      if (def.shop) actions.push({
+        label: 'Trade',
+        fn: (ctx) => ctx.ui.openShop(def.shop),
+      });
+      if (def.bank) actions.push({
+        label: 'Bank',
+        fn: (ctx) => ctx.ui.openBank(),
+      });
       if (def.shear) actions.push({
         label: 'Shear',
         fn: (ctx) => ctx.actions.shearSheep(mob),
@@ -289,7 +314,12 @@ export class NPCManager {
         actions,
       });
       this.mobs.push(mob);
-    }
+      return mob;
+    };
+    for (const s of this.world.def.spawns ?? [])
+      spawnOne(s.mob, MOBS[s.mob], s.x, s.z, s.plane ?? 0);
+    for (const s of this.world.def.npcs ?? [])
+      spawnOne(s.npc, NPCS[s.npc], s.x, s.z, s.plane ?? 0);
   }
 
   tick(tickNo, combat) {
