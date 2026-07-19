@@ -292,9 +292,9 @@ export const REGIONS = {
     // crypt is a separate plane below (Ravenmoor sleeps there).
     manor: {
       building: { x0: 112, z0: 206, x1: 126, z1: 220 }, // matches the Murkwell manor
-      entry: { x: 112.5, z: 213.5 },  // the west door tile (interior)
+      entry: { x: 113, z: 213 },      // the west door row (integer tile row)
       crypt: { cx: 119, cz: 213, r: 4 },
-      cryptStair: { x: 124.5, z: 207.5 },
+      cryptStair: { x: 114.5, z: 207.5 }, // NW corner of the main room (not behind the puzzle)
     },
     // The ice cave — coldiron ore + ice fiends (quest 8). Entrance on the
     // cold cliffs north-west of Whitehold.
@@ -319,7 +319,8 @@ export const REGIONS = {
       boat: { x: 182.5, z: 328.5 },
     },
     // Sunmarch's toll gate (10 gold to pass north↔south through the wall).
-    tollGate: { x: 284, z: 244, cost: 10 },
+    // Spans the full 3-tile gate gap (cols 284-286) so it cannot be sidestepped.
+    tollGate: { x: 284, z: 244, w: 3, cost: 10 },
 
     // ---- Phase 9 sites ----
     windmill: { x: 94.5, z: 40.5 },
@@ -386,7 +387,7 @@ export const REGIONS = {
       { npc: 'cliff_smith', x: 258.5, z: 26.5 },        // by the ice cave cliffs
       { npc: 'champions_master', x: 321.5, z: 100.5 },  // inside the guild building
       { npc: 'mad_wizard', x: 124.5, z: 208.5 },        // manor study
-      { npc: 'professor', x: 118.5, z: 210.5, hidden: true }, // the chicken
+      { npc: 'professor', x: 123.5, z: 213.5, hidden: true }, // the chicken, in the study behind the puzzle
       // tomb key wardens (quest 9)
       { npc: 'warden_stone', x: 291.5, z: 114.5, plane: 'corvathTomb' },
       { npc: 'warden_flame', x: 301.5, z: 114.5, plane: 'corvathTomb' },

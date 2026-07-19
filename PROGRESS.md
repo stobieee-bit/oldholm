@@ -67,6 +67,25 @@
 - NOTE: "on a legit save" — the §14 SAVE SYSTEM lands in Phase 12; this playthrough was
   a fresh-session run (quests 1–5 awarded per their Phase 9 verification; 6–10 fully live).
 
+## Phase 11 post-review hardening (4 confirmed soft-locks + 1 split, all fixed)
+
+A 20-agent adversarial review caught soft-locks my teleport-based test bypassed:
+- **Manor study was physically sealed** (CRITICAL): `manor.entry.z` was fractional
+  (213.5), so the integer doorway-row compare never matched — the partition had no gap
+  and `setTileBlocked` poked a wrong tile (314,213) in Corvath. A walking player could
+  never reach the professor. Rewrote the interior with integer coords + a clean corridor;
+  moved the piranha fountain off the path. Flood-fill proof: study unreachable before
+  solving, reachable after; all levers/fountain/crypt-stair reachable throughout.
+- **Stake unrecoverable** (Q7) and **heirloom unrecoverable** (Q8): given once; a
+  Blight/any death (which drops them, they're never top-3 value) left the quest
+  unwinnable. The hunter now re-gives the stake, and cliff-smith re-forges the heirloom
+  (with a squire fallback line), when the player lacks them.
+- **Q6 puzzle items** (oil/poison/food) now re-given by the mad wizard if lost.
+- **Sunmarch toll bypassable**: only 2 of the 3 gate-gap tiles were blocked. Now blocks
+  the full gate; flood-fill proof: south unreachable before paying, reachable after.
+- Re-verified: Q6 through the real puzzle, stake/heirloom re-gives, toll pay-through; no
+  console errors.
+
 ---
 
 ## Phase 10 — World Expansion I — COMPLETE

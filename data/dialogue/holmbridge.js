@@ -669,7 +669,14 @@ export const TREES = {
       },
       q2: {
         speaker: 'npc', text: 'Stake in hand? Garlic in pack? Then go, and don’t come back until it’s done — or don’t come back at all.',
-        options: [{ label: 'It’ll be done.', action: 'end' }],
+        options: [
+          { label: 'I lost the stake. Spare another?', if: { lacks: ['stake'] }, actions: ['give:stake:1', 'give:garlic:1'], next: 'restake' },
+          { label: 'It’ll be done.', action: 'end' },
+        ],
+      },
+      restake: {
+        speaker: 'npc', text: 'Careless. This is my LAST stake — carved it myself from a coffin lid, which felt appropriate. Keep it IN HAND. Do not lose it in the Blight or anywhere else.',
+        options: [{ label: 'On my life. Or unlife.', action: 'end' }],
       },
       idle: {
         speaker: 'npc', text: 'Ravenmoor’s dust. I sleep now. First time in years. Buy yourself a beer on me. Actually, no. Buy your own.',
@@ -709,6 +716,7 @@ export const TREES = {
         speaker: 'npc', text: 'Is that— IT IS! The heirloom, whole again! You’ve saved my station and my skin.',
         options: [
           { label: 'Here’s the heirloom, Aldous.', if: { hasAll: ['heirloom_sword'] }, actions: ['take:heirloom_sword:1', 'complete:squires_blunder', 'end'] },
+          { label: 'I… mislaid it. Yorra can forge another.', if: { lacks: ['heirloom_sword'] }, action: 'end' },
         ],
       },
       done: {
@@ -722,9 +730,14 @@ export const TREES = {
       { if: { quest: 'squires_blunder', lt: 2 }, node: 'notyet' },
       { if: { quest: 'squires_blunder', is: 2 }, node: 'portrait' },
       { if: { quest: 'squires_blunder', is: 3 }, node: 'bar' },
+      { if: { quest: 'squires_blunder', is: 4, lacks: ['heirloom_sword'] }, node: 'reforge' },
       { node: 'done' },
     ],
     nodes: {
+      reforge: {
+        speaker: 'npc', text: 'Lost it already? By the frost. …Fine. I hold the technique in these hands now — I can forge it again from memory, no coldiron needed. One more, for her memory. Do not lose this one.',
+        options: [{ label: 'Thank you, Yorra.', actions: ['give:heirloom_sword:1'], next: 'done2' }],
+      },
       notyet: {
         speaker: 'npc', text: 'I forge alone, up here, for good reason. Bring me a reason of your own — a certain portrait, perhaps — and we’ll talk.',
         options: [{ label: 'I’ll be back.', action: 'end' }],
@@ -822,7 +835,16 @@ export const TREES = {
       },
       q6prog: {
         speaker: 'npc', text: 'The odd levers, remember — one, three, five. Oil the stuck one. Poison the piranhas. Pimm is counting on you. Quietly. In chicken.',
-        options: [{ label: 'Working on it.', action: 'end' }],
+        options: [
+          { label: 'I lost your supplies — more, please?', if: { lacks: ['oil_can'] }, actions: ['give:oil_can:1', 'give:poison:1', 'give:fish_food:1'], next: 'resupply' },
+          { label: 'I lost the poison and food.', if: { lacks: ['poison'] }, actions: ['give:poison:1', 'give:fish_food:1'], next: 'resupply' },
+          { label: 'I lost the fish food.', if: { lacks: ['fish_food'] }, actions: ['give:fish_food:1'], next: 'resupply' },
+          { label: 'Working on it.', action: 'end' },
+        ],
+      },
+      resupply: {
+        speaker: 'npc', text: 'Honestly. A wizard’s supplies are not infinite — but here. Try to keep hold of them this time. The odd levers. Oil three. Poison five.',
+        options: [{ label: 'Got it.', action: 'end' }],
       },
       q7: {
         speaker: 'npc', text: 'Now that Pimm is de-chickened — a darker matter. Lord Ravenmoor stirs in the crypt below my manor. The village trembles. Someone ought to put the old ghoul down for good.',

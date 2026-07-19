@@ -1960,17 +1960,20 @@ export class World {
     const dark = new THREE.MeshLambertMaterial({ color: 0x2a2028, flatShading: true });
     const iron = new THREE.MeshLambertMaterial({ color: 0x4a4a52, flatShading: true });
 
-    // interior partition splitting off the east study (behind the puzzle door)
-    const studyX = b.x1 - 4; // wall column
+    // interior partition splitting off the east study (behind the puzzle door).
+    // doorRow is an INTEGER tile row; the west building door sits on the same row,
+    // so there is a straight walkable corridor: west door -> study door.
+    const studyX = b.x1 - 4; // wall column (122)
+    const doorRow = Math.floor(m.entry.z);
     for (let tz = b.z0 + 1; tz < b.z1 - 1; tz++) {
-      if (tz === m.entry.z) continue; // the study doorway row
+      if (tz === doorRow) continue; // leave the study doorway gap
       this._addBox(0.4, 3.0, 1, studyX + 0.5, y + 1.4, tz + 0.5, wood);
       this.setTileBlocked(studyX, tz, true);
     }
-    const studyDoorTile = { x: studyX, z: m.entry.z };
+    const studyDoorTile = { x: studyX, z: doorRow };
     this.setTileBlocked(studyDoorTile.x, studyDoorTile.z, true);
     const doorHinge = new THREE.Group();
-    doorHinge.position.set(studyX + 0.5, y, m.entry.z + 0.02);
+    doorHinge.position.set(studyX + 0.5, y, doorRow + 0.02);
     const panel = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.6, 0.98), wood);
     panel.position.set(0, 1.3, 0.49);
     doorHinge.add(panel);
@@ -1990,10 +1993,14 @@ export class World {
       }
     };
 
-    // six levers along the west wall
-    const leverBase = b.x0 + 2;
+    // six levers; #3 (index 2) is rusted, #5 (index 4) is piranha-guarded.
+    // None sit on the west-door -> study-door corridor (row doorRow).
+    const leverPos = [
+      [b.x0 + 2, b.z1 - 3], [b.x0 + 4, b.z1 - 3], [b.x0 + 6, b.z1 - 3],
+      [b.x0 + 8, b.z1 - 3], [b.x0 + 5, b.z0 + 4], [b.x0 + 7, b.z1 - 3],
+    ];
     for (let i = 0; i < 6; i++) {
-      const lx = leverBase + (i % 3) * 1.4, lz = b.z0 + 2 + Math.floor(i / 3) * 2;
+      const lx = leverPos[i][0] + 0.5, lz = leverPos[i][1] + 0.5;
       const stuck = i === 2, piranha = i === 4;
       const lever = this._addBox(0.14, 0.8, 0.14, lx, y + 0.5, lz, iron);
       const idx = i;
@@ -2033,8 +2040,8 @@ export class World {
       actions: [],
     });
 
-    // the piranha fountain
-    const fx = b.x0 + 8, fz = b.z0 + 6;
+    // the piranha fountain — tucked in the NW corner, clear of the corridor
+    const fx = b.x0 + 4, fz = b.z0 + 2;
     const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.7, 10), new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true }));
     basin.position.set(fx + 0.5, y + 0.35, fz + 0.5);
     const water = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.1, 10), new THREE.MeshLambertMaterial({ color: 0x8a2a2a, transparent: true, opacity: 0.85 }));
@@ -2160,13 +2167,14 @@ export class World {
   _buildTollGate() {
     const t = this.def.tollGate;
     if (!t) return;
-    // block the gate gap until the toll is paid
-    this.setTileBlocked(t.x, t.z, true);
-    this.setTileBlocked(t.x - 1, t.z, true);
+    // block the FULL gate gap (all w tiles) until the toll is paid
+    const w = t.w ?? 3;
+    const tiles = [];
+    for (let dx = 0; dx < w; dx++) { this.setTileBlocked(t.x + dx, t.z, true); tiles.push([t.x + dx, t.z]); }
     const y = this.getGroundHeight(t.x, t.z);
     const barMat = new THREE.MeshLambertMaterial({ color: 0x8a6a3a, flatShading: true });
-    const bar = this._addBox(2, 0.3, 0.4, t.x, y + 1.3, t.z + 0.5, barMat);
-    this.tollGate = { open: false, tiles: [[t.x, t.z], [t.x - 1, t.z]], bar };
+    const bar = this._addBox(w, 0.3, 0.4, t.x + w / 2, y + 1.3, t.z + 0.5, barMat);
+    this.tollGate = { open: false, tiles, bar };
     let entry;
     entry = this.addInteractable({
       kind: 'toll', name: 'Toll gate', meshes: [bar],
