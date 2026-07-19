@@ -136,6 +136,18 @@ function project(v3, camera, out) {
   return out;
 }
 
+// Item icons: the shared #itemFx filter (index.html) gives every flat SVG a
+// glossy top-light + a drop shadow so items read as 3D objects in the slot.
+function itemIconSVG(def) {
+  return `<svg viewBox="0 0 24 24"><g filter="url(#itemFx)">${def.icon}</g></svg>`;
+}
+// Compact big stack counts, RS-style: 842, 15K, 3.2M.
+function fmtCount(n) {
+  if (n < 100000) return String(n);
+  if (n < 10000000) return Math.floor(n / 1000) + 'K';
+  return Math.floor(n / 1000000) + 'M';
+}
+
 export class FX {
   constructor() {
     this.layer = document.getElementById('fx-layer');
@@ -527,8 +539,8 @@ export class TabPanel {
       if (slot) {
         const def = ITEMS[slot.id];
         cell.title = def.name;
-        cell.innerHTML = `<svg viewBox="0 0 24 24">${def.icon}</svg>` +
-          (def.stackable ? `<span class="inv-count">${slot.count}</span>` : '');
+        cell.innerHTML = itemIconSVG(def) +
+          (def.stackable ? `<span class="inv-count">${fmtCount(slot.count)}</span>` : '');
         cell.addEventListener('mousedown', (e) => {
           if (e.button === 0 || e.button === 2) this.ui.openItemMenu(i, e);
         });

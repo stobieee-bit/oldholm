@@ -35,14 +35,14 @@ export const ITEMS = {
     name: 'Coins',
     examine: 'Lovely money.',
     value: 1, stackable: true,
-    icon: '<ellipse cx="12" cy="16.5" rx="7" ry="3" fill="#c9a232"/><ellipse cx="12" cy="12.5" rx="7" ry="3" fill="#d8b13a"/><ellipse cx="12" cy="8.5" rx="7" ry="3" fill="#eccd62"/>',
+    icon: '<ellipse cx="12" cy="17" rx="7" ry="3" fill="#b8942a"/><ellipse cx="9.3" cy="15" rx="4.6" ry="2" fill="#d0aa34"/><ellipse cx="14.6" cy="14.2" rx="4.6" ry="2" fill="#d0aa34"/><ellipse cx="12" cy="12" rx="7" ry="3" fill="#dcb63c"/><ellipse cx="12" cy="8" rx="7" ry="3" fill="#eccd62"/><path d="M6.4 7.1a7 3 0 0 1 8.4-0.9" stroke="#f9eca6" stroke-width="1.2" fill="none" stroke-linecap="round"/>',
     model: { kind: 'cylinder', color: 0xd8b13a, rTop: 0.13, rBot: 0.13, h: 0.06 },
   },
   logs: {
     name: 'Logs',
     examine: 'A log. Wood, mostly.',
     value: 4, stackable: false,
-    icon: '<rect x="3.5" y="9" width="15" height="6" rx="3" fill="#7a5a38"/><ellipse cx="18.5" cy="12" rx="2.3" ry="3" fill="#c9a877"/><ellipse cx="18.5" cy="12" rx="1.1" ry="1.5" fill="#9a7a4e"/>',
+    icon: '<rect x="3.5" y="9" width="15" height="6" rx="3" fill="#6e5030"/><rect x="4.5" y="9.3" width="13" height="1.8" rx="0.9" fill="#8a6a42"/><path d="M5 12.4h11.5M5 13.7h11" stroke="#5a4326" stroke-width="0.55"/><ellipse cx="18.3" cy="12" rx="2.4" ry="3" fill="#c9a877"/><ellipse cx="18.3" cy="12" rx="1.5" ry="1.9" fill="none" stroke="#a8875c" stroke-width="0.5"/><ellipse cx="18.3" cy="12" rx="0.7" ry="0.9" fill="#9a7a4e"/>',
     model: { kind: 'log', color: 0x7a5a38, r: 0.12, len: 0.8 },
   },
   cabbage: {

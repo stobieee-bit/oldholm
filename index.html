@@ -565,6 +565,13 @@
     border-color: var(--gold);
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.7), 0 0 7px rgba(201,162,50,0.35);
   }
+  /* items lift a touch on hover; count sits on a dark pill for legibility */
+  .inv-slot svg { transition: transform .1s ease; }
+  .inv-slot:hover svg { transform: scale(1.09) translateY(-1px); }
+  .inv-count {
+    background: rgba(8,6,4,0.6); border-radius: 6px; padding: 0 3px; line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
 
   /* unified buttons: subtle relief + gilded hover */
   .style-btn, .sys-btn, .sys-toggle, .save-btn {
@@ -605,6 +612,21 @@
 <body>
   <canvas id="game"></canvas>
   <div id="vignette"></div>
+
+  <!-- shared SVG filter: a glossy top-light + drop shadow for every item icon -->
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute; pointer-events:none">
+    <defs>
+      <filter id="itemFx" x="-25%" y="-25%" width="150%" height="155%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="0.9" result="a"/>
+        <feSpecularLighting in="a" surfaceScale="1.7" specularConstant="0.5" specularExponent="12" lighting-color="#ffffff" result="s">
+          <fePointLight x="5" y="2" z="13"/>
+        </feSpecularLighting>
+        <feComposite in="s" in2="SourceAlpha" operator="in" result="sc"/>
+        <feComposite in="SourceGraphic" in2="sc" operator="arithmetic" k1="0" k2="1" k3="0.75" k4="0" result="lit"/>
+        <feDropShadow in="lit" dx="0" dy="0.7" stdDeviation="0.7" flood-color="#000" flood-opacity="0.55"/>
+      </filter>
+    </defs>
+  </svg>
 
   <div id="hud">
     <div id="crosshair"></div>
