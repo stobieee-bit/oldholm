@@ -1641,12 +1641,20 @@ export class World {
         }
       }
     }
-    this._addBox(w + 0.4, 0.14, d + 0.4, midX, y + H + 0.05, midZ, wood);
-    this._addBox(w + 0.7, 0.22, d + 0.7, midX, y + H + 0.35, midZ, darkStone);
+    // eave board + a pitched (hip) roof — a 4-sided pyramid scaled to the shell
+    this._addBox(w + 0.5, 0.16, d + 0.5, midX, y + H + 0.06, midZ, wood);
+    const roofMat = new THREE.MeshLambertMaterial({ color: b.roofColor ?? 0x6e3a2c, flatShading: true });
+    const roofH = Math.min(w, d) * 0.42 + 0.45;
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 4), roofMat);
+    roof.rotation.y = Math.PI / 4;               // align the four slopes with the walls
+    roof.scale.set((w / 2 + 0.45) / 0.7071, roofH, (d / 2 + 0.45) / 0.7071);
+    roof.position.set(midX, y + H + 0.14 + roofH / 2, midZ);
+    roof.updateMatrix(); roof.matrixAutoUpdate = false;
+    this.group.add(roof);
+    this.occluders.push(roof);
     if (b.name) {
-      // the roof cap is the examinable face of the building
-      const cap = this.occluders[this.occluders.length - 1];
-      this.addInteractable({ kind: 'scenery', name: b.name, meshes: [cap], examine: b.examine ?? b.name, actions: [] });
+      // the roof is the examinable face of the building
+      this.addInteractable({ kind: 'scenery', name: b.name, meshes: [roof], examine: b.examine ?? b.name, actions: [] });
     }
     // interior fittings
     for (const c of b.contains ?? []) {
