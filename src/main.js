@@ -184,7 +184,7 @@ npcs.spawnAll();
 
 // Let the world and its inhabitants cast + receive the sun's shadow.
 // Water casts nothing (it's transparent); everything else grounds itself.
-world.group.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+world.group.traverse((o) => { if (o.isMesh) { o.castShadow = !o.userData.noCast; o.receiveShadow = true; } });
 if (world.water) { world.water.castShadow = false; world.water.receiveShadow = false; }
 for (const m of npcs.mobs) m.mesh.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 

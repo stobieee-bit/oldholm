@@ -8,6 +8,7 @@
 // planes, per the spec.
 
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ITEMS } from '../data/items.js';
 import { TREES, ROCKS, FISHING, FIREMAKING } from '../data/resources.js';
 
@@ -113,6 +114,7 @@ export class World {
     this._buildWater();
     this._buildBridgeMeshes();
     this._plantTrees();
+    this._scatterClutter();
     this._buildFurniture();
     this._buildPasture();
     this._buildGoblinCamp();
@@ -588,6 +590,14 @@ export class World {
     if (d.blight) {
       const t = this._bandWeight(tx + 0.5, tz + 0.5, d.blight);
       if (t > 0) { rr = lerp(rr, 0.30, t); gg = lerp(gg, 0.27, t); bb = lerp(bb, 0.26, t); }
+    }
+    // steep faces wear through to bare rock (blend by the tile's corner spread)
+    const c0 = this.cornerHeight(tx, tz), c1 = this.cornerHeight(tx + 1, tz);
+    const c2 = this.cornerHeight(tx, tz + 1), c3 = this.cornerHeight(tx + 1, tz + 1);
+    const spread = Math.max(c0, c1, c2, c3) - Math.min(c0, c1, c2, c3);
+    if (spread > 0.7) {
+      const rk = clamp((spread - 0.7) / 1.1, 0, 0.82);
+      rr = lerp(rr, 0.37 + v, rk); gg = lerp(gg, 0.34 + v, rk); bb = lerp(bb, 0.30 + v, rk);
     }
     out[0] = rr; out[1] = gg; out[2] = bb;
   }
@@ -1080,21 +1090,29 @@ export class World {
       Math.abs(tx + 0.5 - this.riverCenter(tz + 0.5)) - (d.river.width / 2 + d.river.falloff);
 
     // per-type silhouettes and foliage palettes
+    // Canopies are a stack of layers (cones for conifers, ball clusters for
+    // broadleaves), merged per layer into instanced meshes. Fuller + rounder
+    // than the old two-cone silhouette.
     const SHAPES = {
-      tree: {
-        trunk: [0.13, 0.2, 1.7], canA: { cone: [1.2, 2.3], y: 2.5 }, canB: { cone: [0.85, 1.7], y: 3.6 },
-        leaf: (t) => [0.24 + t * 0.12, 0.42 + t * 0.14, 0.20 + t * 0.08],
+      tree: { // pine — three stacked cones, wide skirt
+        trunk: [0.12, 0.19, 1.55],
+        canopy: [{ cone: [1.5, 1.7], y: 2.0 }, { cone: [1.14, 1.55], y: 2.9 }, { cone: [0.72, 1.4], y: 3.8 }],
+        leaf: (t) => [0.22 + t * 0.12, 0.40 + t * 0.14, 0.18 + t * 0.08],
       },
-      oak: {
-        trunk: [0.2, 0.3, 1.5], canA: { cone: [1.8, 2.2], y: 2.4 }, canB: { ball: 1.0, y: 3.5 },
+      oak: { // round leafy crown — a cluster of balls
+        trunk: [0.2, 0.3, 1.5],
+        canopy: [{ ball: 1.3, y: 2.9 }, { ball: 0.98, y: 3.42, off: [0.72, 0, 0.22] },
+          { ball: 0.98, y: 3.32, off: [-0.64, 0, -0.34] }, { ball: 0.86, y: 3.72, off: [0.08, 0, 0.5] }],
         leaf: (t) => [0.20 + t * 0.08, 0.36 + t * 0.10, 0.16 + t * 0.06],
       },
-      willow: {
-        trunk: [0.11, 0.16, 2.2], canA: { cone: [1.8, 1.3], y: 2.9 }, canB: { cone: [1.25, 1.0], y: 3.6 },
+      willow: { // drooping, three soft tiers
+        trunk: [0.11, 0.16, 2.1],
+        canopy: [{ cone: [1.95, 1.5], y: 2.6 }, { cone: [1.55, 1.3], y: 3.35 }, { cone: [1.02, 1.15], y: 4.0 }],
         leaf: (t) => [0.42 + t * 0.10, 0.52 + t * 0.08, 0.22 + t * 0.05],
       },
-      yew: {
-        trunk: [0.26, 0.36, 1.9], canA: { cone: [2.2, 2.6], y: 3.0 }, canB: { cone: [1.4, 1.8], y: 4.4 },
+      yew: { // big, dense, dark conifer
+        trunk: [0.25, 0.35, 1.8],
+        canopy: [{ cone: [2.35, 2.0], y: 2.7 }, { cone: [1.78, 1.9], y: 3.7 }, { cone: [1.1, 1.7], y: 4.7 }],
         leaf: (t) => [0.12 + t * 0.06, 0.26 + t * 0.08, 0.14 + t * 0.05],
       },
     };
@@ -1183,27 +1201,31 @@ export class World {
       trunkGeo.translate(0, shape.trunk[2] / 2, 0);
       const mkCan = (cdef) => {
         const g = cdef.cone
-          ? new THREE.ConeGeometry(cdef.cone[0], cdef.cone[1], 7)
-          : new THREE.IcosahedronGeometry(cdef.ball, 0);
-        g.translate(0, cdef.y, 0);
+          ? new THREE.ConeGeometry(cdef.cone[0], cdef.cone[1], 8)
+          : new THREE.IcosahedronGeometry(cdef.ball, 1);
+        const o = cdef.off ?? [0, 0, 0];
+        g.translate(o[0], cdef.y + o[1], o[2]);
         return g;
       };
       const trunks = new THREE.InstancedMesh(trunkGeo, white(), list.length);
-      const canA = new THREE.InstancedMesh(mkCan(shape.canA), white(), list.length);
-      const canB = new THREE.InstancedMesh(mkCan(shape.canB), white(), list.length);
+      const cans = shape.canopy.map((cdef) => new THREE.InstancedMesh(mkCan(cdef), white(), list.length));
       const records = [];
+      const _lc = new THREE.Color();
       list.forEach((t, i) => {
         p.set(t.x, t.y - 0.15, t.z);
         q.setFromAxisAngle(axisY, t.rot);
         sv.setScalar(t.scale);
         m4.compose(p, q, sv);
-        trunks.setMatrixAt(i, m4); canA.setMatrixAt(i, m4); canB.setMatrixAt(i, m4);
+        trunks.setMatrixAt(i, m4);
         trunkCol.setRGB(0.33 + t.tone * 0.06, 0.25 + t.tone * 0.05, 0.17 + t.tone * 0.04, THREE.SRGBColorSpace);
+        trunks.setColorAt(i, trunkCol);
         const [lr, lg, lb] = shape.leaf(t.tone);
         leafCol.setRGB(lr, lg, lb, THREE.SRGBColorSpace);
-        trunks.setColorAt(i, trunkCol);
-        canA.setColorAt(i, leafCol);
-        canB.setColorAt(i, leafCol.multiplyScalar(1.08));
+        cans.forEach((mesh, li) => {
+          mesh.setMatrixAt(i, m4);
+          _lc.copy(leafCol).multiplyScalar(0.92 + li * 0.08); // upper tiers catch more light
+          mesh.setColorAt(i, _lc);
+        });
         const rec = {
           type, idx: i, stumpIdx: stumpIdx++, x: t.x, z: t.z, y: t.y, tile: t.tile,
           depleted: false, respawnAt: 0, matrix: m4.clone(),
@@ -1211,7 +1233,7 @@ export class World {
         records.push(rec);
         this.trees.push(rec);
       });
-      const meshes = [trunks, canA, canB];
+      const meshes = [trunks, ...cans];
       for (const mesh of meshes) {
         mesh.frustumCulled = false;
         this.group.add(mesh);
@@ -1261,6 +1283,90 @@ export class World {
     }
     this.stumps.setMatrixAt(rec.stumpIdx, this._zeroM4);
     this.stumps.instanceMatrix.needsUpdate = true;
+  }
+
+  // ---- ground clutter --------------------------------------------------------
+  /** Scatter instanced grass tufts, wildflowers, and pebbles across grassy
+   *  ground to break up the flat tiles. Non-blocking; excluded from shadow
+   *  casting (main.js checks userData.noCast) so the shadow pass stays cheap. */
+  _scatterClutter() {
+    const size = this.size, rng = mulberry32(this.def.seed ^ 0xc10d);
+    const GRASSY = new Set(['plains', 'capital', 'white', 'frontier', 'murk', 'harbor']);
+    const white = () => new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+
+    // geometries
+    const blades = [];
+    for (let b = 0; b < 4; b++) {
+      const g = new THREE.ConeGeometry(0.03, 0.30 + (b % 2) * 0.12, 3); // 3-sided blades — cheap
+      g.translate(0, 0.15, 0); g.rotateZ((b - 1.5) * 0.3); g.rotateY(b * 1.7);
+      g.translate(Math.cos(b * 1.9) * 0.05, 0, Math.sin(b * 1.9) * 0.05);
+      blades.push(g);
+    }
+    const grassGeo = mergeGeometries(blades, false); blades.forEach((g) => g.dispose());
+    const pebbleGeo = new THREE.IcosahedronGeometry(0.13, 0); pebbleGeo.scale(1, 0.55, 1); pebbleGeo.translate(0, 0.05, 0);
+    const stemGeo = new THREE.CylinderGeometry(0.012, 0.016, 0.3, 4); stemGeo.translate(0, 0.15, 0);
+    const headGeo = new THREE.IcosahedronGeometry(0.07, 0); headGeo.translate(0, 0.33, 0);
+
+    const N = { grass: 2800, flower: 620, pebble: 480 };
+    const grass = new THREE.InstancedMesh(grassGeo, white(), N.grass);
+    const stems = new THREE.InstancedMesh(stemGeo, white(), N.flower);
+    const heads = new THREE.InstancedMesh(headGeo, white(), N.flower);
+    const pebbles = new THREE.InstancedMesh(pebbleGeo, white(), N.pebble);
+    const all = [grass, stems, heads, pebbles];
+    for (const m of all) { m.frustumCulled = false; m.userData.noCast = true; }
+
+    const m4 = new THREE.Matrix4(), pv = new THREE.Vector3(), q = new THREE.Quaternion(), sv = new THREE.Vector3();
+    const axisY = new THREE.Vector3(0, 1, 0), col = new THREE.Color();
+    const zero = new THREE.Matrix4().makeScale(1e-4, 1e-4, 1e-4);
+    const inBounds = (tx, tz) => tx >= 2 && tz >= 2 && tx < size - 2 && tz < size - 2;
+    const grassy = (x, z) => {
+      const tx = Math.floor(x), tz = Math.floor(z);
+      if (!inBounds(tx, tz) || (this.flags[tz * size + tx] & FLAG_BLOCKED)) return false;
+      return GRASSY.has(this.regionAt(x, z, 0).theme);
+    };
+    const put = (mesh, i, x, z, scale) => {
+      pv.set(x, this.getGroundHeight(x, z), z);
+      q.setFromAxisAngle(axisY, rng() * Math.PI * 2); sv.setScalar(scale);
+      m4.compose(pv, q, sv); mesh.setMatrixAt(i, m4);
+    };
+
+    let gi = 0, tries = N.grass * 6;
+    while (gi < N.grass && tries-- > 0) {
+      const x = 2 + rng() * (size - 4), z = 2 + rng() * (size - 4);
+      if (!grassy(x, z) || this._roadDist(x, z) < 0.8) continue;
+      put(grass, gi, x, z, 0.7 + rng() * 0.8);
+      const t = rng(); col.setRGB(0.19 + t * 0.13, 0.33 + t * 0.17, 0.13 + t * 0.07, THREE.SRGBColorSpace);
+      grass.setColorAt(gi, col); gi++;
+    }
+    for (let i = gi; i < N.grass; i++) grass.setMatrixAt(i, zero);
+
+    const FLOWERS = [0xf2f0e6, 0xf2d04a, 0xd8544a, 0xb56ac8, 0x6aa6e0, 0xf29a3a];
+    let fi = 0; tries = N.flower * 8;
+    while (fi < N.flower && tries-- > 0) {
+      const x = 2 + rng() * (size - 4), z = 2 + rng() * (size - 4);
+      if (!grassy(x, z) || this._roadDist(x, z) < 1.2) continue;
+      put(stems, fi, x, z, 0.8 + rng() * 0.5);
+      heads.setMatrixAt(fi, m4);
+      col.setRGB(0.24, 0.4, 0.16, THREE.SRGBColorSpace); stems.setColorAt(fi, col);
+      col.setHex(FLOWERS[Math.floor(rng() * FLOWERS.length)]); heads.setColorAt(fi, col);
+      fi++;
+    }
+    for (let i = fi; i < N.flower; i++) { stems.setMatrixAt(i, zero); heads.setMatrixAt(i, zero); }
+
+    let pi = 0; tries = N.pebble * 8;
+    while (pi < N.pebble && tries-- > 0) {
+      const x = 2 + rng() * (size - 4), z = 2 + rng() * (size - 4);
+      const tx = Math.floor(x), tz = Math.floor(z);
+      if (!inBounds(tx, tz) || this.isWater(tx, tz)) continue;
+      if (!GRASSY.has(this.regionAt(x, z, 0).theme) && this._roadDist(x, z) > 1) continue;
+      put(pebbles, pi, x, z, 0.6 + rng() * 0.9);
+      const t = rng(); col.setRGB(0.33 + t * 0.1, 0.32 + t * 0.1, 0.3 + t * 0.09, THREE.SRGBColorSpace);
+      pebbles.setColorAt(pi, col); pi++;
+    }
+    for (let i = pi; i < N.pebble; i++) pebbles.setMatrixAt(i, zero);
+
+    for (const m of all) this.group.add(m);
+    this.clutter = all;
   }
 
   // ---- furniture -------------------------------------------------------------
