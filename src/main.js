@@ -70,6 +70,44 @@ const fill = new THREE.DirectionalLight(0x9fb3d8, 0.32);
 fill.position.set(-55, 42, -30);
 scene.add(fill);
 
+// A FIXED pool of hearth point-lights, created before the first render so the
+// material shaders bake this light count in once (adding lights later would
+// force a recompile hitch). Each frame the pool is retargeted onto whichever
+// registered fire emitters are nearest the player, and flickers — never
+// added/removed. Warm firelight pools bloom in towns and dungeons after dusk.
+const TORCH_LIGHTS = 6;
+const torchPool = [];
+for (let i = 0; i < TORCH_LIGHTS; i++) {
+  const l = new THREE.PointLight(0xffa03a, 0, 16, 1.7);
+  l.castShadow = false;
+  scene.add(l);
+  torchPool.push(l);
+}
+const _winDark = new THREE.Color(0x140f09), _winWarm = new THREE.Color(0xffcf6a);
+let nightAmount = 0, _fireT = 0;
+function updateTorchLights(dt) {
+  _fireT += dt;
+  const ems = world.lightEmitters, px = player.pos.x, pz = player.pos.z, py = camera.position.y;
+  const near = [];
+  for (const e of ems) {
+    const d2 = (e.x - px) ** 2 + (e.z - pz) ** 2 + (e.y - py) ** 2;
+    if (d2 < 27 * 27) near.push({ e, d2 });
+  }
+  near.sort((a, b) => a.d2 - b.d2);
+  for (let i = 0; i < TORCH_LIGHTS; i++) {
+    const l = torchPool[i], n = near[i];
+    if (!n) { l.intensity = 0; continue; }
+    const e = n.e;
+    l.position.set(e.x, e.y, e.z);
+    l.color.setHex(e.color);
+    l.distance = e.range;
+    const flick = 0.82 + 0.18 * Math.sin(_fireT * 11 + i * 1.7) * Math.sin(_fireT * 6.3 + i * 3.1);
+    l.intensity = e.strength * (0.12 + 0.95 * nightAmount) * flick * 1.5;
+    if (e.flame) e.flame.scale.set(1, 0.9 + 0.16 * flick, 1);
+  }
+  if (world.windowMat) world.windowMat.color.copy(_winDark).lerp(_winWarm, nightAmount);
+}
+
 // --- gradient sky dome -------------------------------------------------------
 // A camera-following inverted sphere with a vertical gradient. Its horizon band
 // is driven to match the (tinted) fog colour each frame so distant terrain melts
@@ -339,6 +377,8 @@ function applyDayTint() {
   sun.color.copy(_tintSun);
   const si = a.si + (b.si - a.si) * tt;
   const hi = a.hi + (b.hi - a.hi) * tt;
+  // how "night" it is (0 day → 1 deep night); dungeons are always lit by fire
+  nightAmount = player.plane > 0 ? 1 : Math.max(0, Math.min(1, (0.95 - si) / 0.35));
   sun.intensity = si;
   hemi.intensity = hi * HEMI_BOOST;
   fill.intensity = 0.26 * hi;          // fill fades with the day
@@ -389,6 +429,7 @@ function frame(now) {
   world.updateSpinners(dt);
   interactions.updateHover();
   applyDayTint();
+  updateTorchLights(dt);
   ui.setRun(player.energy, player.runOn);
   ui.setHp(player.hp, player.maxHp);
   ui.setPrayerOrb(prayers.points, prayers.maxPoints());
@@ -431,6 +472,7 @@ window.__OLDHOLM = {
     }
     interactions.updateHover();
     applyDayTint();
+    updateTorchLights(dt);
     ui.setHp(player.hp, player.maxHp);
     ui.setPrayerOrb(prayers.points, prayers.maxPoints());
     ui.fx.update(camera);

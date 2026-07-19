@@ -97,6 +97,7 @@ export class World {
     this._rocks = [];           // mining rocks with deplete state
     this._tick = 0;             // latest tick seen (for take-time scheduling)
     this._projectiles = [];     // arrows/spell bolts in flight (cosmetic)
+    this.lightEmitters = [];    // torches/braziers/lava — main.js lights the nearest few
     this.group = new THREE.Group();
     this.group.name = 'world:' + def.id;
     scene.add(this.group);
@@ -718,6 +719,26 @@ export class World {
     this.group.add(mesh);
     this.occluders.push(mesh);
     return mesh;
+  }
+
+  /** A wall/standing torch: a dark bracket + an always-bright flame, and a
+   *  registered light emitter that main.js turns into a real point light (and
+   *  flickers) for whichever fires are nearest the player. */
+  _addTorch(x, y, z, opts = {}) {
+    const post = opts.post ?? 0;
+    if (post) this._addBox(0.09, post, 0.09, x, y - 0.5 + post / 2, z, // standing shaft (braziers)
+      new THREE.MeshLambertMaterial({ color: 0x3a2a1a, flatShading: true }));
+    const bracket = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.34, 5),
+      new THREE.MeshLambertMaterial({ color: 0x3a2a1a, flatShading: true }));
+    bracket.position.set(x, y, z); this.group.add(bracket);
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.36, 5),
+      new THREE.MeshBasicMaterial({ color: opts.flameColor ?? 0xffbe4a }));
+    flame.position.set(x, y + 0.34, z); this.group.add(flame);
+    this.lightEmitters.push({
+      x, y: y + 0.42, z, flame,
+      color: opts.color ?? 0xffa03a, strength: opts.strength ?? 1, range: opts.range ?? 8,
+    });
+    return flame;
   }
 
   _buildCastle() {
@@ -1785,6 +1806,21 @@ export class World {
       // the roof is the examinable face of the building
       this.addInteractable({ kind: 'scenery', name: b.name, meshes: [roof], examine: b.examine ?? b.name, actions: [] });
     }
+    // a wall torch beside the door + warm windows that light up at night
+    const dh = (side === 'n' || side === 's');
+    const df = side === 'n' ? z0 : side === 's' ? z1 - 1 : side === 'w' ? x0 : x1 - 1;
+    const outN = (side === 'n' || side === 'w') ? -1 : 1;
+    if (dh) this._addTorch(doorTile + 0.5 - 0.95, y + 2.0, df + 0.5 + outN * 0.5, { strength: 0.95 });
+    else this._addTorch(df + 0.5 + outN * 0.5, y + 2.0, doorTile + 0.5 - 0.95, { strength: 0.95 });
+    this.windowMat ??= new THREE.MeshBasicMaterial({ color: 0x140f09 }); // shared; main.js glows it at night
+    const wyw = y + H * 0.58;
+    for (const s2 of [-1, 1]) {
+      const wm = new THREE.Mesh(
+        new THREE.BoxGeometry(dh ? 0.7 : 0.06, 0.85, dh ? 0.06 : 0.7), this.windowMat);
+      if (dh) wm.position.set(midX + s2 * (w * 0.26), wyw, df + 0.5 + outN * 0.42);
+      else wm.position.set(df + 0.5 + outN * 0.42, wyw, midZ + s2 * (d * 0.26));
+      this.group.add(wm);
+    }
     // interior fittings
     for (const c of b.contains ?? []) {
       if (c === 'bankChest') this._placeBankChest(midX, midZ - d / 4, 0);
@@ -1878,10 +1914,11 @@ export class World {
         meshes.push(this._addBox(0.5, 0.4, 0.5, p.x + Math.cos(a) * 1.3, y + 0.2, p.z + Math.sin(a) * 1.3, stone));
       }
       const flame = new THREE.Mesh(new THREE.ConeGeometry(0.7, 1.6, 6),
-        new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x8f3a10 }));
+        new THREE.MeshBasicMaterial({ color: 0xf08838 }));
       flame.position.set(p.x, y + 0.8, p.z);
       this.group.add(flame);
       meshes.push(flame);
+      this.lightEmitters.push({ x: p.x, y: y + 1.0, z: p.z, flame, color: 0xff8a30, strength: 2.2, range: 13 });
       this.markBlockedCircle(p.x, p.z, 1.6);
       let entry;
       entry = this.addInteractable({
