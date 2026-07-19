@@ -1409,8 +1409,61 @@ export class World {
     }
     for (let i = pi; i < N.pebble; i++) pebbles.setMatrixAt(i, zero);
 
-    for (const m of all) this.group.add(m);
-    this.clutter = all;
+    // ---- water-edge dressing: reeds/cattails on wet banks, lily pads afloat ----
+    const wl = this.def.waterLevel;
+    const reedBlades = [];
+    for (let b = 0; b < 4; b++) {
+      const g = new THREE.ConeGeometry(0.028, 0.85 + (b % 2) * 0.3, 3);
+      g.translate(0, 0.42, 0); g.rotateZ((b - 1.5) * 0.16); g.rotateY(b * 1.9);
+      g.translate(Math.cos(b * 2.1) * 0.06, 0, Math.sin(b * 2.1) * 0.06);
+      reedBlades.push(g);
+    }
+    const reedGeo = mergeGeometries(reedBlades, false); reedBlades.forEach((g) => g.dispose());
+    const catGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.28, 6); catGeo.translate(0, 1.02, 0); // cattail spike
+    const lilyGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.03, 8); lilyGeo.translate(0, 0.02, 0);
+    const N2 = { reed: 900, cat: 260, lily: 340 };
+    const reeds = new THREE.InstancedMesh(reedGeo, white(), N2.reed);
+    const cats = new THREE.InstancedMesh(catGeo, white(), N2.cat);
+    const lilies = new THREE.InstancedMesh(lilyGeo, white(), N2.lily);
+    const all2 = [reeds, cats, lilies];
+    for (const m of all2) { m.frustumCulled = false; m.userData.noCast = true; }
+
+    const wetBank = (tx, tz) => inBounds(tx, tz) && !this.isWater(tx, tz) &&
+      (this.isWater(tx + 1, tz) || this.isWater(tx - 1, tz) || this.isWater(tx, tz + 1) || this.isWater(tx, tz - 1));
+
+    let ri = 0, ci = 0; tries = N2.reed * 10;
+    while (ri < N2.reed && tries-- > 0) {
+      const x = 2 + rng() * (size - 4), z = 2 + rng() * (size - 4);
+      const tx = Math.floor(x), tz = Math.floor(z);
+      if (!wetBank(tx, tz)) continue;
+      put(reeds, ri, x, z, 0.7 + rng() * 0.6);
+      const t = rng(); col.setRGB(0.22 + t * 0.1, 0.34 + t * 0.12, 0.16 + t * 0.06, THREE.SRGBColorSpace);
+      reeds.setColorAt(ri, col); ri++;
+      if (ci < N2.cat && rng() < 0.3) { // a cattail rises from some clumps
+        put(cats, ci, x, z, 0.8 + rng() * 0.5);
+        col.setRGB(0.34, 0.2, 0.1, THREE.SRGBColorSpace); cats.setColorAt(ci, col); ci++;
+      }
+    }
+    for (let i = ri; i < N2.reed; i++) reeds.setMatrixAt(i, zero);
+    for (let i = ci; i < N2.cat; i++) cats.setMatrixAt(i, zero);
+
+    let li = 0; tries = N2.lily * 12;
+    while (li < N2.lily && tries-- > 0) {
+      const x = 2 + rng() * (size - 4), z = 2 + rng() * (size - 4);
+      const tx = Math.floor(x), tz = Math.floor(z);
+      if (!inBounds(tx, tz) || !this.isWater(tx, tz)) continue;
+      const th = this.regionAt(x, z, 0).theme;
+      if (th !== 'murk' && th !== 'plains' && th !== 'harbor') continue; // swampy/river/sea shallows
+      pv.set(x, wl + 0.04, z);
+      q.setFromAxisAngle(axisY, rng() * Math.PI * 2); sv.setScalar(0.7 + rng() * 0.7);
+      m4.compose(pv, q, sv); lilies.setMatrixAt(li, m4);
+      const t = rng(); col.setRGB(0.16 + t * 0.08, 0.34 + t * 0.12, 0.18 + t * 0.06, THREE.SRGBColorSpace);
+      lilies.setColorAt(li, col); li++;
+    }
+    for (let i = li; i < N2.lily; i++) lilies.setMatrixAt(i, zero);
+
+    for (const m of [...all, ...all2]) this.group.add(m);
+    this.clutter = [...all, ...all2];
   }
 
   // ---- furniture -------------------------------------------------------------
