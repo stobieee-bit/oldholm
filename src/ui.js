@@ -357,9 +357,10 @@ export class TabPanel {
       const css = '#' + s.color.toString(16).padStart(6, '0');
       const cost = Object.entries(s.cost)
         .map(([id, n]) => `${n} ${ITEMS[id].name.toLowerCase().replace(' glyph', '')}`).join(', ');
+      const kind = s.type === 'teleport' ? 'teleport · click to cast' : `max ${s.maxHit}`;
       b.className = 'style-btn spell-btn' + (active ? ' active' : '') + (locked ? ' locked' : '');
       b.innerHTML = `<span class="spell-dot" style="background:${css}"></span>${s.name}` +
-        `<small>lvl ${s.req} · max ${s.maxHit} · ${cost}</small>`;
+        `<small>lvl ${s.req} · ${kind} · ${cost}</small>`;
       b.addEventListener('click', () => magic?.setAutocast(s.id));
       el.appendChild(b);
     }
@@ -519,6 +520,12 @@ export class UI {
     if (quests) this.quests = quests;
   }
 
+  bindMarket(market) {
+    this.market = market;
+    document.getElementById('market-close').addEventListener('click', () => this.closeMarket());
+    document.getElementById('market-search').addEventListener('input', () => this.refreshMarket());
+  }
+
   refreshJournal() { this.panel.renderJournal(); }
 
   /** The completion fanfare screen (spec §11). */
@@ -634,6 +641,83 @@ export class UI {
         ], { x: e.clientX, y: e.clientY }, e);
       });
       body.appendChild(row);
+    }
+  }
+
+  // ---- the Grand Market panel -------------------------------------------------
+
+  openMarket() {
+    if (!this.market) return;
+    this.closeShop(); this.closeBank(); this.closeAnvil();
+    this.marketOpen = true;
+    if (document.pointerLockElement) document.exitPointerLock();
+    document.getElementById('market-panel').classList.remove('hidden');
+    this.refreshMarket();
+    this._mktEsc = (e) => { if (e.code === 'Escape') this.closeMarket(); };
+    window.addEventListener('keydown', this._mktEsc);
+  }
+
+  closeMarket() {
+    this.marketOpen = false;
+    document.getElementById('market-panel').classList.add('hidden');
+    if (this._mktEsc) { window.removeEventListener('keydown', this._mktEsc); this._mktEsc = null; }
+  }
+
+  refreshMarket() {
+    if (!this.marketOpen) return;
+    const body = document.getElementById('market-offers');
+    body.innerHTML = '';
+    if (!this.market.offers.length) {
+      const d = document.createElement('div');
+      d.className = 'anvil-metal';
+      d.textContent = 'No open offers. Click items in your pack to sell; search below to buy.';
+      body.appendChild(d);
+    }
+    for (const o of this.market.offers) {
+      const row = document.createElement('div');
+      row.className = 'anvil-row';
+      const fair = Math.round(this.market.fairPrice(o.itemId));
+      row.innerHTML = `<span>${o.type === 'sell' ? 'SELL' : 'BUY'} ${ITEMS[o.itemId].name}` +
+        ` <em class="shop-qty">${o.qty - o.remaining}/${o.qty} @ ${o.price}c</em></span>` +
+        `<span class="anvil-meta">fair ~${fair}c · ✕</span>`;
+      row.addEventListener('mouseup', (e) => { if (e.button === 0) this.market.cancel(o.id); });
+      body.appendChild(row);
+    }
+    const coll = document.getElementById('market-collect');
+    coll.innerHTML = '';
+    const entries = [...this.market.collection.entries()];
+    if (!entries.length) {
+      const d = document.createElement('div');
+      d.className = 'anvil-metal';
+      d.textContent = 'Collection box: empty. For now.';
+      coll.appendChild(d);
+    }
+    for (const [id, n] of entries) {
+      const row = document.createElement('div');
+      row.className = 'anvil-row';
+      row.innerHTML = `<span>${ITEMS[id].name}</span><span class="anvil-meta">×${n} · collect</span>`;
+      row.addEventListener('mouseup', (e) => { if (e.button === 0) this.market.collect(id); });
+      coll.appendChild(row);
+    }
+    // buy search results
+    const q = document.getElementById('market-search').value.trim().toLowerCase();
+    const found = document.getElementById('market-found');
+    found.innerHTML = '';
+    if (q.length >= 2) {
+      const matches = Object.entries(ITEMS)
+        .filter(([, d]) => d.name.toLowerCase().includes(q)).slice(0, 6);
+      for (const [id, d] of matches) {
+        const row = document.createElement('div');
+        row.className = 'anvil-row';
+        row.innerHTML = `<span>${d.name}</span><span class="anvil-meta">post buy offer…</span>`;
+        row.addEventListener('mouseup', (e) => {
+          if (e.button !== 0) return;
+          this.askAmount(`Buy how many ${d.name}?`, (qty) =>
+            this.askAmount(`At what price each? (fair ~${Math.round(this.market.fairPrice(id))}c)`, (price) =>
+              this.market.postBuy(id, qty, price)));
+        });
+        found.appendChild(row);
+      }
     }
   }
 
@@ -825,6 +909,20 @@ export class UI {
     if (!slot) return;
     const def = ITEMS[slot.id];
     // trading contexts take over the pack's click meaning
+    if (this.marketOpen) {
+      const inPack = this.player.inventory.slots.reduce(
+        (a, s) => a + (s && s.id === slot.id ? (s.count ?? 1) : 0), 0);
+      const fair = Math.round(this.market.fairPrice(slot.id));
+      this.menu.open([
+        {
+          label: `Offer to sell (fair ~${fair}c)`,
+          run: () => this.askAmount(`Sell how many? (you have ${inPack})`, (qty) =>
+            this.askAmount('At what price each?', (price) => this.market.postSell(slot.id, qty, price))),
+        },
+        { label: 'Examine ' + def.name, run: () => this.chat.add(def.examine, 'examine') },
+      ], { x: e.clientX, y: e.clientY }, e);
+      return;
+    }
     if (this.activeShop) {
       const shop = this.shops.get(this.activeShop);
       const price = this.shops.sellPrice(shop, slot.id);

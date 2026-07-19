@@ -180,6 +180,211 @@ export const MOBS = {
     },
   },
 
+  // ---- mid-tier (Phase 10). Stats tuned to the §5.2 formula levels. ----
+  guard: {
+    name: 'Guard',
+    examine: 'Paid to stand there. Excellent at it.',
+    stats: { att: 16, str: 16, def: 15, hp: 28 }, // level 21
+    bonuses: { att: 8, str: 6, def: 10 },
+    attackType: 'stab',
+    speed: 5, aggroRadius: 0, wanderRadius: 4, respawnTicks: 60,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [4, 20], weight: 4 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.6,
+      parts: [
+        { kind: 'box', size: [0.44, 0.54, 0.28], at: [0, 0.84, 0], color: 0x8a8a92 },
+        { kind: 'box', size: [0.3, 0.3, 0.28], at: [0, 1.3, 0], color: 0xd8b090 },
+        { kind: 'box', size: [0.34, 0.14, 0.32], at: [0, 1.5, 0], color: 0x6a6a72 },
+        { kind: 'box', size: [0.11, 0.5, 0.13], at: [-0.28, 0.8, 0], color: 0x8a8a92 },
+        { kind: 'box', size: [0.7, 0.06, 0.06], at: [0.32, 0.9, 0.15], rotX: 1.2, color: 0x9a9aa2 },
+        { kind: 'box', size: [0.14, 0.56, 0.15], at: [-0.11, 0.28, 0], color: 0x5a5a62 },
+        { kind: 'box', size: [0.14, 0.56, 0.15], at: [0.11, 0.28, 0], color: 0x5a5a62 },
+      ],
+    },
+  },
+  skeleton: {
+    name: 'Skeleton',
+    examine: 'All the bones, none of the manners.',
+    stats: { att: 17, str: 17, def: 15, hp: 27 }, // level 21
+    bonuses: { att: 6, str: 6, def: 6 },
+    attackType: 'slash',
+    speed: 5, aggroRadius: 4, wanderRadius: 3, respawnTicks: 45,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [2, 14], weight: 3 }, { weight: 3 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.55,
+      parts: [
+        { kind: 'box', size: [0.36, 0.44, 0.2], at: [0, 0.86, 0], color: 0xe8e2d0 },
+        { kind: 'box', size: [0.26, 0.26, 0.24], at: [0, 1.3, 0], color: 0xe8e2d0 },
+        { kind: 'box', size: [0.09, 0.48, 0.09], at: [-0.24, 0.8, 0], color: 0xd8d0bc },
+        { kind: 'box', size: [0.09, 0.48, 0.09], at: [0.24, 0.8, 0], color: 0xd8d0bc },
+        { kind: 'box', size: [0.1, 0.56, 0.1], at: [-0.1, 0.28, 0], color: 0xd8d0bc },
+        { kind: 'box', size: [0.1, 0.56, 0.1], at: [0.1, 0.28, 0], color: 0xd8d0bc },
+      ],
+    },
+  },
+  zombie: {
+    name: 'Zombie',
+    examine: 'Deceased, and in deep denial about it.',
+    stats: { att: 18, str: 19, def: 18, hp: 32 }, // level 24
+    bonuses: { att: 4, str: 6, def: 4 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 4, wanderRadius: 3, respawnTicks: 50,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.55,
+      parts: [
+        { kind: 'box', size: [0.44, 0.52, 0.26], at: [0, 0.84, 0], color: 0x6a7a5a },
+        { kind: 'box', size: [0.3, 0.3, 0.28], at: [0, 1.3, 0.04], color: 0x7a8a62 },
+        { kind: 'box', size: [0.11, 0.5, 0.13], at: [-0.28, 0.9, 0.22], rotX: 1.3, color: 0x7a8a62 },
+        { kind: 'box', size: [0.11, 0.5, 0.13], at: [0.28, 0.9, 0.22], rotX: 1.3, color: 0x7a8a62 },
+        { kind: 'box', size: [0.14, 0.56, 0.15], at: [-0.11, 0.28, 0], color: 0x4a4a3a },
+        { kind: 'box', size: [0.14, 0.56, 0.15], at: [0.11, 0.28, 0], color: 0x4a4a3a },
+      ],
+    },
+  },
+  highwayman: {
+    name: 'Highwayman',
+    examine: 'Stand and deliver, budget edition.',
+    stats: { att: 4, str: 4, def: 3, hp: 10 }, // level 5
+    bonuses: { att: 2, str: 2, def: 0 },
+    attackType: 'stab',
+    speed: 4, aggroRadius: 4, wanderRadius: 5, respawnTicks: 45,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [2, 15], weight: 5 }, { item: 'wool_cape', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.55,
+      parts: [
+        { kind: 'box', size: [0.42, 0.52, 0.26], at: [0, 0.82, 0], color: 0x3a3632 },
+        { kind: 'box', size: [0.3, 0.3, 0.28], at: [0, 1.28, 0], color: 0xd8b090 },
+        { kind: 'box', size: [0.32, 0.12, 0.3], at: [0, 1.18, -0.12], color: 0x2a2624 },
+        { kind: 'box', size: [0.11, 0.48, 0.13], at: [-0.27, 0.8, 0], color: 0x3a3632 },
+        { kind: 'box', size: [0.11, 0.48, 0.13], at: [0.27, 0.8, 0], color: 0x3a3632 },
+        { kind: 'box', size: [0.14, 0.56, 0.15], at: [-0.11, 0.28, 0], color: 0x2a2a30 },
+        { kind: 'box', size: [0.14, 0.56, 0.15], at: [0.11, 0.28, 0], color: 0x2a2a30 },
+      ],
+    },
+  },
+  bear: {
+    name: 'Bear',
+    examine: 'A large opinion with fur.',
+    stats: { att: 14, str: 16, def: 11, hp: 28 }, // level 19
+    bonuses: { att: 4, str: 6, def: 4 },
+    attackType: 'slash',
+    speed: 5, aggroRadius: 3, wanderRadius: 5, respawnTicks: 60,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'raw_beef', count: 1, weight: 2 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.2,
+      parts: [
+        { kind: 'box', size: [0.7, 0.7, 1.2], at: [0, 0.75, 0.05], color: 0x5a4128 },
+        { kind: 'box', size: [0.42, 0.4, 0.42], at: [0, 1.02, -0.72], color: 0x5a4128 },
+        { kind: 'box', size: [0.12, 0.12, 0.1], at: [-0.14, 1.26, -0.8], color: 0x4a3520 },
+        { kind: 'box', size: [0.12, 0.12, 0.1], at: [0.14, 1.26, -0.8], color: 0x4a3520 },
+        { kind: 'box', size: [0.16, 0.5, 0.16], at: [-0.25, 0.25, 0.45], color: 0x4a3520 },
+        { kind: 'box', size: [0.16, 0.5, 0.16], at: [0.25, 0.25, 0.45], color: 0x4a3520 },
+        { kind: 'box', size: [0.16, 0.5, 0.16], at: [-0.25, 0.25, -0.42], color: 0x4a3520 },
+        { kind: 'box', size: [0.16, 0.5, 0.16], at: [0.25, 0.25, -0.42], color: 0x4a3520 },
+      ],
+    },
+  },
+  hill_giant: {
+    name: 'Hill giant',
+    examine: 'The hill was here first. He disagrees.',
+    stats: { att: 20, str: 22, def: 20, hp: 40 }, // level 28
+    bonuses: { att: 10, str: 12, def: 8 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 4, wanderRadius: 4, respawnTicks: 70,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [10, 40], weight: 4 },
+      { item: 'iron_ore', count: 1, weight: 2 }, { weight: 3 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.4,
+      parts: [
+        { kind: 'box', size: [0.9, 1.0, 0.5], at: [0, 1.3, 0], color: 0xb08d6a },
+        { kind: 'box', size: [0.5, 0.5, 0.46], at: [0, 2.1, 0], color: 0xc9a27a },
+        { kind: 'box', size: [0.22, 0.9, 0.24], at: [-0.58, 1.2, 0], color: 0xb08d6a },
+        { kind: 'box', size: [0.22, 0.9, 0.24], at: [0.58, 1.2, 0], color: 0xb08d6a },
+        { kind: 'box', size: [0.3, 0.9, 0.32], at: [-0.22, 0.45, 0], color: 0x8a6a4a },
+        { kind: 'box', size: [0.3, 0.9, 0.32], at: [0.22, 0.45, 0], color: 0x8a6a4a },
+        { kind: 'box', size: [0.9, 0.16, 0.16], at: [0.75, 1.0, 0.2], rotX: 0.9, color: 0x6e4f33 },
+      ],
+    },
+  },
+  moss_giant: {
+    name: 'Moss giant',
+    examine: 'Part hill, part hedge, all grudge.',
+    stats: { att: 30, str: 32, def: 28, hp: 60 }, // level 42
+    bonuses: { att: 12, str: 14, def: 12 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 4, wanderRadius: 4, respawnTicks: 90,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [15, 60], weight: 4 },
+      { item: 'marsh_greens', count: [1, 2], weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.6,
+      parts: [
+        { kind: 'box', size: [1.0, 1.1, 0.55], at: [0, 1.4, 0], color: 0x4a6a3a },
+        { kind: 'box', size: [0.55, 0.55, 0.5], at: [0, 2.3, 0], color: 0x5a7a45 },
+        { kind: 'box', size: [0.24, 1.0, 0.26], at: [-0.64, 1.3, 0], color: 0x4a6a3a },
+        { kind: 'box', size: [0.24, 1.0, 0.26], at: [0.64, 1.3, 0], color: 0x4a6a3a },
+        { kind: 'box', size: [0.34, 0.95, 0.36], at: [-0.24, 0.48, 0], color: 0x3a5530 },
+        { kind: 'box', size: [0.34, 0.95, 0.36], at: [0.24, 0.48, 0], color: 0x3a5530 },
+      ],
+    },
+  },
+  ghoul: {
+    name: 'Ghoul',
+    examine: 'It remembers being hungry. Only that.',
+    stats: { att: 28, str: 30, def: 27, hp: 58 }, // level 40
+    bonuses: { att: 10, str: 10, def: 8 },
+    attackType: 'slash',
+    speed: 4, aggroRadius: 5, wanderRadius: 3, respawnTicks: 70,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [8, 30], weight: 3 }, { weight: 3 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.6,
+      parts: [
+        { kind: 'box', size: [0.42, 0.56, 0.26], at: [0, 0.84, 0.04], color: 0x7a7a6a },
+        { kind: 'box', size: [0.3, 0.32, 0.3], at: [0, 1.32, 0.1], color: 0x8a8a76 },
+        { kind: 'box', size: [0.11, 0.54, 0.13], at: [-0.28, 0.86, 0.16], rotX: 0.7, color: 0x7a7a6a },
+        { kind: 'box', size: [0.11, 0.54, 0.13], at: [0.28, 0.86, 0.16], rotX: 0.7, color: 0x7a7a6a },
+        { kind: 'box', size: [0.13, 0.5, 0.14], at: [-0.11, 0.25, 0], color: 0x5a5a4e },
+        { kind: 'box', size: [0.13, 0.5, 0.14], at: [0.11, 0.25, 0], color: 0x5a5a4e },
+      ],
+    },
+  },
+  barbarian: {
+    name: 'Barbarian',
+    examine: 'Beard first, questions never.',
+    stats: { att: 7, str: 8, def: 6, hp: 16 }, // level 10
+    bonuses: { att: 2, str: 4, def: 2 },
+    attackType: 'slash',
+    speed: 5, aggroRadius: 0, wanderRadius: 4, respawnTicks: 50,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [1, 8], weight: 3 }, { weight: 3 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.6,
+      parts: [
+        { kind: 'box', size: [0.5, 0.54, 0.3], at: [0, 0.84, 0], color: 0x8a6a42 },
+        { kind: 'box', size: [0.3, 0.3, 0.28], at: [0, 1.32, 0], color: 0xd8b090 },
+        { kind: 'box', size: [0.28, 0.2, 0.1], at: [0, 1.16, -0.14], color: 0xb5542a },
+        { kind: 'box', size: [0.12, 0.5, 0.14], at: [-0.31, 0.82, 0], color: 0xd8b090 },
+        { kind: 'box', size: [0.12, 0.5, 0.14], at: [0.31, 0.82, 0], color: 0xd8b090 },
+        { kind: 'box', size: [0.15, 0.56, 0.16], at: [-0.12, 0.28, 0], color: 0x5a4a33 },
+        { kind: 'box', size: [0.15, 0.56, 0.16], at: [0.12, 0.28, 0], color: 0x5a4a33 },
+      ],
+    },
+  },
+
   imp: {
     name: 'Imp',
     examine: 'A small red menace with pockets full of other people’s things.',

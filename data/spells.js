@@ -33,6 +33,20 @@ export const SPELLS = [
     examine: 'Fire with a forwarding address.' },
 ];
 
+// Teleports (spec §10): cast from the spellbook, instant travel, 5-tick daze.
+export const TELEPORTS = [
+  { id: 'tp_holmbridge', name: 'Holmbridge Beckon', req: 25, baseXp: 30, type: 'teleport',
+    dest: { x: 67.5, z: 88.5 }, cost: { sigil_glyph: 1, gale_glyph: 3 }, color: 0xd8b13a,
+    examine: 'Home, in a hurry.' },
+  { id: 'tp_corvath', name: 'Corvath Call', req: 31, baseXp: 35, type: 'teleport',
+    dest: { x: 296.5, z: 130.5 }, cost: { sigil_glyph: 1, tide_glyph: 3 }, color: 0x4a90c2,
+    examine: 'The capital, minus the walking.' },
+  { id: 'tp_whitehold', name: 'Whitehold Summons', req: 37, baseXp: 40, type: 'teleport',
+    dest: { x: 288.5, z: 46.5 }, cost: { sigil_glyph: 1, stone_glyph: 3 }, color: 0xd8d8d2,
+    examine: 'White walls on demand.' },
+];
+SPELLS.push(...TELEPORTS);
+
 export const spellById = (id) => SPELLS.find((s) => s.id === id);
 
 /** staffElement: which element a wielded staff supplies for free. */

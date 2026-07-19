@@ -56,6 +56,7 @@ export class Dialogue {
     const [verb, a, b] = act.split(':');
     if (verb === 'openShop') this._deferred = () => this.ui.openShop(this.npc?.def?.shop);
     else if (verb === 'openBank') this._deferred = () => this.ui.openBank();
+    else if (verb === 'openMarket') this._deferred = () => this.ui.openMarket();
     else if (verb === 'quest') this.quests?.setStage(a, Number(b));
     else if (verb === 'complete') this.quests?.setStage(a, 100);
     else if (verb === 'give') {

@@ -425,6 +425,44 @@ export const TREES = {
     },
   },
 
+  market_clerk: {
+    start: 'hello',
+    nodes: {
+      hello: {
+        speaker: 'npc', text: 'The Grand Market of Corvath. Post an offer, the book finds a taker, the box holds your winnings. Prices drift — patience pays, greed waits.',
+        options: [
+          { label: 'Open the order book.', action: 'openMarket' },
+          { label: 'How do prices work?', next: 'prices' },
+          { label: 'Another time.', action: 'end' },
+        ],
+      },
+      prices: {
+        speaker: 'npc', text: 'Every good has a fair price that wanders like a drunk goat. Sell at or under it, you fill fast. Ask the moon, and the moon takes her time.',
+        options: [
+          { label: 'Open the order book.', action: 'openMarket' },
+          { label: 'Poetic. Goodbye.', action: 'end' },
+        ],
+      },
+    },
+  },
+
+  guildmaster: {
+    start: 'hello',
+    nodes: {
+      hello: {
+        speaker: 'npc', text: 'Guildmaster Dorn. The guild floor below is members only — Mining sixty, no exceptions, not even for people who ask twice.',
+        options: [
+          { label: 'What’s down there?', next: 'down' },
+          { label: 'I’ll come back at sixty.', action: 'end' },
+        ],
+      },
+      down: {
+        speaker: 'npc', text: 'Coal seams like black butter and a gold vein that behaves itself. The dwarven mine north of the walls is open to everyone — start there, work up.',
+        options: [{ label: 'To the north mine, then.', action: 'end' }],
+      },
+    },
+  },
+
   villager: {
     start: ['one', 'two', 'three'],
     nodes: {

@@ -36,6 +36,67 @@ export const SHOPS = {
     ],
   },
 
+  corvath_swords: {
+    name: 'The Honed Edge',
+    buyMult: 1.2, sellMult: 0.6,
+    buysMatcher: (id) => /^(bronze|iron|steel)_/.test(id),
+    restockTicks: 30,
+    stock: [
+      ['iron_scimitar', 4], ['iron_longsword', 3], ['iron_battleaxe', 2], ['iron_two_handed', 2],
+      ['steel_dagger', 3], ['steel_sword', 3], ['steel_scimitar', 3], ['steel_longsword', 2],
+      ['steel_warhammer', 2], ['steel_battleaxe', 2], ['steel_two_handed', 1],
+      ['steel_platebody', 1], ['steel_platelegs', 2], ['steel_kiteshield', 2], ['steel_full_helm', 2],
+    ],
+  },
+
+  corvath_staffs: {
+    name: 'The Third Eye Emporium',
+    buyMult: 1.0, sellMult: 0.6,
+    buysOnly: [
+      'gale_staff', 'tide_staff', 'stone_staff', 'ember_staff',
+      'gale_glyph', 'tide_glyph', 'stone_glyph', 'ember_glyph',
+      'spirit_glyph', 'sigil_glyph', 'void_glyph',
+      'wizard_hat', 'wizard_robe_top', 'wizard_robe_bottom',
+    ],
+    restockTicks: 20,
+    stock: [
+      ['gale_staff', 3], ['tide_staff', 3], ['stone_staff', 3], ['ember_staff', 3],
+      ['gale_glyph', 800], ['tide_glyph', 500], ['stone_glyph', 500], ['ember_glyph', 500],
+      ['spirit_glyph', 600], ['sigil_glyph', 400], ['void_glyph', 200],
+      ['wizard_hat', 3], ['wizard_robe_top', 3], ['wizard_robe_bottom', 3],
+    ],
+  },
+
+  skalvik_helmets: {
+    name: 'Helm & Hearth',
+    buyMult: 1.1, sellMult: 0.6,
+    buysMatcher: (id) => id.endsWith('_full_helm'),
+    restockTicks: 30,
+    stock: [['bronze_full_helm', 6], ['iron_full_helm', 4], ['steel_full_helm', 3]],
+  },
+
+  brinkton_general: {
+    name: 'The Last Shelf',
+    buyMult: 1.4, sellMult: 0.45, // frontier prices
+    buysAnything: true,
+    restockTicks: 30,
+    stock: [
+      ['tinderbox', 4], ['knife', 3], ['bronze_axe', 3], ['bronze_pickaxe', 3],
+      ['hammer', 3], ['shortbow', 2], ['bronze_arrow', 100], ['trout', 8], ['pike', 5],
+    ],
+  },
+
+  murkwell_general: {
+    name: 'The Humble Market',
+    buyMult: 1.2, sellMult: 0.45,
+    buysAnything: true,
+    restockTicks: 28,
+    stock: [
+      ['bucket', 4], ['tinderbox', 3], ['small_net', 3], ['fishing_bait', 80],
+      ['cabbage', 6], ['thread', 100], ['needle', 3], ['knife', 2],
+    ],
+  },
+
   sword_shop: {
     name: "Hilda's Arms",
     buyMult: 1.2, sellMult: 0.55,

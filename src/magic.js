@@ -53,8 +53,9 @@ export class Magic {
   }
 
   setAutocast(id) {
-    if (this.autocast === id) { this.autocast = null; this.ui.refreshSpellbook(); return; }
     const spell = spellById(id);
+    if (spell.type === 'teleport') { this.castTeleport(spell); return; }
+    if (this.autocast === id) { this.autocast = null; this.ui.refreshSpellbook(); return; }
     if (this.player.skillByName('Magic').level < spell.req) {
       this.ui.chat.add(`You need a Magic level of ${spell.req} to cast ${spell.name}.`);
       return;
@@ -62,6 +63,26 @@ export class Magic {
     this.autocast = id;
     this.ui.chat.add(`You ready ${spell.name}.`);
     this.ui.refreshSpellbook();
+  }
+
+  /** Teleports cast immediately from the spellbook (spec §10). */
+  castTeleport(spell) {
+    const p = this.player;
+    if (p.skillByName('Magic').level < spell.req) {
+      this.ui.chat.add(`You need a Magic level of ${spell.req} to cast ${spell.name}.`);
+      return;
+    }
+    if (!this.canAfford(spell)) {
+      this.ui.chat.add('You do not have enough glyph stones.');
+      return;
+    }
+    this.consume(spell);
+    p.target = null;
+    p.setPosition(spell.dest.x, spell.dest.z, undefined, 0);
+    p.attackCooldown = Math.max(p.attackCooldown, 5); // arrival daze
+    p.addXp('Magic', spell.baseXp, this.ui);
+    this.ui.fx.xpDrop([['Magic', spell.baseXp]]);
+    this.ui.chat.add(`The world folds. ${spell.name} lands you with your boots still on.`);
   }
 
   activeSpell() {

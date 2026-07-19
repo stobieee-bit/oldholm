@@ -1,6 +1,69 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 9 — Quest Engine + Quests 1–5 — COMPLETE
+## Current status: Phase 10 — World Expansion I — COMPLETE
+
+## What was built (Phase 10)
+
+- **The realm quadrupled**: 192×192 → 384×384 tiles (576 chunks), Holmbridge keeping
+  its exact coordinates; the river now flows the full length of the realm; the swamp
+  gained a southern edge (zEnd); generic town plateaus (flattens); a highway network
+  with a signposted crossroads (Holmbridge east → Corvath, forks to Whitehold,
+  Brinkton, Skalvik, and Murkwell).
+- **A generic town engine** (world.js): data-driven city walls with gates + lintels,
+  rectangular buildings with door-side/interior fittings (bank chests, counters,
+  anvils, furnaces), and town props (fountain, statue, eternal firepit, signposts,
+  market stalls). Five towns from data:
+  · **Corvath** — walled capital: palace, fountain square, east/west Bank of Aldera
+    branches (one shared vault — multi-branch banking just works), The Honed Edge,
+    The Third Eye Emporium, a church, the Anvil District, guards, market stalls, and
+    the SEWERS beneath: a dark torch-lit ring corridor (own plane) running rats →
+    zombies → skeletons → a ghoul den, entered by a street grate.
+  · **Whitehold** — white walls, the Hall of the Pale Shield, the First Shield's
+    statue, the Mining Guild with its level-60-gated basement (coal + gold), and the
+    dwarven mine north of the walls.
+  · **Skalvik** — three longhouses, the eternal fire (cookable), Helm & Hearth,
+    four barbarians, river fly-fishing.
+  · **Brinkton** — frontier bank + The Last Shelf, nervous keeper, yew trees
+    (Woodcutting 60), a signpost warning about the north.
+  · **Murkwell** — swampside bank + Humble Market + jail + the sleeping Ravenmoor
+    Manor on its knoll, weeping willows, a moss giant in the marsh.
+- **Mid-tier bestiary** (formula-exact levels): Guard 21, Skeleton 21, Zombie 24,
+  Highwayman 5 (roads), Bear 19, Hill giant 28 (big bones), Moss giant 42, Ghoul 40,
+  Barbarian 10 — ~40 new spawns; 86 mobs total.
+- **The Grand Market** (src/market.js): order-book with per-item fair prices that
+  random-walk (0.85–1.25×); sell offers escrow goods, buy offers escrow coins;
+  simulated traders fill 1–3 units at probabilities scaled by price-vs-fair; the
+  collection box holds proceeds; panel UI with offers/collection/buy-search; the
+  market clerk explains it all in dialogue.
+- **Teleports live** (spec §10): Holmbridge Beckon 25 / Corvath Call 31 / Whitehold
+  Summons 37 — cast instantly from the spellbook, glyph costs, arrival daze, Magic xp.
+- New: yew trees + yew logs (WC 60, FM 60), five new shops, nine new townsfolk,
+  Skalvik/Murkwell fishing spots, plane keys for data ('corvathSewers', 'guild').
+
+## Phase 10 — tested (live browser, real pipelines)
+
+- **DoD 1**: ran Holmbridge → Corvath by road in 54s — castle gate, crossroads, south
+  fork, through the west gate to the fountain square. (Found & fixed: the Phase 5
+  tanning rack sat on what became the eastern highway.)
+- **DoD 2**: descended the street grate, cleared a full sewers lap — all 11 denizens
+  including both ghouls, 0 deaths — early kills already respawning behind us.
+- **DoD 3**: posted a 20-log sell order with the clerk; simulated traders filled it
+  in 80 ticks with the fill notice; collected 60 coins. A feather buy order filled
+  and collected too.
+- Teleports verified to all three towns (a level-35-vs-37 refusal proved the gate —
+  my test's xp table memory was wrong, the game's wasn't). Guild trapdoor refuses
+  below Mining 60, admits at 60. Corvath square: 1.37 ms/frame at 136 draw calls.
+  Bridge/tick regressions green.
+
+## Definition of Done — Phase 10
+
+- [x] Walk Holmbridge → Corvath by road
+- [x] Clear a sewers lap
+- [x] Post and get a Grand Market sell order filled
+
+---
+
+## Phase 9 — Quest Engine + Quests 1–5 — COMPLETE
 
 ## What was built (Phase 9)
 
@@ -553,16 +616,15 @@
 
 ## Exact next step
 
-**Phase 10 — World Expansion I**: build Murkwell, Corvath (walled capital with palace,
-fountain square, Grand Market order book, east/west banks, sword/staff shops, church,
-anvil district, guards, and the sewers dungeon: rats → zombies → skeletons → ghoul
-den), Whitehold (+ dwarven mine + Mining Guild at Mining 60), Skalvik, Brinkton,
-roads + signposts between everything, mid-tier bestiary (Guard 21, Skeleton 21,
-Zombie 24, Vex cultist camps, Highwayman 5, Bear 19, Hill giant 28 w/ big bones,
-Moss giant 42), second/third bank branches (the shared vault already supports them),
-the Grand Market simulated order book, and teleport spells becoming meaningful
-(Holmbridge 25 / Corvath 31 / Whitehold 37). This means multi-region world support —
-regions.js has one region today; world.js should build several connected chunks or
-one larger heightfield with region bands. DoD: walk Holmbridge → Corvath by road,
-clear a sewers lap, post and get a Grand Market sell order filled. NOTE: save system
-(§14) still unimplemented — consider folding autosave in here or Phase 12.
+**Phase 11 — World Expansion II + Quests 6–10**: Sunmarch (toll gate 10g, tanner, gem
+stall, questionable meat vendor), Port Gullwick (docks, ship to Ashkara 30g, tavern,
+jailed pirate), Ashkara Isle (jungle, tribal village, volcano dungeon, Cindermaw),
+the Blight north of Brinkton (3 depth bands, EVERYTHING drops on death there, Echo
+ambushers, bogwyrms, ashfiends), high-tier bestiary, and quests 6–10: The Poultrified
+Professor (manor lever-and-door puzzle), The Lord of Murkwell Manor (Ravenmoor +
+stake), The Squire's Blunder (coldiron + ice cave), Shadow Over Corvath (Dawnbrand +
+Zarkhul), The Wyrm of Ashkara (Champions' Guild 12-QP gate, sea chart, anti-flame
+kiteshield, Cindermaw with dragonfire/shield logic, Starmetal platebody right).
+DoD: full quest cape moment — all 10 quests done, Starmetal platebody worn on a
+legit playthrough save. NOTE: save system (§14) still pending — Phase 12 must
+include it (autosave + slots + export/import).

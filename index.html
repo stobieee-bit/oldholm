@@ -268,6 +268,19 @@
   .anvil-meta { color: #a8a184; font-size: 12px; }
 
   /* shop & bank panels share the anvil skeleton */
+  #market-panel {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 400px; max-height: 78vh; display: flex; flex-direction: column;
+    background: rgba(28, 26, 20, 0.97); border: 2px solid #6a6248; border-radius: 5px;
+    z-index: 21; pointer-events: auto; user-select: none;
+  }
+  #market-panel.hidden { display: none; }
+  #market-search {
+    width: 150px; background: rgba(20,18,14,0.8); border: 1px solid #55503c;
+    color: #e8dfc0; font-family: inherit; font-size: 12px; padding: 2px 6px; border-radius: 3px;
+  }
+  #market-offers, #market-collect { min-height: 34px; max-height: 22vh; }
+
   #shop-panel, #bank-panel {
     position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: 360px; max-height: 74vh; display: flex; flex-direction: column;
@@ -465,6 +478,17 @@
     <div id="bank-body" class="panel-body"></div>
     <div id="ask-x" class="hidden"><span id="ask-x-label"></span><input id="ask-x-input" type="number" min="1"></div>
     <div class="panel-hint">Click vault items to withdraw · click your pack to deposit</div>
+  </div>
+
+  <div id="market-panel" class="hidden">
+    <div id="anvil-head"><span>THE GRAND MARKET</span><input id="market-search" placeholder="buy: search goods…" autocomplete="off"><span id="market-close" class="panel-close">✕</span></div>
+    <div id="market-found"></div>
+    <div class="anvil-metal">YOUR OFFERS</div>
+    <div id="market-offers" class="panel-body"></div>
+    <div class="anvil-metal">COLLECTION BOX</div>
+    <div id="market-collect" class="panel-body"></div>
+    <div id="ask-x2" class="hidden"></div>
+    <div class="panel-hint">Click your pack to post a sell offer · click an offer to cancel it</div>
   </div>
 
   <div id="dialogue-box" class="hidden">

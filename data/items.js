@@ -166,6 +166,11 @@ export const ITEMS = {
     icon: '<rect x="3.5" y="9" width="15" height="6" rx="3" fill="#9a8a58"/><ellipse cx="18.5" cy="12" rx="2.3" ry="3" fill="#d8cf9e"/><ellipse cx="18.5" cy="12" rx="1.1" ry="1.5" fill="#b0a468"/>',
     model: { kind: 'log', color: 0x9a8a58, r: 0.12, len: 0.8 },
   },
+  yew_logs: {
+    name: 'Yew logs', examine: 'Wood that outlived every opinion about it.', value: 80, stackable: false,
+    icon: '<rect x="3.5" y="9" width="15" height="6" rx="3" fill="#4a3a28"/><ellipse cx="18.5" cy="12" rx="2.3" ry="3" fill="#a88d5c"/><ellipse cx="18.5" cy="12" rx="1.1" ry="1.5" fill="#7a6038"/>',
+    model: { kind: 'log', color: 0x4a3a28, r: 0.14, len: 0.8 },
+  },
   copper_ore: {
     name: 'Copper ore', examine: 'One half of a famous partnership.', value: 3, stackable: false,
     icon: '<path d="M6 17l3-8 4-2 5 4-2 7Z" fill="#8a8078"/><circle cx="12" cy="12" r="2.6" fill="#b5703a"/>',

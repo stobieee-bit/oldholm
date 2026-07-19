@@ -9,6 +9,8 @@ export const TREES = {
     examine: 'A sturdy oak. It has seen some winters.' },
   willow: { label: 'Willow', req: 30, xp: 67.5, logs: 'willow_logs', depleteChance: 0.125, respawnTicks: 45,
     examine: 'A weeping willow. It knows something you don’t.' },
+  yew: { label: 'Yew', req: 60, xp: 175, logs: 'yew_logs', depleteChance: 0.125, respawnTicks: 90,
+    examine: 'Ancient, dense, and disdainful of your axe.' },
 };
 
 // Mining. Rocks always deplete on a successful mine.
@@ -61,6 +63,7 @@ export const FIREMAKING = {
   logs: { req: 1, xp: 40 },
   oak_logs: { req: 15, xp: 60 },
   willow_logs: { req: 30, xp: 90 },
+  yew_logs: { req: 60, xp: 202.5 },
   fireLifeTicks: [90, 150], // min, max
 };
 

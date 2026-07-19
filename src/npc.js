@@ -312,6 +312,8 @@ export class NPCManager {
 
   _resolvePlane(p) {
     if (p === 'towerBasement') return this.world.towerBasementPlane ?? 0;
+    if (p === 'corvathSewers') return this.world.sewersPlane ?? 0;
+    if (p === 'guild') return this.world.guildPlane ?? 0;
     return p ?? 0;
   }
 
@@ -336,6 +338,10 @@ export class NPCManager {
       if (def.bank) actions.push({
         label: 'Bank',
         fn: (ctx) => ctx.ui.openBank(),
+      });
+      if (def.market) actions.push({
+        label: 'Exchange',
+        fn: (ctx) => ctx.ui.openMarket(),
       });
       if (def.shear) actions.push({
         label: 'Shear',

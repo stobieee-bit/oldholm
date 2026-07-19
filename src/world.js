@@ -104,7 +104,6 @@ export class World {
     this._buildFurniture();
     this._buildPasture();
     this._buildGoblinCamp();
-    this._buildMine();
     this._buildFishingSpots();
     this._buildSmithy();
     this._buildTanningRack();
@@ -117,6 +116,10 @@ export class World {
     this._buildGaleAltar();
     this._buildPickables();
     this._buildDyeCart();
+    this._buildTowns();
+    this._buildSewers();
+    this._buildMiningGuild();
+    this._buildMine(); // after the guild so its basement plane exists
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -289,9 +292,10 @@ export class World {
           h += t * t * d.rim.height;
         }
 
-        // swamp sinks toward (and below) the water line in the south
+        // swamp sinks toward (and below) the water line in its band
         if (d.swamp) {
-          const t = smoothstep((cz - d.swamp.zStart) / d.swamp.fade);
+          let t = smoothstep((cz - d.swamp.zStart) / d.swamp.fade);
+          if (d.swamp.zEnd) t *= 1 - smoothstep((cz - d.swamp.zEnd) / d.swamp.fade);
           h -= t * (d.swamp.sink + n(cx * 0.07 + 53.1, cz * 0.07 + 91.7) * d.swamp.sinkVar);
         }
 
@@ -312,6 +316,15 @@ export class World {
         const dd = Math.max(dx, dz);
         if (dd < c.flattenMargin)
           h = lerp(c.plateauH, h, smoothstep(dd / c.flattenMargin));
+
+        // generic town plateaus
+        for (const f of d.flattens ?? []) {
+          const fx = Math.max(f.x0 - cx, cx - f.x1, 0);
+          const fz = Math.max(f.z0 - cz, cz - f.z1, 0);
+          const fd = Math.max(fx, fz);
+          const m = f.margin ?? 5;
+          if (fd < m) h = lerp(f.h, h, smoothstep(fd / m));
+        }
 
         this.heights[cz * (size + 1) + cx] = h;
       }
@@ -865,6 +878,10 @@ export class World {
       if (ch && tx >= ch.x0 - 2 && tx < ch.x1 + 2 && tz >= ch.z0 - 2 && tz < ch.z1 + 2) return true;
       const st = d.store;
       if (st && tx >= st.x0 - 2 && tx < st.x1 + 2 && tz >= st.z0 - 2 && tz < st.z1 + 2) return true;
+      for (const tn of d.towns ?? []) {
+        const bb = tn.bounds;
+        if (bb && tx >= bb.x0 - 2 && tx < bb.x1 + 2 && tz >= bb.z0 - 2 && tz < bb.z1 + 2) return true;
+      }
       const s = d.trees.minSpacing;
       for (let dz = -s; dz <= s; dz++)
         for (let dx = -s; dx <= s; dx++)
@@ -888,15 +905,36 @@ export class World {
         trunk: [0.11, 0.16, 2.2], canA: { cone: [1.8, 1.3], y: 2.9 }, canB: { cone: [1.25, 1.0], y: 3.6 },
         leaf: (t) => [0.42 + t * 0.10, 0.52 + t * 0.08, 0.22 + t * 0.05],
       },
+      yew: {
+        trunk: [0.26, 0.36, 1.9], canA: { cone: [2.2, 2.6], y: 3.0 }, canB: { cone: [1.4, 1.8], y: 4.4 },
+        leaf: (t) => [0.12 + t * 0.06, 0.26 + t * 0.08, 0.14 + t * 0.05],
+      },
     };
 
     // placement
-    const placements = { tree: [], oak: [], willow: [] };
+    const placements = { tree: [], oak: [], willow: [], yew: [] };
     const plans = [
       ['tree', d.trees.count],
       ['oak', d.trees.oaks ?? 0],
       ['willow', d.trees.willows ?? 0],
     ];
+    // clustered plantings (Murkwell willows, Brinkton yews, …)
+    for (const cl of d.treeClusters ?? []) {
+      let placed = 0, attempts = cl.count * 20;
+      while (placed < cl.count && attempts-- > 0) {
+        const a = rng() * Math.PI * 2, r = rng() * cl.radius;
+        const tx = Math.floor(cl.x + Math.cos(a) * r), tz = Math.floor(cl.z + Math.sin(a) * r);
+        if (bad(tx, tz)) continue;
+        taken.add(tx + ',' + tz);
+        this.flags[tz * size + tx] |= FLAG_BLOCKED;
+        const x = tx + 0.5 + (rng() - 0.5) * 0.4, z = tz + 0.5 + (rng() - 0.5) * 0.4;
+        placements[cl.type].push({
+          x, z, tile: { x: tx, z: tz }, y: this.getGroundHeight(x, z),
+          scale: 0.85 + rng() * 0.45, rot: rng() * Math.PI * 2, tone: rng(),
+        });
+        placed++;
+      }
+    }
     for (const [type, count] of plans) {
       let attempts = count * 16, placed = 0;
       while (placed < count && attempts-- > 0) {
@@ -928,7 +966,8 @@ export class World {
     // shared stump pool
     this.trees = [];
     this.treeSets = {};
-    const total = placements.tree.length + placements.oak.length + placements.willow.length;
+    const total = placements.tree.length + placements.oak.length +
+      placements.willow.length + placements.yew.length;
     if (total === 0) return;
     const stumpGeo = new THREE.CylinderGeometry(0.18, 0.26, 0.42, 6);
     stumpGeo.translate(0, 0.21, 0);
@@ -948,7 +987,7 @@ export class World {
     const trunkCol = new THREE.Color(), leafCol = new THREE.Color();
     let stumpIdx = 0;
 
-    for (const type of ['tree', 'oak', 'willow']) {
+    for (const type of ['tree', 'oak', 'willow', 'yew']) {
       const list = placements[type];
       if (!list.length) continue;
       const shape = SHAPES[type];
@@ -1177,14 +1216,19 @@ export class World {
   // ---- mining rocks -----------------------------------------------------------
 
   _buildMine() {
-    const m = this.def.mine;
-    if (!m) return;
+    for (const m of [this.def.mine, ...(this.def.mines ?? [])].filter(Boolean)) {
+      const plane = m.plane === 'guild' ? this.guildPlane : 0;
+      this._buildOneMine(m, plane);
+    }
+  }
+
+  _buildOneMine(m, plane = 0) {
     const bodyMat = new THREE.MeshLambertMaterial({ color: 0x847e76, flatShading: true });
     for (const [ore, dx, dz] of m.rocks) {
       const def = ROCKS[ore];
       const tx = m.x + dx, tz = m.z + dz;
       const cx = tx + 0.5, cz = tz + 0.5;
-      const y = this.getGroundHeight(cx, cz);
+      const y = this.getGroundHeight(cx, cz, plane);
       const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52, 0), bodyMat);
       body.position.set(cx, y + 0.3, cz);
       body.scale.y = 0.72;
@@ -1199,7 +1243,8 @@ export class World {
         this.group.add(v);
         veins.push(v);
       }
-      this.setTileBlocked(tx, tz, true);
+      if (plane === 0) this.setTileBlocked(tx, tz, true);
+      else this.setPlaneTile(plane, tx, tz, y, true);
       const rock = { ore, tile: { x: tx, z: tz }, depleted: false, respawnAt: 0, veins };
       this._rocks.push(rock);
       this.addInteractable({
@@ -1305,6 +1350,344 @@ export class World {
       kind: 'scenery', name: 'Tanning rack', meshes,
       examine: 'Where hides go to become useful.',
       actions: [{ label: 'Tan-hides', fn: (ctx) => ctx.actions.startTan() }],
+    });
+  }
+
+  // ---- Phase 10: generic towns, sewers, mines-anywhere, signposts --------------------
+
+  _buildTowns() {
+    for (const t of this.def.towns ?? []) {
+      if (t.wall) this._buildTownWall(t);
+      for (const b of t.buildings ?? []) this._buildSimpleBuilding(b);
+      for (const p of t.props ?? []) this._buildTownProp(p);
+    }
+    for (const sp of this.def.signposts ?? [])
+      this._buildTownProp({ kind: 'signpost', ...sp });
+  }
+
+  _buildTownWall(t) {
+    const mat = new THREE.MeshLambertMaterial({ color: t.wallColor ?? 0x99998f, flatShading: true });
+    const { x0, z0, x1, z1 } = t.wall;
+    const y = this.getGroundHeight((x0 + x1) / 2, (z0 + z1) / 2);
+    const H = t.wall.h ?? 4.5, sink = 0.5;
+    const wy = y - sink + (H + sink) / 2;
+    const gates = t.wall.gates ?? [];
+    const gateOn = (side, tile) => gates.some((g) => g.side === side &&
+      tile >= g.at && tile < g.at + (g.w ?? 3));
+    // build each side as segments broken by gates
+    const sides = [
+      ['n', x0, x1, (v) => [v, z0], true], ['s', x0, x1, (v) => [v, z1 - 1], true],
+      ['w', z0 + 1, z1 - 1, (v) => [x0, v], false], ['e', z0 + 1, z1 - 1, (v) => [x1 - 1, v], false],
+    ];
+    for (const [side, a, b, tileOf, horizontal] of sides) {
+      let runStart = null;
+      for (let v = a; v <= b; v++) {
+        const open = v < b && gateOn(side, v);
+        if (!open && v < b) { if (runStart === null) runStart = v; continue; }
+        if (runStart !== null) {
+          const runEnd = v; // exclusive
+          const len = runEnd - runStart;
+          const [tx, tz] = tileOf(runStart);
+          if (horizontal) {
+            this._addBox(len, H + sink, 1, runStart + len / 2, wy, tz + 0.5, mat);
+            this.markBlockedRect(runStart, tz, runEnd - 1, tz);
+          } else {
+            this._addBox(1, H + sink, len, tx + 0.5, wy, runStart + len / 2, mat);
+            this.markBlockedRect(tx, runStart, tx, runEnd - 1);
+          }
+          runStart = null;
+        }
+      }
+    }
+    // gate lintels
+    for (const g of gates) {
+      const w = g.w ?? 3;
+      if (g.side === 'n' || g.side === 's') {
+        const z = g.side === 'n' ? z0 : z1 - 1;
+        this._addBox(w, H - 3, 1, g.at + w / 2, y + 3 + (H - 3) / 2, z + 0.5, mat);
+      } else {
+        const x = g.side === 'w' ? x0 : x1 - 1;
+        this._addBox(1, H - 3, w, x + 0.5, y + 3 + (H - 3) / 2, g.at + w / 2, mat);
+      }
+    }
+  }
+
+  /** A rectangular building shell with a door, ceiling, cap roof, and props. */
+  _buildSimpleBuilding(b) {
+    const stone = new THREE.MeshLambertMaterial({ color: b.color ?? 0x99998f, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const { x0, x1, z0, z1 } = b;
+    const y = this.getGroundHeight((x0 + x1) / 2, (z0 + z1) / 2);
+    const w = x1 - x0, d = z1 - z0;
+    const midX = (x0 + x1) / 2, midZ = (z0 + z1) / 2;
+    const H = b.h ?? 3.2, sink = 0.4;
+    const wy = y - sink + (H + sink) / 2;
+    const side = b.doorSide ?? 's';
+    const doorTile = b.doorAt ?? Math.floor(side === 'e' || side === 'w' ? midZ : midX);
+
+    const wallRuns = { // per side: [horizontal, fixedTile]
+      n: [true, z0], s: [true, z1 - 1], w: [false, x0], e: [false, x1 - 1],
+    };
+    for (const [sd, [horizontal, fixed]] of Object.entries(wallRuns)) {
+      const a = horizontal ? x0 : z0 + 1;
+      const bEnd = horizontal ? x1 : z1 - 1;
+      if (sd !== side) {
+        if (horizontal) {
+          this._addBox(bEnd - a, H + sink, 0.8, (a + bEnd) / 2, wy, fixed + 0.5, stone);
+          this.markBlockedRect(a, fixed, bEnd - 1, fixed);
+        } else {
+          this._addBox(0.8, H + sink, bEnd - a, fixed + 0.5, wy, (a + bEnd) / 2, stone);
+          this.markBlockedRect(fixed, a, fixed, bEnd - 1);
+        }
+      } else {
+        const l1 = doorTile - a, l2 = bEnd - doorTile - 1;
+        if (horizontal) {
+          if (l1 > 0) { this._addBox(l1, H + sink, 0.8, a + l1 / 2, wy, fixed + 0.5, stone); this.markBlockedRect(a, fixed, doorTile - 1, fixed); }
+          if (l2 > 0) { this._addBox(l2, H + sink, 0.8, doorTile + 1 + l2 / 2, wy, fixed + 0.5, stone); this.markBlockedRect(doorTile + 1, fixed, bEnd - 1, fixed); }
+          this._addBox(1, H - 2.3, 0.8, doorTile + 0.5, y + 2.3 + (H - 2.3) / 2, fixed + 0.5, stone);
+        } else {
+          if (l1 > 0) { this._addBox(0.8, H + sink, l1, fixed + 0.5, wy, a + l1 / 2, stone); this.markBlockedRect(fixed, a, fixed, doorTile - 1); }
+          if (l2 > 0) { this._addBox(0.8, H + sink, l2, fixed + 0.5, wy, doorTile + 1 + l2 / 2, stone); this.markBlockedRect(fixed, doorTile + 1, fixed, bEnd - 1); }
+          this._addBox(0.8, H - 2.3, 1, fixed + 0.5, y + 2.3 + (H - 2.3) / 2, doorTile + 0.5, stone);
+        }
+      }
+    }
+    this._addBox(w + 0.4, 0.14, d + 0.4, midX, y + H + 0.05, midZ, wood);
+    this._addBox(w + 0.7, 0.22, d + 0.7, midX, y + H + 0.35, midZ, darkStone);
+    if (b.name) {
+      // the roof cap is the examinable face of the building
+      const cap = this.occluders[this.occluders.length - 1];
+      this.addInteractable({ kind: 'scenery', name: b.name, meshes: [cap], examine: b.examine ?? b.name, actions: [] });
+    }
+    // interior fittings
+    for (const c of b.contains ?? []) {
+      if (c === 'bankChest') this._placeBankChest(midX, midZ - d / 4, 0);
+      else if (c === 'counter') {
+        const m = this._addBox(0.7, 1.0, d - 3, x0 + 2.2, y + 0.5, midZ, wood);
+        for (let tz = z0 + 2; tz <= z1 - 3; tz++) this.setTileBlocked(x0 + 2, tz, true);
+        this.addInteractable({ kind: 'scenery', name: 'Counter', meshes: [m], examine: 'Commerce happens here.', actions: [] });
+      } else if (c === 'anvil') {
+        const iron = new THREE.MeshLambertMaterial({ color: 0x5a5a60, flatShading: true });
+        const m = this._addBox(0.85, 0.5, 0.4, midX + 1, y + 0.45, midZ, iron);
+        this.setTileBlocked(Math.floor(midX + 1), Math.floor(midZ), true);
+        this.addInteractable({
+          kind: 'anvil', name: 'Anvil', meshes: [m],
+          examine: 'City steel rings brighter. Allegedly.',
+          actions: [{ label: 'Smith', fn: (ctx) => ctx.ui.openAnvil() }],
+        });
+      } else if (c === 'furnace') {
+        const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
+        const meshes = [
+          this._addBox(1.3, 1.6, 1.3, midX - 1.5, y + 0.8, midZ, darkStone),
+          this._addBox(0.7, 0.5, 0.1, midX - 1.5, y + 0.45, midZ + 0.66, ember),
+        ];
+        this.setTileBlocked(Math.floor(midX - 1.5), Math.floor(midZ), true);
+        let fe;
+        fe = this.addInteractable({
+          kind: 'furnace', name: 'Furnace', meshes,
+          examine: 'Municipal-grade rock persuasion.',
+          actions: [
+            { label: 'Smelt', fn: (ctx) => ctx.ui.openSmeltMenu(fe) },
+            { label: 'Craft-jewellery', fn: (ctx) => ctx.ui.openJewelryMenu(fe) },
+          ],
+        });
+      }
+    }
+  }
+
+  _placeBankChest(x, z, plane) {
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
+    const y = this.getGroundHeight(x, z, plane);
+    const meshes = [
+      this._addBox(0.9, 0.5, 0.6, x, y + 0.25, z, wood),
+      this._addBox(0.94, 0.18, 0.64, x, y + 0.56, z, wood),
+      this._addBox(0.96, 0.08, 0.12, x, y + 0.36, z, gold),
+    ];
+    if (plane === 0) this.setTileBlocked(Math.floor(x), Math.floor(z), true);
+    this.addInteractable({
+      kind: 'bank', name: 'Bank chest', meshes,
+      examine: 'Your gold is safe with the Bank of Aldera. Probably.',
+      actions: [{ label: 'Bank', fn: (ctx) => ctx.ui.openBank() }],
+    });
+  }
+
+  _buildTownProp(p) {
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const y = this.getGroundHeight(p.x, p.z);
+    if (p.kind === 'fountain') {
+      const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.0, 0.7, 10), stone);
+      basin.position.set(p.x, y + 0.35, p.z);
+      const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.6, 8), stone);
+      spout.position.set(p.x, y + 1.1, p.z);
+      const water = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.08, 10),
+        new THREE.MeshLambertMaterial({ color: 0x4a90c2, transparent: true, opacity: 0.8 }));
+      water.position.set(p.x, y + 0.66, p.z);
+      this.group.add(basin, spout, water);
+      this.occluders.push(basin);
+      this.markBlockedCircle(p.x, p.z, 2.0);
+      this.addInteractable({
+        kind: 'scenery', name: 'Fountain', meshes: [basin, spout],
+        examine: 'Coins glint at the bottom. Leave them. The guards count.',
+        actions: [],
+      });
+    } else if (p.kind === 'statue') {
+      const meshes = [
+        this._addBox(1.6, 1.0, 1.6, p.x, y + 0.5, p.z, stone),
+        this._addBox(0.6, 1.4, 0.5, p.x, y + 1.7, p.z, stone),
+        this._addBox(0.4, 0.4, 0.4, p.x, y + 2.6, p.z, stone),
+        this._addBox(0.18, 1.0, 0.18, p.x + 0.5, y + 2.1, p.z, stone),
+      ];
+      this.markBlockedRect(Math.floor(p.x - 0.8), Math.floor(p.z - 0.8), Math.floor(p.x + 0.8), Math.floor(p.z + 0.8));
+      this.addInteractable({
+        kind: 'scenery', name: p.name ?? 'Statue', meshes,
+        examine: p.examine ?? 'Somebody important, rendered in patient stone.',
+        actions: [],
+      });
+    } else if (p.kind === 'firepit') {
+      const meshes = [];
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        meshes.push(this._addBox(0.5, 0.4, 0.5, p.x + Math.cos(a) * 1.3, y + 0.2, p.z + Math.sin(a) * 1.3, stone));
+      }
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.7, 1.6, 6),
+        new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x8f3a10 }));
+      flame.position.set(p.x, y + 0.8, p.z);
+      this.group.add(flame);
+      meshes.push(flame);
+      this.markBlockedCircle(p.x, p.z, 1.6);
+      let entry;
+      entry = this.addInteractable({
+        kind: 'fire', name: 'Eternal fire', meshes,
+        examine: 'It has never gone out. The barbarians take this personally.',
+        actions: [{ label: 'Cook', fn: (ctx) => ctx.ui.openCookMenu(entry) }],
+      });
+    } else if (p.kind === 'signpost') {
+      const meshes = [this._addBox(0.12, 2.2, 0.12, p.x, y + 1.1, p.z, wood)];
+      for (let i = 0; i < (p.arms ?? 2); i++)
+        meshes.push(this._addBox(1.0, 0.22, 0.06, p.x + 0.3, y + 1.9 - i * 0.35, p.z, wood));
+      this.setTileBlocked(Math.floor(p.x), Math.floor(p.z), true);
+      this.addInteractable({
+        kind: 'scenery', name: 'Signpost', meshes,
+        examine: p.examine ?? 'The realm, helpfully labeled.',
+        actions: [],
+      });
+    } else if (p.kind === 'stall') {
+      const meshes = [
+        this._addBox(1.8, 0.9, 0.9, p.x, y + 0.45, p.z, wood),
+        this._addBox(2.0, 0.08, 1.4, p.x, y + 2.0, p.z, new THREE.MeshLambertMaterial({ color: p.awning ?? 0xc23a5a, flatShading: true })),
+        this._addBox(0.08, 2.0, 0.08, p.x - 0.9, y + 1.0, p.z + 0.6, wood),
+        this._addBox(0.08, 2.0, 0.08, p.x + 0.9, y + 1.0, p.z + 0.6, wood),
+      ];
+      this.setTileBlocked(Math.floor(p.x), Math.floor(p.z), true);
+      this.addInteractable({
+        kind: 'scenery', name: p.name ?? 'Stall', meshes,
+        examine: p.examine ?? 'Goods, displayed optimistically.',
+        actions: [],
+      });
+    }
+  }
+
+  /** The Corvath sewers: a ring corridor on its own plane, mob dens per leg. */
+  _buildSewers() {
+    const s = this.def.sewers;
+    if (!s) return;
+    const by = -8;
+    const p = this.addPlane(by);
+    this.sewersPlane = p;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x5a615a, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x3a403a, flatShading: true });
+    const { x0, z0, x1, z1 } = s; // outer rect (tiles)
+    const iw = 6; // ring width in tiles
+    const ix0 = x0 + iw, iz0 = z0 + iw, ix1 = x1 - iw, iz1 = z1 - iw;
+    for (let tx = x0; tx < x1; tx++)
+      for (let tz = z0; tz < z1; tz++) {
+        const inOuter = tx >= x0 && tx < x1 && tz >= z0 && tz < z1;
+        const inInner = tx >= ix0 && tx < ix1 && tz >= iz0 && tz < iz1;
+        if (inOuter && !inInner) this.setPlaneTile(p, tx, tz, by);
+      }
+    const w = x1 - x0, d = z1 - z0, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+    this._addBox(w + 1, 0.3, d + 1, mx, by - 0.15, mz, dark);                    // floor
+    this._addBox(w + 1, 0.3, d + 1, mx, by + 3.2, mz, dark);                     // ceiling
+    this._addBox(w + 1, 3.4, 0.5, mx, by + 1.6, z0 - 0.25, stone);               // outer walls
+    this._addBox(w + 1, 3.4, 0.5, mx, by + 1.6, z1 + 0.25, stone);
+    this._addBox(0.5, 3.4, d + 1, x0 - 0.25, by + 1.6, mz, stone);
+    this._addBox(0.5, 3.4, d + 1, x1 + 0.25, by + 1.6, mz, stone);
+    this._addBox(ix1 - ix0, 3.4, iz1 - iz0, mx, by + 1.6, mz, stone);            // inner block
+    // green seepage channels + torches
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const torch = this._addBox(0.12, 0.5, 0.12,
+        mx + Math.cos(a) * (w / 2 - 2), by + 2.2, mz + Math.sin(a) * (d / 2 - 2),
+        new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x8f4a10 }));
+    }
+    // entrance/exit ladders
+    const inX = s.entrance.x, inZ = s.entrance.z;
+    const surfY = this.getGroundHeight(inX, inZ);
+    const dk = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const hole = this._addBox(1.0, 0.1, 1.0, inX, surfY + 0.05, inZ, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'Sewer grate', meshes: [hole],
+      examine: 'The city’s underside. It gurgles expectantly.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => { ctx.player.setPosition(x0 + 2.5, z0 + 2.5, undefined, p); ctx.ui.chat.add('You descend into the Corvath sewers.'); },
+      }],
+    });
+    const upLadder = this._addBox(0.9, 0.1, 0.9, x0 + 2.5, by + 0.06, z0 + 1.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'Ladder', meshes: [upLadder],
+      examine: 'Back to streets and daylight.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => { ctx.player.setPosition(inX + 0.8, inZ, undefined, 0); ctx.ui.chat.add('You climb back to the streets.'); },
+      }],
+    });
+  }
+
+  /** The Mining Guild's members-only basement (Mining 60, spec §6). */
+  _buildMiningGuild() {
+    const g = this.def.miningGuild;
+    if (!g) return;
+    const by = -7;
+    const p = this.addPlane(by);
+    this.guildPlane = p;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x77716a, flatShading: true });
+    for (let tx = g.x - 4; tx <= g.x + 4; tx++)
+      for (let tz = g.z - 4; tz <= g.z + 4; tz++)
+        this.setPlaneTile(p, tx, tz, by,
+          Math.max(Math.abs(tx - g.x), Math.abs(tz - g.z)) === 4);
+    this._addBox(9.4, 0.3, 9.4, g.x + 0.5, by - 0.15, g.z + 0.5, stone);
+    this._addBox(9.4, 0.3, 9.4, g.x + 0.5, by + 3.2, g.z + 0.5, stone);
+    for (const [dx, dz, w, d] of [[0, -4.4, 9.6, 0.5], [0, 4.4, 9.6, 0.5], [-4.4, 0, 0.5, 8.6], [4.4, 0, 0.5, 8.6]])
+      this._addBox(w, 3.4, d, g.x + 0.5 + dx, by + 1.6, g.z + 0.5 + dz, stone);
+    const dk = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const trap = this._addBox(0.9, 0.09, 0.9, g.x + 0.5, this.getGroundHeight(g.x, g.z) + 0.05, g.z + 0.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'Guild trapdoor', meshes: [trap],
+      examine: 'Members only. The rock down there is said to be exquisite.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => {
+          if (ctx.player.skillByName('Mining').level < 60) {
+            ctx.ui.chat.add('A voice from below: "Mining sixty or the ladder stays a decoration." (You need level 60.)');
+            return;
+          }
+          ctx.player.setPosition(g.x + 0.5, g.z - 2.5, undefined, p);
+          ctx.ui.chat.add('You descend into the Mining Guild.');
+        },
+      }],
+    });
+    const up = this._addBox(0.9, 0.09, 0.9, g.x + 0.5, by + 0.06, g.z - 2.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'Ladder', meshes: [up],
+      examine: 'Up to the surface world and its inferior rocks.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => { ctx.player.setPosition(g.x + 0.5, g.z + 0.5, undefined, 0); ctx.ui.chat.add('You climb out of the guild.'); },
+      }],
     });
   }
 

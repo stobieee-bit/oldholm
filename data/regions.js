@@ -5,7 +5,7 @@ export const REGIONS = {
   holmbridge: {
     id: 'holmbridge',
     name: 'Holmbridge',
-    size: 192,                 // tiles per side; world spans x/z 0..192
+    size: 384,                 // Phase 10: the realm quadruples; Holmbridge keeps its coords
     seed: 1337,
     waterLevel: 0,
     baseHeight: 2.0,           // mean ground height of the plains
@@ -29,6 +29,21 @@ export const REGIONS = {
     roads: [
       [71, 88, 150, 88],       // castle gate east over the bridge toward the pasture bank
       [76, 40, 76, 140],       // north-south road just outside the gate
+      // Phase 10: the realm's highways
+      [150, 88, 246, 88],      // east to the crossroads
+      [246, 88, 246, 124], [246, 124, 262, 124],   // south-east to Corvath's west gate
+      [246, 88, 246, 63], [246, 63, 285, 63],      // north to Whitehold's south gate
+      [246, 63, 210, 28],      // north-west fork to Brinkton
+      [76, 40, 58, 32],        // north-west to Skalvik
+      [76, 140, 76, 204], [76, 204, 88, 210],      // south to Murkwell
+    ],
+    flattens: [
+      { x0: 262, z0: 94, x1: 330, z1: 160, h: 2.2, margin: 6 },  // Corvath
+      { x0: 264, z0: 20, x1: 312, z1: 64, h: 2.4, margin: 6 },   // Whitehold
+      { x0: 36, z0: 16, x1: 76, z1: 48, h: 2.2, margin: 5 },     // Skalvik
+      { x0: 176, z0: 12, x1: 212, z1: 40, h: 2.3, margin: 5 },   // Brinkton
+      { x0: 76, z0: 202, x1: 104, z1: 228, h: 1.6, margin: 5 },  // Murkwell (low, damp)
+      { x0: 110, z0: 204, x1: 128, z1: 222, h: 3.4, margin: 5 }, // the manor knoll
     ],
 
     // Holmbridge castle: a walled bailey with corner towers and a central keep.
@@ -56,9 +71,13 @@ export const REGIONS = {
       approach: 4,             // land is ramped up to the deck over this many tiles
     },
 
-    swamp: { zStart: 148, fade: 14, sink: 1.1, sinkVar: 1.3 },
+    swamp: { zStart: 148, fade: 14, zEnd: 235, sink: 1.1, sinkVar: 1.3 },
 
-    trees: { count: 220, oaks: 16, willows: 12, minSpacing: 2 },
+    trees: { count: 520, oaks: 34, willows: 20, minSpacing: 2 },
+    treeClusters: [
+      { type: 'yew', x: 194, z: 34, count: 7, radius: 8 },      // Brinkton's yews
+      { type: 'willow', x: 95, z: 221, count: 8, radius: 9 },   // Murkwell's weepers
+    ],
 
     // Mining outcrop southwest of the castle. rocks: [ore, dx, dz] tile offsets.
     mine: {
@@ -77,7 +96,8 @@ export const REGIONS = {
     smithy: { furnace: { x: 45.5, z: 78.5 }, anvil: { x: 48.5, z: 78.5 } },
 
     // Tanning rack by the pasture (the tanner themselves remains a rumor).
-    tanningRack: { x: 128.5, z: 88.8 },
+    // (Nudged off the eastern highway when the realm grew in Phase 10.)
+    tanningRack: { x: 128.5, z: 90.4 },
 
     // The church of Aurel, east of the north road. Door on the south wall;
     // the altar inside restores prayer points.
@@ -89,7 +109,111 @@ export const REGIONS = {
     // The bank chest, upstairs in the keep (per the atlas).
     bankChest: { x: 59.5, z: 87.6 },
 
-    // Phase 9 sites
+    // ---- Phase 10: the wider realm ----
+    towns: [
+      {
+        id: 'corvath', bounds: { x0: 262, z0: 94, x1: 330, z1: 160 },
+        wall: { x0: 262, z0: 94, x1: 330, z1: 160, h: 5, gates: [{ side: 'w', at: 122, w: 4 }, { side: 'e', at: 122, w: 4 }] },
+        buildings: [
+          { x0: 282, z0: 96, x1: 312, z1: 108, doorSide: 's', h: 5, color: 0xa8a29a,
+            name: 'Palace of Corvath', examine: 'Where the realm’s paperwork goes to be signed twice.' },
+          { x0: 266, z0: 116, x1: 276, z1: 124, doorSide: 'e', contains: ['bankChest'],
+            name: 'Bank of Aldera — West', examine: 'The west vault. Same gold, different door.' },
+          { x0: 316, z0: 116, x1: 326, z1: 124, doorSide: 'w', contains: ['bankChest'],
+            name: 'Bank of Aldera — East', examine: 'The east vault. Probably safe. Officially.' },
+          { x0: 266, z0: 132, x1: 276, z1: 140, doorSide: 'e', contains: ['counter'],
+            name: 'The Honed Edge', examine: 'Corvath’s sword shop. The stock hums faintly.' },
+          { x0: 316, z0: 132, x1: 326, z1: 140, doorSide: 'w', contains: ['counter'],
+            name: 'The Third Eye Emporium', examine: 'Corvath’s staff shop. Smells of ozone and incense.' },
+          { x0: 284, z0: 142, x1: 296, z1: 152, doorSide: 'n', color: 0xa8a29a,
+            name: 'Church of Aurel — Corvath', examine: 'A grander ledger for a grander flock.' },
+          { x0: 300, z0: 142, x1: 312, z1: 152, doorSide: 'n', contains: ['anvil', 'furnace'],
+            name: 'The Anvil District', examine: 'Legally one building, spiritually a district.' },
+        ],
+        props: [
+          { kind: 'fountain', x: 296.5, z: 126.5 },
+          { kind: 'stall', x: 291.5, z: 121.5, name: 'Market stall', awning: 0xc23a5a,
+            examine: 'The Grand Market: where prices drift and hopes follow.' },
+          { kind: 'stall', x: 301.5, z: 130.5, name: 'Market stall', awning: 0x3a5fbf },
+        ],
+      },
+      {
+        id: 'whitehold', bounds: { x0: 264, z0: 20, x1: 312, z1: 64 },
+        wall: { x0: 264, z0: 20, x1: 312, z1: 64, h: 5, wallColor: 0xd8d8d2, gates: [{ side: 's', at: 284, w: 3 }] },
+        wallColor: 0xd8d8d2,
+        buildings: [
+          { x0: 272, z0: 24, x1: 292, z1: 34, doorSide: 's', h: 4.2, color: 0xd8d8d2,
+            name: 'Hall of the Pale Shield', examine: 'Stately. The knights polish it out of principle.' },
+          { x0: 296, z0: 40, x1: 306, z1: 50, doorSide: 'w', color: 0xd8d8d2,
+            name: 'Mining Guild', examine: 'Members descend. Others admire the door.' },
+        ],
+        props: [
+          { kind: 'statue', x: 288.5, z: 42.5, name: 'Statue of the First Shield',
+            examine: 'She holds her shield toward the north, where the trouble is.' },
+        ],
+      },
+      {
+        id: 'skalvik', bounds: { x0: 36, z0: 16, x1: 76, z1: 48 },
+        buildings: [
+          { x0: 40, z0: 20, x1: 52, z1: 26, doorSide: 's', color: 0x8a6a42, name: 'Longhouse',
+            examine: 'Smoke, snoring, and songs about both.' },
+          { x0: 40, z0: 30, x1: 52, z1: 36, doorSide: 's', color: 0x8a6a42, name: 'Longhouse',
+            examine: 'The beds are benches. The benches are beds.' },
+          { x0: 58, z0: 22, x1: 70, z1: 28, doorSide: 'w', color: 0x8a6a42, name: 'Longhouse',
+            examine: 'Somebody is arm-wrestling in there. Always.' },
+          { x0: 58, z0: 32, x1: 68, z1: 40, doorSide: 'n', contains: ['counter'], color: 0x8a6a42,
+            name: 'Helm & Hearth', examine: 'Skalvik’s helmet shop. Hats for hitting.' },
+        ],
+        props: [{ kind: 'firepit', x: 55.5, z: 43.5 }],
+      },
+      {
+        id: 'brinkton', bounds: { x0: 176, z0: 12, x1: 212, z1: 40 },
+        buildings: [
+          { x0: 180, z0: 18, x1: 190, z1: 26, doorSide: 's', contains: ['bankChest'],
+            name: 'Bank of Aldera — Brinkton', examine: 'The last vault before the ash. Sleep well.' },
+          { x0: 196, z0: 18, x1: 206, z1: 26, doorSide: 's', contains: ['counter'],
+            name: 'The Last Shelf', examine: 'Brinkton’s general store. Stocked for regret.' },
+        ],
+        props: [
+          { kind: 'signpost', x: 208.5, z: 30.5, arms: 2,
+            examine: 'North: THE BLIGHT (closed for your safety). South: everything nicer.' },
+        ],
+      },
+      {
+        id: 'murkwell', bounds: { x0: 76, z0: 202, x1: 128, z1: 228 },
+        buildings: [
+          { x0: 80, z0: 206, x1: 90, z1: 214, doorSide: 'e', contains: ['bankChest'], color: 0x77716a,
+            name: 'Bank of Aldera — Murkwell', examine: 'Damp, but the ledgers are dry. Priorities.' },
+          { x0: 94, z0: 206, x1: 102, z1: 214, doorSide: 'w', contains: ['counter'], color: 0x77716a,
+            name: 'The Humble Market', examine: 'Murkwell’s shop. Everything smells faintly of pond.' },
+          { x0: 80, z0: 218, x1: 88, z1: 226, doorSide: 'n', color: 0x6a6a72,
+            name: 'Murkwell Jail', examine: 'Currently between guests. The bars stay optimistic.' },
+          { x0: 112, z0: 206, x1: 126, z1: 220, doorSide: 'w', h: 4.6, color: 0x5a5a62,
+            name: 'Ravenmoor Manor', examine: 'The hill house sleeps. Something in it sleeps lighter.' },
+        ],
+        props: [
+          { kind: 'signpost', x: 90.5, z: 204.5, arms: 2,
+            examine: 'North: Holmbridge, sunshine, cows. Here: Murkwell. Adjust expectations.' },
+        ],
+      },
+    ],
+    sewers: { x0: 270, z0: 100, x1: 322, z1: 152, entrance: { x: 302.5, z: 122.5 } },
+    miningGuild: { x: 301, z: 45 },
+    mines: [
+      { x: 288, z: 8, rocks: [ // the dwarven mine north of Whitehold
+        ['iron', -3, 0], ['iron', 0, 1], ['iron', 3, 0], ['coal', -1, -1],
+        ['coal', 2, -1], ['coal', 5, 1], ['gold', -5, 1], ['copper', 7, 0], ['tin', 8, 2],
+      ] },
+      { x: 301, z: 45, plane: 'guild', rocks: [ // the guild's exquisite basement
+        ['coal', -2, -1], ['coal', 2, -1], ['coal', -2, 1], ['coal', 2, 1], ['gold', 0, 2],
+      ] },
+    ],
+    signposts: [
+      { x: 247.5, z: 86.5, arms: 3,
+        examine: 'West: Holmbridge. East: Corvath. North: Whitehold & Brinkton. You are: at the crossroads.' },
+    ],
+
+    // ---- Phase 9 sites ----
     windmill: { x: 94.5, z: 40.5 },
     wizardTower: { x: 46.5, z: 112.5 },
     galeAltar: { x: 136.5, z: 42.5 },       // NE, among the pines
@@ -122,6 +246,18 @@ export const REGIONS = {
       { npc: 'grubnose', x: 123.5, z: 57.2 },
       { npc: 'grubfoot', x: 118.2, z: 54.2 },
       { npc: 'dairy_cow', x: 128.5, z: 81.5 },
+      // Phase 10 townsfolk
+      { npc: 'corvath_swordsmith', x: 269.5, z: 136.5 },
+      { npc: 'corvath_staffseller', x: 322.5, z: 136.5 },
+      { npc: 'corvath_banker', x: 270.5, z: 120.5 },
+      { npc: 'market_clerk', x: 293.5, z: 122.5 },
+      { npc: 'guildmaster', x: 300.5, z: 46.5 },
+      { npc: 'skalvik_helmsmith', x: 62.5, z: 35.5 },
+      { npc: 'brinkton_keeper', x: 200.5, z: 21.5 },
+      { npc: 'murkwell_keeper', x: 97.5, z: 210.5 },
+      { npc: 'murkwell_banker', x: 84.5, z: 210.5 },
+      { npc: 'villager_man', x: 290.5, z: 128.5 },
+      { npc: 'villager_woman', x: 300.5, z: 124.5 },
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
@@ -130,6 +266,8 @@ export const REGIONS = {
       { type: 'net', z: 101 },
       { type: 'bait', z: 76 },
       { type: 'lure', z: 71 },
+      { type: 'lure', z: 30 },   // Skalvik's fly water
+      { type: 'net', z: 218 },   // Murkwell's murky shallows
     ],
 
     // Furniture props (interior dressing; blocks its tiles).
@@ -166,6 +304,29 @@ export const REGIONS = {
       { mob: 'imp', x: 50.5, z: 118.5 }, { mob: 'imp', x: 55.5, z: 112.5 },
       { mob: 'imp', x: 42.5, z: 119.5 }, { mob: 'imp', x: 58.5, z: 118.5 },
       { mob: 'vex_cultist', x: 47.5, z: 111.5, plane: 'towerBasement' },
+      // ---- Phase 10: the wider realm's dangers and watchmen ----
+      { mob: 'guard', x: 264.5, z: 123.5 }, { mob: 'guard', x: 296.5, z: 122.5 },
+      { mob: 'guard', x: 297.5, z: 132.5 }, { mob: 'guard', x: 327.5, z: 125.5 },
+      { mob: 'guard', x: 285.5, z: 60.5 }, { mob: 'guard', x: 290.5, z: 46.5 },
+      { mob: 'guard', x: 186.5, z: 28.5 }, { mob: 'guard', x: 199.5, z: 29.5 },
+      { mob: 'highwayman', x: 172.5, z: 86.5 }, { mob: 'highwayman', x: 222.5, z: 90.5 },
+      { mob: 'bear', x: 162.5, z: 60.5 }, { mob: 'bear', x: 232.5, z: 136.5 },
+      { mob: 'hill_giant', x: 30.5, z: 152.5 }, { mob: 'hill_giant', x: 152.5, z: 172.5 },
+      { mob: 'moss_giant', x: 104.5, z: 233.5 },
+      { mob: 'barbarian', x: 46.5, z: 40.5 }, { mob: 'barbarian', x: 54.5, z: 28.5 },
+      { mob: 'barbarian', x: 64.5, z: 44.5 }, { mob: 'barbarian', x: 70.5, z: 34.5 },
+      // the sewers ladder: rats -> zombies -> skeletons -> the ghoul den
+      { mob: 'giant_rat', x: 272.5, z: 112.5, plane: 'corvathSewers' },
+      { mob: 'giant_rat', x: 272.5, z: 124.5, plane: 'corvathSewers' },
+      { mob: 'giant_rat', x: 272.5, z: 136.5, plane: 'corvathSewers' },
+      { mob: 'zombie', x: 284.5, z: 102.5, plane: 'corvathSewers' },
+      { mob: 'zombie', x: 296.5, z: 102.5, plane: 'corvathSewers' },
+      { mob: 'zombie', x: 308.5, z: 102.5, plane: 'corvathSewers' },
+      { mob: 'skeleton', x: 319.5, z: 112.5, plane: 'corvathSewers' },
+      { mob: 'skeleton', x: 319.5, z: 124.5, plane: 'corvathSewers' },
+      { mob: 'skeleton', x: 319.5, z: 136.5, plane: 'corvathSewers' },
+      { mob: 'ghoul', x: 292.5, z: 148.5, plane: 'corvathSewers' },
+      { mob: 'ghoul', x: 302.5, z: 148.5, plane: 'corvathSewers' },
     ],
 
     // Items lying about the region at boot. plane: 0 ground, 1 keep floor 2, 2 keep roof.

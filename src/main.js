@@ -16,6 +16,7 @@ import { Dialogue } from './dialogue.js';
 import { Shops } from './shop.js';
 import { Bank } from './bank.js';
 import { Quests } from './quests.js';
+import { Market } from './market.js';
 
 export const TICK_MS = 600;
 
@@ -75,10 +76,12 @@ interactions.actions = actions; // gathering verbs
 interactions.prayers = prayers; // the altar's Pray-at
 interactions.dialogue = dialogue;
 interactions.quests = quests;   // item-triggered advances (the skull)
+const market = new Market(player, ui);
 ui.bind({
   world, combatLevelFn: () => combat.playerCombatLevel(),
   actions, prayers, magic, shops, bank, dialogue, quests,
 });
+ui.bindMarket(market);
 npcs.spawnAll();
 ui.showBanner(def.name.toUpperCase());
 ui.chat.add('Welcome to OLDHOLM.', 'system');
@@ -89,6 +92,7 @@ clock.on((tick) => {
   world.onTick(tick);
   prayers.tick();          // faith drains by the tick
   shops.tick();            // stock creeps back toward its maximums
+  market.tick();           // the order book murmurs
   combat.tick(tick);       // the player swings first…
   actions.tick(tick);      // …or keeps working…
   npcs.tick(tick, combat); // …then the realm answers
@@ -204,7 +208,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests,
+  prayers, magic, dialogue, shops, bank, quests, market,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

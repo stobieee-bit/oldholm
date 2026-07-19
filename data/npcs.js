@@ -183,6 +183,55 @@ export const NPCS = {
       ],
     },
   },
+  // ---- Phase 10 townsfolk (reuse the generic shopkeeper/banker trees) ----
+  corvath_swordsmith: {
+    ...base, name: 'Swordsmith', examine: 'Sells edges, keeps his own.',
+    talk: 'shopkeeper', shop: 'corvath_swords', wanderRadius: 0,
+    model: human(0xc9a27a, 0x6a4a3a, 0x3a3632, 0x2a2624),
+  },
+  corvath_staffseller: {
+    ...base, name: 'Staff-seller', examine: 'Every finger ringed, every ring humming.',
+    talk: 'wizard', shop: 'corvath_staffs', wanderRadius: 0,
+    model: human(0xd8b090, 0x45305a, 0x3a2a4a, 0xe8e4da),
+  },
+  corvath_banker: {
+    ...base, name: 'Banker', examine: 'Capital-city composure, county-fair salary.',
+    talk: 'banker', bank: true, wanderRadius: 0,
+    model: human(0xd8b090, 0x2e3a55, 0x2a2a30, 0x6e4f33),
+  },
+  market_clerk: {
+    ...base, name: 'Market clerk', examine: 'Keeper of the order book and its many sorrows.',
+    talk: 'market_clerk', market: true, wanderRadius: 0,
+    model: human(0xc9a27a, 0x8f6a2a, 0x5a4a33, 0x3a3632),
+    chatter: ['Prices drift. So do buyers.', 'The collection box does not judge. Much.'],
+  },
+  guildmaster: {
+    ...base, name: 'Guildmaster Dorn', examine: 'Half dwarf-blood, all pickaxe.',
+    talk: 'guildmaster', wanderRadius: 1,
+    model: human(0xc9a27a, 0x8a5a2a, 0x4a3a28, 0xb5542a),
+    chatter: ['Sixty Mining or the ladder stays shut.', 'The coal down there practically leaps into the pack.'],
+  },
+  skalvik_helmsmith: {
+    ...base, name: 'Helm-smith', examine: 'Believes every problem is head-shaped.',
+    talk: 'shopkeeper', shop: 'skalvik_helmets', wanderRadius: 0,
+    model: human(0xd8b090, 0x8a6a42, 0x5a4a33, 0xb5542a),
+  },
+  brinkton_keeper: {
+    ...base, name: 'Shopkeeper', examine: 'Stocks for the road north. Prays you go south.',
+    talk: 'shopkeeper', shop: 'brinkton_general', wanderRadius: 0,
+    model: human(0xc9a27a, 0x5a5a45, 0x3a3a30, 0x8a8078),
+    chatter: ['You hear things, out here. Big things.', 'Nobody retires in Brinkton. They relocate.'],
+  },
+  murkwell_keeper: {
+    ...base, name: 'Shopkeeper', examine: 'Sells damp goods with dry wit.',
+    talk: 'shopkeeper', shop: 'murkwell_general', wanderRadius: 0,
+    model: human(0xd8b090, 0x4a4a52, 0x33333a, 0x5a4a33),
+  },
+  murkwell_banker: {
+    ...base, name: 'Banker', examine: 'Keeps the ledgers above the waterline.',
+    talk: 'banker', bank: true, wanderRadius: 0,
+    model: human(0xc9a27a, 0x2e3a55, 0x2a2a30, 0xd8d0c2),
+  },
   villager_woman: {
     ...base, name: 'Villager',
     examine: 'A woman who has seen your type before.',
