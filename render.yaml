@@ -1,0 +1,10 @@
+# Render Blueprint — deploys OLDHOLM as a static site.
+# One-click: https://render.com/deploy?repo=https://github.com/stobieee-bit/oldholm
+services:
+  - type: web
+    name: oldholm
+    runtime: static
+    # No build step — the game is plain HTML/JS/ES-modules served as-is.
+    buildCommand: "echo 'no build step'"
+    # Publish the repo root; index.html is the entry point.
+    staticPublishPath: .
