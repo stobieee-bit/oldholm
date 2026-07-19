@@ -61,16 +61,19 @@ export const MOBS = {
     model: {
       height: 1.15,
       parts: [
-        { kind: 'box', size: [0.62, 0.62, 1.15], at: [0, 0.72, 0], color: 0xe6e2d8 },
-        { kind: 'box', size: [0.3, 0.26, 0.42], at: [0.18, 0.95, 0.28], color: 0x39332c },
-        { kind: 'box', size: [0.34, 0.3, 0.5], at: [-0.16, 0.6, -0.3], color: 0x39332c },
-        { kind: 'box', size: [0.3, 0.3, 0.34], at: [0, 0.92, -0.72], color: 0xe6e2d8 },
-        { kind: 'box', size: [0.1, 0.1, 0.14], at: [0, 0.84, -0.9], color: 0xd8b5a0 },
-        { kind: 'box', size: [0.26, 0.05, 0.05], at: [0, 1.1, -0.72], color: 0xcfc8b8 },
-        { kind: 'box', size: [0.09, 0.42, 0.09], at: [-0.22, 0.21, 0.42], color: 0xe6e2d8 },
-        { kind: 'box', size: [0.09, 0.42, 0.09], at: [0.22, 0.21, 0.42], color: 0xe6e2d8 },
-        { kind: 'box', size: [0.09, 0.42, 0.09], at: [-0.22, 0.21, -0.42], color: 0xe6e2d8 },
-        { kind: 'box', size: [0.09, 0.42, 0.09], at: [0.22, 0.21, -0.42], color: 0xe6e2d8 },
+        { kind: 'cyl', rt: 0.35, rb: 0.35, h: 1.12, seg: 12, rotX: 1.5708, at: [0, 0.74, 0.02], color: 0xe6e2d8 }, // barrel body
+        { kind: 'sphere', r: 0.19, scale: [1.2, 1, 1.3], at: [0.13, 0.86, 0.22], color: 0x4a4038 }, // brown patch
+        { kind: 'sphere', r: 0.16, scale: [1.2, 1, 1.3], at: [-0.16, 0.66, -0.2], color: 0x4a4038 },
+        { kind: 'sphere', r: 0.24, scale: [1, 0.95, 1.05], at: [0, 0.9, -0.62], color: 0x6b5744 }, // head
+        { kind: 'box', size: [0.22, 0.18, 0.18], at: [0, 0.8, -0.86], color: 0xd8b5a0 }, // muzzle
+        { kind: 'cone', r: 0.05, h: 0.16, rotZ: -0.7, at: [0.15, 1.06, -0.58], color: 0xcfc8b8 }, // horns
+        { kind: 'cone', r: 0.05, h: 0.16, rotZ: 0.7, at: [-0.15, 1.06, -0.58], color: 0xcfc8b8 },
+        { kind: 'box', size: [0.14, 0.06, 0.1], rotZ: 0.5, at: [0.24, 0.94, -0.6], color: 0x6b5744 }, // ears
+        { kind: 'box', size: [0.14, 0.06, 0.1], rotZ: -0.5, at: [-0.24, 0.94, -0.6], color: 0x6b5744 },
+        { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [-0.22, 0.23, 0.42], color: 0xdad6cc },
+        { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [0.22, 0.23, 0.42], color: 0xdad6cc },
+        { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [-0.22, 0.23, -0.4], color: 0xdad6cc },
+        { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [0.22, 0.23, -0.4], color: 0xdad6cc },
       ],
     },
   },
@@ -160,14 +163,21 @@ export const MOBS = {
     model: {
       height: 0.75,
       parts: [
-        { kind: 'box', size: [0.52, 0.46, 0.72], at: [0, 0.5, 0], color: 0xece8de },
-        { kind: 'ball', r: 0.2, at: [0.2, 0.72, 0.2], color: 0xf2efe6 },
-        { kind: 'ball', r: 0.2, at: [-0.2, 0.7, -0.15], color: 0xe4e0d4 },
-        { kind: 'box', size: [0.2, 0.2, 0.26], at: [0, 0.62, -0.48], color: 0x3a3632 },
-        { kind: 'box', size: [0.07, 0.28, 0.07], at: [-0.16, 0.14, 0.24], color: 0x3a3632 },
-        { kind: 'box', size: [0.07, 0.28, 0.07], at: [0.16, 0.14, 0.24], color: 0x3a3632 },
-        { kind: 'box', size: [0.07, 0.28, 0.07], at: [-0.16, 0.14, -0.28], color: 0x3a3632 },
-        { kind: 'box', size: [0.07, 0.28, 0.07], at: [0.16, 0.14, -0.28], color: 0x3a3632 },
+        // a cloud of faceted wool clumps
+        { kind: 'sphere', r: 0.3, detail: 0, at: [0, 0.56, 0.06], color: 0xece8de },
+        { kind: 'sphere', r: 0.25, detail: 0, at: [0.22, 0.62, 0.2], color: 0xf2efe6 },
+        { kind: 'sphere', r: 0.24, detail: 0, at: [-0.22, 0.6, -0.02], color: 0xe4e0d4 },
+        { kind: 'sphere', r: 0.22, detail: 0, at: [0.02, 0.6, -0.26], color: 0xf0ede2 },
+        { kind: 'sphere', r: 0.2, detail: 0, at: [-0.16, 0.5, 0.24], color: 0xe8e4d8 },
+        // black head + face + legs
+        { kind: 'sphere', r: 0.16, at: [0, 0.56, -0.46], color: 0x322e2a },
+        { kind: 'box', size: [0.16, 0.14, 0.16], at: [0, 0.5, -0.58], color: 0x282420 },
+        { kind: 'box', size: [0.07, 0.06, 0.1], rotZ: 0.5, at: [0.14, 0.66, -0.42], color: 0x322e2a }, // ears
+        { kind: 'box', size: [0.07, 0.06, 0.1], rotZ: -0.5, at: [-0.14, 0.66, -0.42], color: 0x322e2a },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.16, 0.15, 0.22], color: 0x322e2a },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.16, 0.15, 0.22], color: 0x322e2a },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.16, 0.15, -0.24], color: 0x322e2a },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.16, 0.15, -0.24], color: 0x322e2a },
       ],
     },
   },
@@ -253,14 +263,15 @@ export const MOBS = {
     model: {
       height: 1.2,
       parts: [
-        { kind: 'box', size: [0.7, 0.7, 1.2], at: [0, 0.75, 0.05], color: 0x5a4128 },
-        { kind: 'box', size: [0.42, 0.4, 0.42], at: [0, 1.02, -0.72], color: 0x5a4128 },
-        { kind: 'box', size: [0.12, 0.12, 0.1], at: [-0.14, 1.26, -0.8], color: 0x4a3520 },
-        { kind: 'box', size: [0.12, 0.12, 0.1], at: [0.14, 1.26, -0.8], color: 0x4a3520 },
-        { kind: 'box', size: [0.16, 0.5, 0.16], at: [-0.25, 0.25, 0.45], color: 0x4a3520 },
-        { kind: 'box', size: [0.16, 0.5, 0.16], at: [0.25, 0.25, 0.45], color: 0x4a3520 },
-        { kind: 'box', size: [0.16, 0.5, 0.16], at: [-0.25, 0.25, -0.42], color: 0x4a3520 },
-        { kind: 'box', size: [0.16, 0.5, 0.16], at: [0.25, 0.25, -0.42], color: 0x4a3520 },
+        { kind: 'cyl', rt: 0.4, rb: 0.36, h: 1.15, seg: 12, rotX: 1.5708, at: [0, 0.78, 0.08], color: 0x5a4128 }, // barrel body
+        { kind: 'sphere', r: 0.3, scale: [1, 0.95, 0.95], at: [0, 1.0, -0.66], color: 0x5a4128 }, // head
+        { kind: 'box', size: [0.22, 0.16, 0.16], at: [0, 0.92, -0.9], color: 0x4a3520 }, // snout
+        { kind: 'sphere', r: 0.08, at: [-0.15, 1.24, -0.66], color: 0x4a3520 }, // ears
+        { kind: 'sphere', r: 0.08, at: [0.15, 1.24, -0.66], color: 0x4a3520 },
+        { kind: 'cyl', rt: 0.13, rb: 0.11, h: 0.5, at: [-0.26, 0.26, 0.44], color: 0x4a3520 }, // legs
+        { kind: 'cyl', rt: 0.13, rb: 0.11, h: 0.5, at: [0.26, 0.26, 0.44], color: 0x4a3520 },
+        { kind: 'cyl', rt: 0.13, rb: 0.11, h: 0.5, at: [-0.26, 0.26, -0.4], color: 0x4a3520 },
+        { kind: 'cyl', rt: 0.13, rb: 0.11, h: 0.5, at: [0.26, 0.26, -0.4], color: 0x4a3520 },
       ],
     },
   },
