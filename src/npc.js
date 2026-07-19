@@ -119,8 +119,10 @@ class Mob {
   die(tickNo, combat) {
     this.dead = true;
     this.target = null;
-    this.mesh.visible = false;
-    this.entry.hidden = true;
+    this.entry.hidden = true;             // no longer targetable
+    this._deathT = 0;                     // topple animation (updateVisual runs it)
+    this._deathBaseY = this.world.getGroundHeight(this.mesh.position.x, this.mesh.position.z, this.plane);
+    this._deathDir = Math.random() < 0.5 ? 1 : -1;
     this.respawnAt = tickNo + this.def.respawnTicks;
     if (combat.player.target === this) combat.player.target = null;
     if (combat.kills) combat.kills[this.defId] = (combat.kills[this.defId] ?? 0) + 1;
@@ -158,6 +160,8 @@ class Mob {
     this._t = 1;
     this.mesh.position.set(this._from.x,
       this.world.getGroundHeight(this._from.x, this._from.z, this.plane), this._from.z);
+    this.mesh.rotation.set(0, this._faceY ?? 0, 0); // undo the death topple
+    this.mesh.scale.setScalar(1);
     this.mesh.visible = true;
     this.entry.hidden = false;
   }
@@ -302,7 +306,7 @@ class Mob {
   }
 
   updateVisual(dt, playerPos) {
-    if (this.dead) return;
+    if (this.dead) { this._deathAnim(dt); return; }
     // model fronts are built toward -z, so face = atan2(dx, dz) + PI
     let gy;
     if (this._t < 1) {
@@ -342,6 +346,18 @@ class Mob {
 
   /** Kick a quick forward lunge (called when the mob lands a hit). */
   lungeAttack() { this._lunge = 1; }
+
+  /** Death: topple over, sink, and shrink out over ~0.55s, then hide. */
+  _deathAnim(dt) {
+    if (!this.mesh.visible) return;
+    this._deathT = (this._deathT ?? 0) + dt;
+    const t = this._deathT / 0.55;
+    if (t >= 1) { this.mesh.visible = false; return; }
+    const e = t * t * (3 - 2 * t); // smoothstep
+    this.mesh.rotation.set(-e * 1.45, this._faceY ?? 0, (this._deathDir ?? 1) * e * 0.5);
+    this.mesh.position.y = (this._deathBaseY ?? this.mesh.position.y) - e * 0.12;
+    this.mesh.scale.setScalar(1 - e * 0.12);
+  }
 }
 
 // ---- the manager --------------------------------------------------------------
