@@ -4,18 +4,11 @@
 //   bank: true (adds Bank)      chatter: overhead one-liners near the player
 //   plane: building floor
 
-const human = (skin, shirt, pants, hair) => ({
-  height: 1.55,
-  parts: [
-    { kind: 'box', size: [0.42, 0.52, 0.26], at: [0, 0.82, 0], color: shirt },
-    { kind: 'box', size: [0.3, 0.3, 0.28], at: [0, 1.28, 0], color: skin },
-    { kind: 'box', size: [0.32, 0.1, 0.3], at: [0, 1.46, -0.01], color: hair },
-    { kind: 'box', size: [0.11, 0.48, 0.13], at: [-0.27, 0.8, 0], color: shirt },
-    { kind: 'box', size: [0.11, 0.48, 0.13], at: [0.27, 0.8, 0], color: skin },
-    { kind: 'box', size: [0.14, 0.56, 0.15], at: [-0.11, 0.28, 0], color: pants },
-    { kind: 'box', size: [0.14, 0.56, 0.15], at: [0.11, 0.28, 0], color: pants },
-  ],
-});
+import { figure } from './figure.js';
+
+// A rounded low-poly person. boot defaults dark; pass a 5th colour to override.
+const human = (skin, shirt, pants, hair, boot = 0x3a2f26) =>
+  ({ height: 1.62, parts: figure({ skin, shirt, pants, hair, boot }) });
 
 const base = {
   attackable: false,

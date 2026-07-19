@@ -25,8 +25,11 @@ function bakeMobGeometry(defId, def) {
   for (const p of def.model.parts) {
     let g;
     if (p.kind === 'box') g = new THREE.BoxGeometry(...p.size);
-    else if (p.kind === 'cone') g = new THREE.ConeGeometry(p.r, p.h, 6);
+    else if (p.kind === 'cone') g = new THREE.ConeGeometry(p.r, p.h, p.seg ?? 6);
+    else if (p.kind === 'cyl') g = new THREE.CylinderGeometry(p.rt ?? p.r, p.rb ?? p.r, p.h, p.seg ?? 8);
+    else if (p.kind === 'sphere') g = new THREE.IcosahedronGeometry(p.r, p.detail ?? 1);
     else g = new THREE.IcosahedronGeometry(p.r, 0);
+    if (p.scale) g.scale(...p.scale);
     if (p.rotX) g.rotateX(p.rotX);
     if (p.rotY) g.rotateY(p.rotY);
     if (p.rotZ) g.rotateZ(p.rotZ);
