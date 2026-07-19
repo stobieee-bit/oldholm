@@ -561,6 +561,7 @@ export class UI {
     this.levelFlash = document.getElementById('level-flash');
     this.levelBanner = document.getElementById('level-banner');
     this.deathFade = document.getElementById('death-fade');
+    this.hurtFade = document.getElementById('hurt-fade');
     document.getElementById('anvil-close').addEventListener('click', () => this.closeAnvil());
     document.getElementById('shop-close').addEventListener('click', () => this.closeShop());
     document.getElementById('bank-close').addEventListener('click', () => this.closeBank());
@@ -939,6 +940,15 @@ export class UI {
     void this.deathFade.offsetWidth;
     this.deathFade.classList.add('show');
     this.setHp(this.player.hp, this.player.maxHp);
+  }
+
+  /** A brief red edge-pulse when the player is struck; stronger for big hits. */
+  hurtFlash(dmg = 1) {
+    if (!this.hurtFade) return;
+    this.hurtFade.style.setProperty('--peak', String(Math.min(0.7, 0.2 + dmg * 0.025)));
+    this.hurtFade.classList.remove('show');
+    void this.hurtFade.offsetWidth;
+    this.hurtFade.classList.add('show');
   }
 
   refreshSkills() { this.panel.renderSkills(); }

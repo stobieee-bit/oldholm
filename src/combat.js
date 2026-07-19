@@ -203,6 +203,11 @@ export class Combat {
     this.audio?.sfx(dmg > 0 ? 'thud' : 'whiff');
     this._deathSfx(mob);
     this.ui.fx.hitsplat(() => mob.splatAnchor(), dmg);
+    const hp = mob.splatAnchor();
+    if (hp) {
+      if (dmg > 0) this.world.spawnBurst(hp, 0xffd27a, { count: 9, speed: 2.7, size: 0.05, flashColor: 0xfff0c0, flashSize: 0.5 });
+      else this.world.spawnBurst(hp, 0xcfd4dc, { count: 4, speed: 1.7, size: 0.04, flashSize: 0.22 });
+    }
     if (dealt > 0) {
       const gains = styleXp(this.player.currentStyle().kind, dealt);
       gains.push(['Hitpoints', XP_PER_DAMAGE_HP * dealt]);
@@ -239,7 +244,11 @@ export class Combat {
     const dmg = rollDamage(atk, mob.stats());
     const anchor = mob.splatAnchor();
     this.world.spawnProjectile(
-      new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, 0x8a6a42, 0.03);
+      new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, 0x8a6a42, 0.03, {
+        burst: dmg > 0
+          ? { color: 0xc0a672, count: 7, speed: 2.0, size: 0.045, gravity: 7, flashSize: 0.3 }
+          : { color: 0xcfd4dc, count: 3, speed: 1.5, size: 0.035, flashSize: 0.18 },
+      });
     const dealt = Math.min(dmg, mob.hp);
     mob.takeDamage(dmg, tickNo, this);
     this.audio?.sfx('bow');
@@ -273,8 +282,16 @@ export class Combat {
       this.prayers ? this.prayers.magicMult() : 1, 1);
     const dmg = Math.random() < chance ? randInt(0, spell.maxHit) : 0;
     const anchor = mob.splatAnchor();
+    // a gathering flash at the caster's hands, then a glowing, trailing bolt
+    const eyeY = this.camera_yApprox();
+    const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
+    this.world.spawnBurst(new THREE.Vector3(p.pos.x + fx * 0.7, eyeY - 0.12, p.pos.z + fz * 0.7),
+      spell.color, { count: 6, speed: 1.3, size: 0.05, additive: true, flashSize: 0.42, gravity: 1 });
     this.world.spawnProjectile(
-      new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, spell.color, 0.028);
+      new THREE.Vector3(p.pos.x, eyeY, p.pos.z), anchor, spell.color, 0.03, {
+        glow: true, trail: true,
+        burst: { color: spell.color, count: 13, speed: 3.1, size: 0.06, additive: true, flashSize: 0.75, gravity: 2 },
+      });
     const dealt = Math.min(dmg, mob.hp);
     mob.takeDamage(dmg, tickNo, this);
     this.audio?.sfx('spell');
@@ -299,6 +316,7 @@ export class Combat {
       const dmg = guarded ? 4 + Math.floor(Math.random() * 5) : 40;
       p.hp = Math.max(0, p.hp - dmg);
       this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
+      this.ui.hurtFlash(dmg);
       this.ui.chat.add(guarded
         ? 'Dragonfire washes over your shield and mostly gives up.'
         : 'DRAGONFIRE! You are engulfed. A shield would have helped.', 'system');
@@ -315,6 +333,7 @@ export class Combat {
     const dmg = rollDamage(mob.stats(), this.playerDefence(vsType));
     p.hp = Math.max(0, p.hp - dmg);
     this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
+    if (dmg > 0) this.ui.hurtFlash(dmg);
     if (p.hp <= 0) { this.playerDie(tickNo); return; }
     if (p.autoRetaliate && !p.target) p.target = mob;
   }

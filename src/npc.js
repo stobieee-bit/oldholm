@@ -74,7 +74,7 @@ class Mob {
     this.wanderWait = randInt(3, 12);
     this.lastCombatTick = -999;
 
-    this.mesh = new THREE.Mesh(bakeMobGeometry(defId, def), mobMaterial);
+    this.mesh = new THREE.Mesh(bakeMobGeometry(defId, def), mobMaterial.clone()); // own material → can flash on hit
     this.mesh.position.set(this.tile.x + 0.5, 0, this.tile.z + 0.5);
     world.group.add(this.mesh);
     this._from = { x: this.tile.x + 0.5, z: this.tile.z + 0.5 };
@@ -102,6 +102,7 @@ class Mob {
     if (this.dead) return;
     this.hp = Math.max(0, this.hp - dmg);
     this.lastCombatTick = tickNo;
+    if (dmg > 0) { this._hitFlash = 1; this._flinch = 1; } // white flash + recoil squash
     if (this.hp <= 0) {
       // some foes cannot die without a specific item in hand (spec §7: Ravenmoor + stake)
       const need = this.def.needsItemToKill;
@@ -341,7 +342,12 @@ class Mob {
     const lunge = Math.sin(this._lunge * Math.PI);   // 0..1..0 as it decays from 1
     this.mesh.rotation.set(-lunge * 0.38, this._faceY, Math.sin(ph) * 0.07 * amt);
     this._breathe = (this._breathe ?? 0) + dt * 2.2;
-    this.mesh.scale.y = 1 + (1 - amt) * Math.sin(this._breathe) * 0.02;
+    // hit reaction: a white flash + a quick vertical squash that recovers
+    this._hitFlash = Math.max(0, (this._hitFlash ?? 0) - dt * 6.5);
+    this._flinch = Math.max(0, (this._flinch ?? 0) - dt * 5);
+    const squash = Math.sin(this._flinch * Math.PI) * 0.13;
+    this.mesh.scale.set(1 + squash * 0.5, 1 - squash + (1 - amt) * Math.sin(this._breathe) * 0.02, 1 + squash * 0.5);
+    this.mesh.material.emissive.setScalar(this._hitFlash * 0.42);
   }
 
   /** Kick a quick forward lunge (called when the mob lands a hit). */

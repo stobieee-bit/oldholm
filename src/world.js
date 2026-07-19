@@ -2998,14 +2998,20 @@ export class World {
   }
 
   /** Cosmetic projectile: a small bolt gliding from A to B. */
-  spawnProjectile(from, to, color, size = 0.03) {
+  spawnProjectile(from, to, color, size = 0.03, opts = {}) {
+    const glow = !!opts.glow;
     const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(size, size, size * 6),
-      new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.35 }));
+      new THREE.BoxGeometry(size * (glow ? 2.2 : 1), size * (glow ? 2.2 : 1), size * (glow ? 7 : 6)),
+      glow
+        ? new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
+        : new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.35 }));
     mesh.position.copy(from);
     mesh.lookAt(to);
     this.group.add(mesh);
-    this._projectiles.push({ mesh, from: from.clone(), to: to.clone(), t: 0, dur: 0.28 });
+    this._projectiles.push({
+      mesh, from: from.clone(), to: to.clone(), t: 0, dur: 0.28,
+      color, burst: opts.burst, trail: !!opts.trail, _tt: 0,
+    });
   }
 
   updateProjectiles(dt) {
@@ -3016,11 +3022,57 @@ export class World {
         p.mesh.geometry.dispose();
         p.mesh.material.dispose();
         p.done = true;
+        if (p.burst) this.spawnBurst(p.to, p.burst.color ?? p.color, p.burst);
         continue;
       }
       p.mesh.position.lerpVectors(p.from, p.to, p.t);
+      if (p.trail) { p._tt += dt; if (p._tt >= 0.018) { p._tt = 0; this._trailPuff(p.mesh.position, p.color); } }
     }
     this._projectiles = this._projectiles.filter((p) => !p.done);
+  }
+
+  // ---- particle effects (impacts, sparks, trails) ---------------------------
+  _fxGeo() { return (this._sparkGeo ??= new THREE.IcosahedronGeometry(1, 0)); }
+
+  /** A burst of flung sparks + a quick central flash at `pos`. */
+  spawnBurst(pos, color, opts = {}) {
+    const geo = this._fxGeo(), eff = (this._effects ??= []);
+    const n = opts.count ?? 8, add = opts.additive ?? false;
+    const spd = opts.speed ?? 2.4, grav = opts.gravity ?? 6, s0 = opts.size ?? 0.055;
+    for (let i = 0; i < n; i++) {
+      const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false,
+        blending: add ? THREE.AdditiveBlending : THREE.NormalBlending });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(pos);
+      const s = s0 * (0.6 + Math.random() * 0.9);
+      mesh.scale.setScalar(s);
+      this.group.add(mesh);
+      const dir = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 1.4 + 0.3, Math.random() * 2 - 1).normalize();
+      eff.push({ mesh, vel: dir.multiplyScalar(spd * (0.5 + Math.random())), t: 0, life: (opts.life ?? 0.36) * (0.7 + Math.random() * 0.5), grav, s });
+    }
+    const fm = new THREE.MeshBasicMaterial({ color: opts.flashColor ?? color, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending });
+    const flash = new THREE.Mesh(geo, fm); flash.position.copy(pos); flash.scale.setScalar(0.05);
+    this.group.add(flash);
+    eff.push({ mesh: flash, t: 0, life: 0.2, flash: true, r1: opts.flashSize ?? 0.42 });
+  }
+
+  _trailPuff(pos, color) {
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending });
+    const m = new THREE.Mesh(this._fxGeo(), mat); m.position.copy(pos); m.scale.setScalar(0.07);
+    this.group.add(m);
+    (this._effects ??= []).push({ mesh: m, t: 0, life: 0.26, fade: true, s: 0.07 });
+  }
+
+  updateEffects(dt) {
+    const eff = this._effects; if (!eff || !eff.length) return;
+    for (const e of eff) {
+      e.t += dt; const k = Math.min(1, e.t / e.life);
+      if (e.t >= e.life) { e._dead = true; this.group.remove(e.mesh); e.mesh.material.dispose(); continue; }
+      if (e.flash) { e.mesh.scale.setScalar(0.05 + e.r1 * k); e.mesh.material.opacity = 0.9 * (1 - k); }
+      else if (e.fade) { e.mesh.scale.setScalar(e.s * (1 - k)); e.mesh.material.opacity = 0.7 * (1 - k); }
+      else { e.vel.y -= e.grav * dt; e.mesh.position.addScaledVector(e.vel, dt); e.mesh.scale.setScalar(e.s * (1 - k)); e.mesh.material.opacity = 1 - k; }
+    }
+    this._effects = eff.filter((e) => !e._dead);
   }
 
   /** Drop an item into the world; it becomes a takeable interactable. */

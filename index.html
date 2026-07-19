@@ -394,6 +394,15 @@
   #death-fade.show { animation: deathfade 1.8s ease-out; }
   @keyframes deathfade { 0% {opacity: 0;} 20% {opacity: 1;} 100% {opacity: 0;} }
 
+  /* brief red edge-pulse when struck (opacity set inline by hurtFlash) */
+  #hurt-fade {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 6;
+    background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 46%, rgba(150,20,14,0.9) 100%);
+    mix-blend-mode: multiply;
+  }
+  #hurt-fade.show { animation: hurtfade 0.5s ease-out; }
+  @keyframes hurtfade { 0% {opacity: 0;} 12% {opacity: var(--peak, 0.5);} 100% {opacity: 0;} }
+
   #region-banner {
     position: absolute; top: 18%; left: 0; right: 0; text-align: center;
     color: #f4e6b8; font-size: 44px; letter-spacing: 10px; font-variant: small-caps;
@@ -528,6 +537,7 @@
     <div id="level-flash"></div>
     <div id="level-banner"></div>
     <div id="death-fade"></div>
+    <div id="hurt-fade"></div>
 
     <div id="chatbox"><div id="chat-log"></div></div>
 

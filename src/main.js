@@ -385,6 +385,7 @@ function frame(now) {
   player.update(dt);
   npcs.updateVisuals(dt, player.pos);
   world.updateProjectiles(dt);
+  world.updateEffects(dt);
   world.updateSpinners(dt);
   interactions.updateHover();
   applyDayTint();
@@ -426,6 +427,7 @@ window.__OLDHOLM = {
       player.update(dt);
       npcs.updateVisuals(dt, player.pos);
       world.updateProjectiles(dt);
+      world.updateEffects(dt);
     }
     interactions.updateHover();
     applyDayTint();
