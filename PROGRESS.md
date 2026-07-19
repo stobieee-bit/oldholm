@@ -61,6 +61,28 @@ that turn twelve phases of systems into a game you can sit down and play.
   wedge). **Title castle** verified visually (full castle silhouette, red roofs, spire).
 - Audio-init "sound off respected" bug found in self-review and fixed before commit.
 
+## Post-review hardening (multi-agent adversarial review — 6 dimensions, 8 raw → 5 confirmed → all fixed)
+
+- **Wipe-all-saves double-confirm** used a session-scoped flag that never reset —
+  a single later click could delete every save. Now render-local, disarmed by any
+  other action, with a visible "Really wipe?" armed state.
+- **Save apply() made transactional**: a malformed-but-v2 import used to half-apply
+  then throw (NaN hp, partial state) while reporting failure. `SaveManager.valid()`
+  now shape-checks and returns false before any mutation.
+- **Toll-gate reconcile leaked its interactable**: after a paid-toll reload the bar
+  mesh was removed but its interactable/occluder stayed, snagging the crosshair on an
+  invisible object. Now stores `tollGate.entry` and retires it like the live path.
+- **Minimap facing wedge pointed 180° backward** (a stray `+Math.PI`); forward is
+  `(-sin yaw,-cos yaw)`, so the map rotation is exactly `-yaw`. Verified by a
+  differential pixel test (base is anti-parallel to the tip) and a visual capture.
+- **System tab rendered before persisted settings applied** — showed default
+  Sound/Music/Volume until re-opened. Settings now apply to audio before the tab renders.
+- Plus an audio-scheduler underrun guard. Three findings (unsaved ground items,
+  stale manor visuals, scheduler burst) were raised and correctly refuted.
+- Re-verified after fixes: full save/load roundtrip exact, 1.03 ms/frame in Corvath,
+  toll interactable retired on load, wedge points true, settings labels match state,
+  zero console errors.
+
 ## Definition of Done — Phase 12
 
 - [x] Fresh-save playtest script executes flawlessly (save/load/continue proven end-to-end)
