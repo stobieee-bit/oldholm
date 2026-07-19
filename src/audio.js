@@ -134,6 +134,9 @@ export class Audio {
     if (!this.ctx || !this.musicEnabled || !this.theme) return;
     const def = THEMES[this.theme];
     const beatDur = 60 / def.bpm;
+    // if the audio clock ever ran past us (backgrounded tab / sleep-resume),
+    // don't dump a catch-up burst — snap the cursor back to the present.
+    if (this._nextNoteTime < this.ctx.currentTime) this._nextNoteTime = this.ctx.currentTime + 0.05;
     // schedule ~0.4s ahead
     while (this._nextNoteTime < this.ctx.currentTime + 0.4) {
       const [deg, len] = def.motif[this._motifPos % def.motif.length];

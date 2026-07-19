@@ -95,7 +95,7 @@ export class Minimap {
     const cx = MAP_PX / 2, cz = MAP_PX / 2;
     ctx.save();
     ctx.translate(cx, cz);
-    ctx.rotate(-p.yaw + Math.PI); // forward = -sin(yaw),-cos(yaw); point the wedge that way
+    ctx.rotate(-p.yaw); // forward = (-sin yaw,-cos yaw); on the map that direction is exactly -yaw
     ctx.fillStyle = '#ffe15a';
     ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(3.5, 4); ctx.lineTo(-3.5, 4); ctx.closePath(); ctx.fill();
     ctx.restore();

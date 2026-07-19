@@ -656,21 +656,29 @@ export class UI {
       ['Load', () => { if (save.loadAuto()) { this.chat.add('Autosave restored.', 'system'); this.closeSavePanel(); } }],
     ] : []);
 
-    // export / import / reset
+    // export / import / wipe. The wipe needs two consecutive clicks; `armed`
+    // is local to this render, and any other action disarms it, so the guard
+    // can never carry a stale confirm across panels or intervening clicks.
+    let armed = false;
     const tools = document.createElement('div');
     tools.className = 'save-tools';
+    const wipeBtn = document.createElement('button');
+    const disarm = () => { if (armed) { armed = false; wipeBtn.textContent = 'Wipe all saves'; wipeBtn.classList.remove('armed'); } };
     const mk = (label, fn, cls) => {
       const b = document.createElement('button');
       b.className = 'save-btn' + (cls ? ' ' + cls : '');
-      b.textContent = label; b.addEventListener('click', fn);
+      b.textContent = label; b.addEventListener('click', () => { disarm(); fn(); });
       return b;
     };
     tools.appendChild(mk('Export to file', () => save.exportJson()));
     tools.appendChild(mk('Import from file', () => this._importInput.click()));
-    tools.appendChild(mk('Wipe all saves', () => {
-      if (this._confirmWipe) { save.clearAll(); this._confirmWipe = false; this.chat.add('All saves wiped.', 'system'); this.renderSavePanel(); }
-      else { this._confirmWipe = true; this.chat.add('Click "Wipe all saves" again to confirm.', 'system'); }
-    }, 'danger'));
+    wipeBtn.className = 'save-btn danger';
+    wipeBtn.textContent = 'Wipe all saves';
+    wipeBtn.addEventListener('click', () => {
+      if (armed) { save.clearAll(); this.chat.add('All saves wiped.', 'system'); this.renderSavePanel(); }
+      else { armed = true; wipeBtn.textContent = 'Really wipe? Click again'; wipeBtn.classList.add('armed'); this.chat.add('Click "Really wipe?" again to confirm — this deletes every save.', 'system'); }
+    });
+    tools.appendChild(wipeBtn);
     body.appendChild(tools);
   }
 

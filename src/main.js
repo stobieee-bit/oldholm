@@ -110,13 +110,15 @@ const minimap = new Minimap(world, player, npcs);
 // The SaveManager reaches into every subsystem through this handle.
 const game = { player, world, clock, bank, quests, prayers, magic, market, combat, npcs, ui };
 const save = new SaveManager(game);
-ui.bindSaveSystem(save, audio);
 
-// Restore persisted settings (volume, music toggle) up front.
+// Restore persisted settings (volume, music toggle) BEFORE the System tab is
+// rendered, so its controls reflect the real audio state rather than defaults.
 const settings = save.loadSettings();
 if (settings.volume !== undefined) audio.volume = settings.volume;
 if (settings.music === false) audio.musicEnabled = false;
 if (settings.sound === false) audio.enabled = false;
+
+ui.bindSaveSystem(save, audio);
 
 ui.showBanner(def.name.toUpperCase());
 ui.chat.add('Welcome to OLDHOLM.', 'system');

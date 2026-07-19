@@ -315,6 +315,7 @@ export class World {
       this.tollGate.open = true;
       for (const [bx, bz] of this.tollGate.tiles) this.setTileBlocked(bx, bz, false);
       if (this.tollGate.bar) this.group.remove(this.tollGate.bar);
+      if (this.tollGate.entry) this.removeInteractable(this.tollGate.entry); // else an invisible bar keeps snagging the crosshair
     }
     if (this.championsGate && !this.championsGate.open && gates.champions) {
       this.championsGate.open = true;
@@ -2282,6 +2283,7 @@ export class World {
         },
       }],
     });
+    this.tollGate.entry = entry; // so save-load reconciliation can also retire it
   }
 
   // ---- Phase 9: windmill, wizard tower, churchyard, gale altar, pickables ------------

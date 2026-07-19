@@ -56,8 +56,22 @@ export class SaveManager {
 
   // ---- deserialize ----------------------------------------------------------
 
-  apply(data) {
+  /** Validate a payload's shape BEFORE mutating anything, so a corrupt or
+   *  hand-edited import can't half-apply and leave the world inconsistent. */
+  static valid(data) {
     if (!data || data.v !== SAVE_VERSION) return false;
+    const pl = data.player;
+    if (!pl || !Array.isArray(pl.skills) || !pl.skills.every((s) => s && typeof s.name === 'string' && Number.isFinite(s.xp))) return false;
+    if (!Number.isFinite(pl.hp) || !Array.isArray(pl.slots)) return false;
+    if (!pl.pos || !Number.isFinite(pl.pos.x) || !Number.isFinite(pl.pos.z)) return false;
+    if (!pl.equipment || typeof pl.equipment !== 'object') return false;
+    if (!Array.isArray(data.bank) || typeof data.quests !== 'object' || !data.quests) return false;
+    if (!data.prayers || typeof data.prayers !== 'object' || !data.market || typeof data.market !== 'object') return false;
+    return true;
+  }
+
+  apply(data) {
+    if (!SaveManager.valid(data)) return false;
     const g = this.g, p = g.player;
     // skills
     for (const s of data.player.skills) {
