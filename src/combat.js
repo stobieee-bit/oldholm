@@ -5,9 +5,11 @@
 // Entities are adapters over the player and mobs:
 //   { att, str, def, attBonus, strBonus, defBonus } via stats.
 
+import * as THREE from 'three';
 import { ITEMS } from '../data/items.js';
 import { MOBS } from '../data/mobs.js';
 import { styleXp } from '../data/styles.js';
+import { CAST_TICKS, MAGIC_RANGE } from '../data/spells.js';
 import { XP_PER_DAMAGE_HP } from './skills.js';
 
 // ---- spec §5 formulas (use exactly these) ----------------------------------
@@ -40,9 +42,10 @@ const randInt = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1)); // i
 
 /** One swing: returns damage dealt (0 = blue splat). */
 export function rollDamage(atk, dfn) {
-  const chance = hitChance(atk.att, atk.attBonus, dfn.def, dfn.defBonus);
+  const chance = hitChance(atk.att, atk.attBonus, dfn.def, dfn.defBonus,
+    atk.attMult ?? 1, dfn.defMult ?? 1);
   if (Math.random() >= chance) return 0;
-  return randInt(0, maxHit(atk.str, atk.strBonus));
+  return randInt(0, maxHit(atk.str, atk.strBonus, atk.strMult ?? 1));
 }
 
 // ---- the engine -------------------------------------------------------------
@@ -61,7 +64,26 @@ export class Combat {
     this.world = world;
     this.npcs = npcs;
     this.ui = ui;
+    this.prayers = null; // wired by main.js
+    this.magic = null;
     this._regen = 0;
+    this._ray = new THREE.Raycaster();
+  }
+
+  /** Line of sight for projectiles/spells: solid occluders block, trees don't. */
+  hasLOS(mob) {
+    const from = new THREE.Vector3(this.player.pos.x, this.camera_yApprox(), this.player.pos.z);
+    const to = mob.splatAnchor();
+    if (!to) return false;
+    const dir = to.clone().sub(from);
+    const dist = dir.length();
+    this._ray.set(from, dir.normalize());
+    this._ray.far = dist - 0.4;
+    return this._ray.intersectObjects(this.world.occluders, false).length === 0;
+  }
+
+  camera_yApprox() {
+    return this.world.getGroundHeight(this.player.pos.x, this.player.pos.z, this.player.plane) + 1.4;
   }
 
   /** Offensive stats for the player's current style (typed attack bonus). */
@@ -69,11 +91,14 @@ export class Combat {
     const p = this.player;
     const s = (n) => p.skillByName(n).level;
     const style = p.currentStyle();
+    const pr = this.prayers;
     return {
       att: s('Attack'), str: s('Strength'), def: s('Defence'),
       attBonus: p.attackBonus(style.type),
       strBonus: p.strengthBonus(),
       defBonus: p.defenceBonus('crush'), // generic; typed per-attacker in mobAttack
+      attMult: pr ? pr.attMult() : 1,
+      strMult: pr ? pr.strMult() : 1,
     };
   }
 
@@ -82,7 +107,34 @@ export class Combat {
     return {
       def: this.player.skillByName('Defence').level,
       defBonus: this.player.defenceBonus(vsType),
+      defMult: this.prayers ? this.prayers.defMult() : 1,
     };
+  }
+
+  /** melee | ranged | magic, from autocast and the wielded weapon. */
+  attackMode() {
+    if (this.magic?.activeSpell()) return 'magic';
+    const w = this.player.equipment.weapon;
+    if (w && ITEMS[w].styleSet === 'bow') return 'ranged';
+    return 'melee';
+  }
+
+  attackReach() {
+    const mode = this.attackMode();
+    if (mode === 'magic') return MAGIC_RANGE;
+    if (mode === 'ranged') {
+      const w = ITEMS[this.player.equipment.weapon];
+      return (w.bowRange ?? 7) + (this.player.currentStyle().rangeDelta ?? 0);
+    }
+    return MELEE_REACH;
+  }
+
+  attackCadence() {
+    const mode = this.attackMode();
+    if (mode === 'magic') return CAST_TICKS;
+    if (mode === 'ranged')
+      return this.player.attackSpeed + (this.player.currentStyle().speedDelta ?? 0);
+    return this.player.attackSpeed;
   }
 
   playerCombatLevel() {
@@ -101,7 +153,7 @@ export class Combat {
   inReach(mob) {
     if (this.player.plane !== 0) return false;
     const v = mob.visualPos();
-    return Math.hypot(v.x - this.player.pos.x, v.z - this.player.pos.z) <= MELEE_REACH;
+    return Math.hypot(v.x - this.player.pos.x, v.z - this.player.pos.z) <= this.attackReach();
   }
 
   tick(tickNo) {
@@ -110,10 +162,14 @@ export class Combat {
 
     const t = p.target;
     if (t) {
+      const mode = this.attackMode();
       if (t.dead) p.target = null;
-      else if (this.inReach(t) && p.attackCooldown === 0) {
-        this.playerAttack(t, tickNo);
-        p.attackCooldown = p.attackSpeed;
+      else if (this.inReach(t) && p.attackCooldown === 0 &&
+               (mode === 'melee' || this.hasLOS(t))) {
+        if (mode === 'magic') this.magicAttack(t, tickNo);
+        else if (mode === 'ranged') this.rangedAttack(t, tickNo);
+        else this.playerAttack(t, tickNo);
+        p.attackCooldown = this.attackCadence();
       }
     }
 
@@ -138,9 +194,79 @@ export class Combat {
     }
   }
 
+  /** Ranged: needs a bow and arrows; ~80% of spent arrows land by the target. */
+  rangedAttack(mob, tickNo) {
+    const p = this.player;
+    if (!p.equipment.ammo || p.ammoCount <= 0) {
+      this.ui.chat.add('You have no arrows left.');
+      p.target = null;
+      return;
+    }
+    const arrow = ITEMS[p.equipment.ammo];
+    const arrowId = p.equipment.ammo;
+    p.ammoCount--;
+    if (p.ammoCount <= 0) { p.equipment.ammo = null; this.ui.chat.add('That was your last arrow.'); }
+    this.ui.refreshEquipment();
+
+    const s = (n) => p.skillByName(n).level;
+    const atk = {
+      att: s('Ranged'), attBonus: p.attackBonus('ranged'),
+      str: s('Ranged'), strBonus: arrow.rangedStr ?? 0,
+    };
+    const dmg = rollDamage(atk, mob.stats());
+    const anchor = mob.splatAnchor();
+    this.world.spawnProjectile(
+      new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, 0x8a6a42, 0.03);
+    const dealt = Math.min(dmg, mob.hp);
+    mob.takeDamage(dmg, tickNo, this);
+    this.ui.fx.hitsplat(() => mob.splatAnchor() ?? anchor, dmg);
+    if (dealt > 0) {
+      const gains = [['Ranged', 4 * dealt], ['Hitpoints', XP_PER_DAMAGE_HP * dealt]];
+      for (const [name, xp] of gains) p.addXp(name, xp, this.ui);
+      this.ui.fx.xpDrop(gains);
+    }
+    if (Math.random() < 0.8) // most arrows survive to be picked back up
+      this.world.addGroundItem(arrowId, 1, mob.tile.x + 0.5, mob.tile.z + 0.5, 0, 0,
+        { despawnAtTick: tickNo + 500, merge: true });
+  }
+
+  /** Magic: fixed max hit per spell, stones consumed (staff substitutes). */
+  magicAttack(mob, tickNo) {
+    const p = this.player;
+    const spell = this.magic.activeSpell();
+    if (!spell) return;
+    if (!this.magic.canAfford(spell)) {
+      this.ui.chat.add('You do not have enough glyph stones.');
+      this.magic.setAutocast(spell.id); // toggles it off
+      p.target = null;
+      return;
+    }
+    this.magic.consume(spell);
+    const s = (n) => p.skillByName(n).level;
+    const chance = hitChance(
+      s('Magic'), p.attackBonus('magic'), mob.stats().def, mob.stats().defBonus,
+      this.prayers ? this.prayers.magicMult() : 1, 1);
+    const dmg = Math.random() < chance ? randInt(0, spell.maxHit) : 0;
+    const anchor = mob.splatAnchor();
+    this.world.spawnProjectile(
+      new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, spell.color, 0.028);
+    const dealt = Math.min(dmg, mob.hp);
+    mob.takeDamage(dmg, tickNo, this);
+    this.ui.fx.hitsplat(() => mob.splatAnchor() ?? anchor, dmg);
+    const gains = [['Magic', spell.baseXp + 4 * dealt]];
+    if (dealt > 0) gains.push(['Hitpoints', XP_PER_DAMAGE_HP * dealt]);
+    for (const [name, xp] of gains) p.addXp(name, xp, this.ui);
+    this.ui.fx.xpDrop(gains);
+  }
+
   mobAttack(mob, tickNo) {
     const p = this.player;
     const vsType = MOBS[mob.defId].attackType ?? 'crush';
+    if (this.prayers && Math.random() < this.prayers.blockChance()) {
+      this.ui.fx.hitsplat(() => ({ screen: true }), 0); // Swiftguard turns it aside
+      if (p.autoRetaliate && !p.target) p.target = mob;
+      return;
+    }
     const dmg = rollDamage(mob.stats(), this.playerDefence(vsType));
     p.hp = Math.max(0, p.hp - dmg);
     this.ui.fx.hitsplat(() => ({ screen: true }), dmg);

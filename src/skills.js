@@ -7,9 +7,10 @@ import { ITEMS } from '../data/items.js';
 import { TREES, ROCKS, FISHING, FIREMAKING, COOKING, burnChance } from '../data/resources.js';
 import {
   SMELTING, SMITHABLES, SMITH_TICKS_PER_ITEM, TANNING, LEATHER_RECIPES,
-  LEATHER_TICKS_PER_ITEM, SPINNING, WOOL_CAPE, GEMS, GEM_CHANCE, GEM_WEIGHTS,
-  JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING,
+  LEATHER_TICKS_PER_ITEM, SPINNING, WOOL_CAPE, FLETCHING, GEMS, GEM_CHANCE,
+  GEM_WEIGHTS, JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING,
 } from '../data/crafting.js';
+import { BONES } from '../data/prayers.js';
 import { METAL_SMITHING } from '../data/items.js';
 
 const MAX_LEVEL = 99;
@@ -333,7 +334,14 @@ export class Actions {
       onTick: () => {
         if (++cadence % SMITH_TICKS_PER_ITEM !== 0) return;
         this._takeItems(params.bar, shape.bars);
-        if (!this._give(itemId, 'You hammer out a ' + ITEMS[itemId].name.toLowerCase() + '.')) return;
+        const n = shape.count ?? 1;
+        if (!this.player.inventory.add(itemId, n)) {
+          this.ui.chat.add('Your pack is too full to carry any more.');
+          this.cancel();
+          return;
+        }
+        this.ui.chat.add('You hammer out ' + (n > 1 ? n + ' ' : 'a ') + ITEMS[itemId].name.toLowerCase() + '.');
+        this.ui.refreshInventory();
         this._grant('Smithing', params.barXp * shape.bars);
         if (!haveBars()) { this.ui.chat.add('You are out of bars.'); this.cancel(); }
       },
@@ -491,6 +499,77 @@ export class Actions {
     this.player.inventory.slots[slotIndex] = { id: STRINGING.output, count: 1 };
     this._grant('Crafting', STRINGING.xp);
     this.ui.chat.add('You string the amulet. Very dignified.');
+    this.ui.refreshInventory();
+  }
+
+  /** Fletch a bow from logs (knife required). */
+  startFletchBow(logSlotIndex, bowId) {
+    const def = FLETCHING.bows[bowId];
+    const slot = this.player.inventory.slots[logSlotIndex];
+    if (!slot || slot.id !== 'logs') return;
+    if (!this.findTool('knife')) { this.ui.chat.add('You need a knife to fletch.'); return; }
+    const level = this.player.skillByName('Crafting').level;
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Crafting level of ${def.req} to fletch a ${ITEMS[bowId].name.toLowerCase()}.`);
+      return;
+    }
+    if (this._countItem('logs') < def.logs) {
+      this.ui.chat.add(`You need ${def.logs} logs for that.`);
+      return;
+    }
+    let cadence = 0;
+    this._start({
+      kind: 'fletch',
+      startMsg: 'You begin whittling.',
+      validate: () => this._countItem('logs') >= def.logs,
+      onTick: () => {
+        if (++cadence % 3 !== 0) return;
+        this._takeItems('logs', def.logs);
+        if (!this._give(bowId, 'You carve a ' + ITEMS[bowId].name.toLowerCase() + '.')) return;
+        this._grant('Crafting', def.xp);
+        this.cancel(); // one bow per sitting; wood deserves respect
+      },
+    });
+  }
+
+  /** Fletch arrows: feathers + arrowtips, in batches. */
+  startFletchArrows(tipId) {
+    const a = FLETCHING.arrows;
+    const arrowId = tipId.replace('_arrowtips', '_arrow');
+    if (!ITEMS[arrowId]) return;
+    const have = () => this._countItem(tipId) >= 1 && this._countItem('feather') >= 1;
+    if (!have()) { this.ui.chat.add('You need arrowtips and feathers for that.'); return; }
+    let cadence = 0;
+    this._start({
+      kind: 'fletch',
+      startMsg: 'You begin fitting feathers to tips.',
+      validate: have,
+      onTick: () => {
+        if (++cadence % a.ticks !== 0) return;
+        const n = Math.min(a.batch, this._countItem(tipId), this._countItem('feather'));
+        this._takeItems(tipId, n);
+        this._takeItems('feather', n);
+        if (!this.player.inventory.add(arrowId, n)) {
+          this.ui.chat.add('Your pack is too full to carry any more.');
+          this.cancel();
+          return;
+        }
+        this.ui.refreshInventory();
+        this.ui.chat.add(`You fletch ${n} ${ITEMS[arrowId].name.toLowerCase()}${n > 1 ? 's' : ''}.`);
+        this._grant('Crafting', a.xpEach * n);
+        if (!have()) this.cancel();
+      },
+    });
+  }
+
+  /** Instant: bury bones for Prayer xp (spec §10). */
+  buryBones(slotIndex) {
+    const slot = this.player.inventory.slots[slotIndex];
+    if (!slot || !BONES[slot.id]) return;
+    const xp = BONES[slot.id];
+    this.player.inventory.removeSlot(slotIndex);
+    this._grant('Prayer', xp);
+    this.ui.chat.add('You bury the bones. Somewhere, something rests easier.');
     this.ui.refreshInventory();
   }
 

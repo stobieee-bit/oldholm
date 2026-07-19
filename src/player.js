@@ -70,11 +70,12 @@ export class Player {
     this.attackSpeed = 4;      // unarmed; wielding sets the weapon's speed
     this.styleIndex = 0;       // index into the wielded weapon's style set
     this.autoRetaliate = true;
-    // all 11 equipment slots (spec §8); ammo holds arrows once Ranged lands in Phase 7
+    // all 11 equipment slots (spec §8)
     this.equipment = {
       head: null, cape: null, neck: null, ammo: null, weapon: null,
       body: null, shield: null, legs: null, gloves: null, boots: null, ring: null,
     };
+    this.ammoCount = 0; // arrows are a stack; the slot id + this count
     this.keys = { forward: false, back: false, left: false, right: false };
     this.pointerLocked = false;
     this.inputEnabled = false; // off while the title/pause overlay is up
@@ -264,8 +265,16 @@ export class Player {
       this.equipment[dSlot] = null;
     }
     const prev = this.equipment[def.slot];
-    this.equipment[def.slot] = slot.id;
-    if (prev) inv[slotIndex] = { id: prev, count: 1 };
+    if (def.slot === 'ammo') {
+      // arrows equip as a whole stack; a different type swaps the old stack out
+      if (prev && prev !== slot.id) inv[slotIndex] = { id: prev, count: this.ammoCount };
+      else if (prev === slot.id) { this.ammoCount += slot.count; this.equipment.ammo = prev; ui.chat.add('You add the arrows to your quiver.'); ui.refreshInventory(); ui.refreshEquipment(); return; }
+      this.equipment.ammo = slot.id;
+      this.ammoCount = slot.count;
+    } else {
+      this.equipment[def.slot] = slot.id;
+      if (prev) inv[slotIndex] = { id: prev, count: 1 };
+    }
     if (def.slot === 'weapon' || displaced.includes('weapon')) {
       const w = this.equipment.weapon ? ITEMS[this.equipment.weapon] : null;
       this.attackSpeed = w?.speed ?? 4;
@@ -279,11 +288,13 @@ export class Player {
   unequip(slotName, ui) {
     const id = this.equipment[slotName];
     if (!id) return;
-    if (!this.inventory.add(id, 1)) {
+    const count = slotName === 'ammo' ? this.ammoCount : 1;
+    if (!this.inventory.add(id, count)) {
       ui.chat.add('Your pack is too full to remove that.');
       return;
     }
     this.equipment[slotName] = null;
+    if (slotName === 'ammo') this.ammoCount = 0;
     if (slotName === 'weapon') { this.attackSpeed = 4; this.styleIndex = 0; }
     ui.chat.add('You remove the ' + ITEMS[id].name.toLowerCase() + '.');
     ui.refreshInventory();

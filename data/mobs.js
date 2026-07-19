@@ -104,6 +104,8 @@ export const MOBS = {
     drops: [
       { item: 'bones', count: 1, weight: 1 },
       { item: 'coins', count: [1, 5], weight: 5 },
+      { item: 'gale_glyph', count: [2, 6], weight: 2 },
+      { item: 'spirit_glyph', count: [1, 4], weight: 2 },
       { weight: 4 }, // nothing extra
     ],
     alwaysDrops: 1,
@@ -133,6 +135,7 @@ export const MOBS = {
       { item: 'bones', count: 1, weight: 1 },
       { item: 'coins', count: [3, 12], weight: 5 },
       { item: 'cabbage', count: 1, weight: 1 },
+      { item: 'sigil_glyph', count: [1, 3], weight: 2 },
       { weight: 3 },
     ],
     alwaysDrops: 1,

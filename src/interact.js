@@ -24,10 +24,10 @@ export class Interactions {
   }
 
   get ctx() {
-    // combat/actions are wired in by main.js after construction
+    // combat/actions/prayers are wired in by main.js after construction
     return {
       player: this.player, world: this.world, ui: this.ui,
-      combat: this.combat, actions: this.actions,
+      combat: this.combat, actions: this.actions, prayers: this.prayers,
     };
   }
 

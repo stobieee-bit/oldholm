@@ -83,6 +83,7 @@ export class World {
     this._fires = [];           // live player-lit fires
     this._rocks = [];           // mining rocks with deplete state
     this._tick = 0;             // latest tick seen (for take-time scheduling)
+    this._projectiles = [];     // arrows/spell bolts in flight (cosmetic)
     this.group = new THREE.Group();
     this.group.name = 'world:' + def.id;
     scene.add(this.group);
@@ -107,6 +108,7 @@ export class World {
     this._buildFishingSpots();
     this._buildSmithy();
     this._buildTanningRack();
+    this._buildChurch();
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -845,6 +847,8 @@ export class World {
       if (pa && tx >= pa.x0 - 2 && tx < pa.x1 + 2 && tz >= pa.z0 - 2 && tz < pa.z1 + 2) return true;
       const gc = d.goblinCamp;
       if (gc && Math.hypot(tx + 0.5 - gc.x, tz + 0.5 - gc.z) < 9) return true;
+      const ch = d.church;
+      if (ch && tx >= ch.x0 - 2 && tx < ch.x1 + 2 && tz >= ch.z0 - 2 && tz < ch.z1 + 2) return true;
       const s = d.trees.minSpacing;
       for (let dz = -s; dz <= s; dz++)
         for (let dx = -s; dx <= s; dx++)
@@ -1288,6 +1292,106 @@ export class World {
     });
   }
 
+  // ---- the church of Aurel ---------------------------------------------------------
+
+  _buildChurch() {
+    const c = this.def.church;
+    if (!c) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
+    const cloth = new THREE.MeshLambertMaterial({ color: 0xe8e2d0, flatShading: true });
+
+    // shell: x0..x1 / z0..z1 tile bounds, door gap on the south wall
+    const { x0, x1, z0, z1 } = c;
+    const y = this.getGroundHeight((x0 + x1) / 2, (z0 + z1) / 2);
+    const w = x1 - x0, d = z1 - z0;
+    const midX = (x0 + x1) / 2, midZ = (z0 + z1) / 2;
+    const wallH = 3.6, sink = 0.4;
+    const wy = y - sink + (wallH + sink) / 2;
+    this._addBox(w, wallH + sink, 0.8, midX, wy, z0 + 0.5, stone);        // north
+    const doorX = Math.floor(midX);                                       // south door tile
+    const aLen = doorX - x0, bLen = x1 - doorX - 1;
+    this._addBox(aLen, wallH + sink, 0.8, x0 + aLen / 2, wy, z1 - 0.5, stone);
+    this._addBox(bLen, wallH + sink, 0.8, doorX + 1 + bLen / 2, wy, z1 - 0.5, stone);
+    this._addBox(1, wallH - 2.4, 0.8, doorX + 0.5, y + 2.4 + (wallH - 2.4) / 2, z1 - 0.5, stone);
+    this._addBox(0.8, wallH + sink, d - 2, x0 + 0.5, wy, midZ, stone);    // west
+    this._addBox(0.8, wallH + sink, d - 2, x1 - 0.5, wy, midZ, stone);    // east
+    // ceiling seals the eaves; the gable sits above it
+    this._addBox(w + 0.4, 0.14, d + 0.4, midX, y + wallH + 0.05, midZ, wood);
+    // roof: a shallow gable of two slabs
+    const roofA = this._addBox(w + 0.8, 0.18, d / 2 + 0.7, midX, y + wallH + 0.55, midZ - d / 4 + 0.1, darkStone);
+    roofA.rotation.x = 0.22; roofA.updateMatrix();
+    const roofB = this._addBox(w + 0.8, 0.18, d / 2 + 0.7, midX, y + wallH + 0.55, midZ + d / 4 - 0.1, darkStone);
+    roofB.rotation.x = -0.22; roofB.updateMatrix();
+    // the sun-disc of Aurel above the door
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 5), wood);
+    pole.position.set(doorX + 0.5, y + wallH + 1.0, z1 - 0.5);
+    this.group.add(pole);
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.08, 10), gold);
+    disc.rotation.x = Math.PI / 2;
+    disc.position.set(doorX + 0.5, y + wallH + 1.7, z1 - 0.45);
+    this.group.add(disc);
+    this.occluders.push(pole, disc);
+
+    // collision: perimeter minus the door tile
+    this.markBlockedRect(x0, z0, x1 - 1, z0);
+    this.markBlockedRect(x0, z1 - 1, doorX - 1, z1 - 1);
+    this.markBlockedRect(doorX + 1, z1 - 1, x1 - 1, z1 - 1);
+    this.markBlockedRect(x0, z0 + 1, x0, z1 - 2);
+    this.markBlockedRect(x1 - 1, z0 + 1, x1 - 1, z1 - 2);
+
+    // pews: two rows of benches
+    const pews = [];
+    for (const pz of [midZ + 0.6, midZ + 2.1]) {
+      for (const px of [midX - 1.8, midX + 1.8]) {
+        pews.push(this._addBox(2.2, 0.45, 0.5, px, y + 0.32, pz, wood));
+        this.setTileBlocked(Math.floor(px - 0.9), Math.floor(pz), true);
+        this.setTileBlocked(Math.floor(px + 0.9), Math.floor(pz), true);
+      }
+    }
+    this.addInteractable({
+      kind: 'scenery', name: 'Pew', meshes: pews,
+      examine: 'Hard wood, long sermons. Character-building.',
+      actions: [],
+    });
+
+    // the altar of Aurel, at the north end
+    const altarMeshes = [
+      this._addBox(2.2, 1.0, 0.9, midX, y + 0.5, z0 + 1.6, darkStone),
+      this._addBox(2.4, 0.12, 1.1, midX, y + 1.06, z0 + 1.6, stone),
+      this._addBox(1.6, 0.06, 0.7, midX, y + 1.15, z0 + 1.6, cloth),
+    ];
+    const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.3, 5), cloth);
+    candle.position.set(midX + 0.7, y + 1.3, z0 + 1.6);
+    this.group.add(candle);
+    altarMeshes.push(candle);
+    this.markBlockedRect(Math.floor(midX - 1), Math.floor(z0 + 1.2), Math.floor(midX + 1), Math.floor(z0 + 2));
+    let altarEntry;
+    altarEntry = this.addInteractable({
+      kind: 'altar', name: 'Altar', meshes: altarMeshes,
+      examine: 'An altar of Aurel. Gold-loving, order-keeping, generally punctual.',
+      actions: [{
+        label: 'Pray-at',
+        fn: (ctx) => {
+          if (!ctx.prayers) return;
+          if (ctx.prayers.points >= ctx.prayers.maxPoints()) {
+            ctx.ui.chat.add('Your spirit is already at ease.');
+            return;
+          }
+          ctx.prayers.restore();
+          ctx.ui.chat.add('A calm settles over you. Your prayer points are restored.');
+        },
+      }],
+    });
+    this.addInteractable({
+      kind: 'scenery', name: 'Church', meshes: [roofA, roofB],
+      examine: 'The church of Aurel. Small, sturdy, and sure of itself.',
+      actions: [],
+    });
+  }
+
   // ---- fires ----------------------------------------------------------------------
 
   fireAt(tx, tz) {
@@ -1336,9 +1440,43 @@ export class World {
         g.respawn ? { respawnTicks: g.respawn } : {});
   }
 
+  /** Cosmetic projectile: a small bolt gliding from A to B. */
+  spawnProjectile(from, to, color, size = 0.03) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(size, size, size * 6),
+      new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.35 }));
+    mesh.position.copy(from);
+    mesh.lookAt(to);
+    this.group.add(mesh);
+    this._projectiles.push({ mesh, from: from.clone(), to: to.clone(), t: 0, dur: 0.28 });
+  }
+
+  updateProjectiles(dt) {
+    for (const p of this._projectiles) {
+      p.t += dt / p.dur;
+      if (p.t >= 1) {
+        this.group.remove(p.mesh);
+        p.mesh.geometry.dispose();
+        p.mesh.material.dispose();
+        p.done = true;
+        continue;
+      }
+      p.mesh.position.lerpVectors(p.from, p.to, p.t);
+    }
+    this._projectiles = this._projectiles.filter((p) => !p.done);
+  }
+
   /** Drop an item into the world; it becomes a takeable interactable. */
   addGroundItem(id, count, x, z, plane = 0, dy = 0, opts = {}) {
     const def = ITEMS[id];
+    if (opts.merge && def.stackable) {
+      // arrows raining on one tile pile up in a single entry
+      const tx = Math.floor(x), tz = Math.floor(z);
+      const existing = this.interactables.find((e) =>
+        e.kind === 'ground-item' && e.itemId === id && e.plane === plane &&
+        Math.floor(e.root.position.x) === tx && Math.floor(e.root.position.z) === tz);
+      if (existing) { existing.count += count; return existing; }
+    }
     const { root, meshes } = this._buildItemModel(def);
     root.position.set(x, this.getGroundHeight(x, z, plane) + dy + 0.01, z);
     root.rotation.y = hash2(this.def.seed, Math.round(x * 7), Math.round(z * 7)) * Math.PI * 2;
@@ -1350,7 +1488,7 @@ export class World {
       actions: [{
         label: 'Take',
         fn: (ctx) => {
-          if (!ctx.player.inventory.add(id, count)) {
+          if (!ctx.player.inventory.add(id, entry.count)) { // live count — piles can grow
             ctx.ui.chat.add("You can't carry any more.");
             return;
           }

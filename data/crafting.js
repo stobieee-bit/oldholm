@@ -34,6 +34,7 @@ export const SMITHABLES = {
   two_handed: { off: 14, bars: 3, kind: 'weapon' },
   platelegs:  { off: 16, bars: 3, kind: 'armor' },
   platebody:  { off: 18, bars: 5, kind: 'armor' },
+  arrowtips:  { off: 3,  bars: 1, kind: 'ammo', count: 15 },
 };
 export const SMITH_TICKS_PER_ITEM = 4;
 
@@ -56,6 +57,16 @@ export const SPINNING = { input: 'wool', output: 'ball_of_wool', req: 1, xp: 2.5
 
 // A wool cape: 3 balls of wool + needle & thread. Fashion for the cape slot.
 export const WOOL_CAPE = { output: 'wool_cape', balls: 3, req: 5, xp: 20, ticks: 4 };
+
+// Fletching (under Crafting, spec §15.7): knife + logs -> bows;
+// feathers + arrowtips -> arrows (batches of up to 10 per stitch of work).
+export const FLETCHING = {
+  bows: {
+    shortbow: { logs: 1, req: 5, xp: 10 },
+    longbow: { logs: 2, req: 10, xp: 20 },
+  },
+  arrows: { output: 'bronze_arrow', tip: 'bronze_arrowtips', req: 1, xpEach: 0.5, batch: 10, ticks: 2 },
+};
 
 // Gem cutting with a chisel (instant, satisfying).
 export const GEMS = {

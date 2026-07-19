@@ -24,10 +24,15 @@ export const STYLE_SETS = {
     { name: 'Lunge', kind: 'controlled', type: 'stab' },
     { name: 'Block', kind: 'defensive', type: 'slash' },
   ],
-  crusher: [ // warhammers
+  crusher: [ // warhammers, staves (bashing; autocast bypasses these)
     { name: 'Pound', kind: 'accurate', type: 'crush' },
     { name: 'Pummel', kind: 'aggressive', type: 'crush' },
     { name: 'Block', kind: 'defensive', type: 'crush' },
+  ],
+  bow: [ // all styles train Ranged; Rapid shoots a tick faster, Longrange reaches +2
+    { name: 'Accurate', kind: 'ranged', type: 'ranged' },
+    { name: 'Rapid', kind: 'ranged', type: 'ranged', speedDelta: -1 },
+    { name: 'Longrange', kind: 'ranged', type: 'ranged', rangeDelta: 2 },
   ],
 };
 
@@ -36,6 +41,8 @@ export function styleXp(kind, damage) {
   if (kind === 'controlled') {
     return [['Attack', 1.33 * damage], ['Strength', 1.33 * damage], ['Defence', 1.33 * damage]];
   }
-  const skill = { accurate: 'Attack', aggressive: 'Strength', defensive: 'Defence' }[kind];
+  const skill = {
+    accurate: 'Attack', aggressive: 'Strength', defensive: 'Defence', ranged: 'Ranged',
+  }[kind];
   return [[skill, 4 * damage]];
 }

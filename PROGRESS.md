@@ -1,6 +1,59 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 6 — Equipment Depth — COMPLETE
+## Current status: Phase 7 — Magic, Ranged, Prayer — COMPLETE
+
+## What was built (Phase 7)
+
+- **Magic** (`data/spells.js`, `src/magic.js`): the Strike + Bolt lines across all four
+  elements (Gale/Tide/Stone/Ember, levels 1→35, fixed max hits 2–12, 5-tick casts,
+  per-spell glyph costs and base xp). Glyph-stone economy: 7 stackable glyphs (Ember/
+  Gale/Tide/Stone + Spirit/Sigil/Void); elemental staves supply their own element
+  free; auto-cast via the Spellbook tab (F7) — click to ready a spell, combat then
+  casts from up to 8 tiles with colored projectile bolts. Goblins drop gale/spirit/
+  sigil glyphs; an arcane corner on the keep's upper floor seeds staves, glyph
+  bundles, and wizard robes (respawning).
+- **Ranged**: shortbow (range 7) and longbow (range 9), speed 5/6 per §5, bow style
+  set (Accurate/Rapid −1 tick/Longrange +2 tiles, all training Ranged); arrows live
+  in the ammo slot as a counted quiver; each shot consumes one and ~80% land by the
+  target as MERGED ground piles (one entry per tile, live counts). Fletching under
+  Crafting: knife + logs → bows; arrowtips smithed at the anvil (15/bar, all three
+  metals); feathers + tips → arrows in batches. LOS checks against solid occluders
+  gate both bows and spells.
+- **Prayer** (`data/prayers.js`, `src/prayer.js`): points = Prayer level, 8 original
+  prayers (Stoneskin/Bull's Blood I&II/Hawk's Eye/Ironflesh/Mindstorm/Granite Aegis/
+  Swiftguard) with per-tick drain, same-group exclusivity, multipliers entering the
+  §5.1 effective-level math, and Swiftguard's 15% full block. Bone burying (4.5 xp;
+  big/wyrm bones defined for future droppers). Prayer tab (F6) + a blue prayer orb.
+- **The church of Aurel** built east of the north road: stone shell, gable roof +
+  sealed ceiling, sun-disc over the door, pews, and the altar — Pray-at restores
+  points ("A calm settles over you."). Wizard robes complete the combat triangle's
+  bonus tables (terrible ranged defence, as the spec demands).
+
+## Phase 7 — tested (live browser, real pipelines)
+
+- **DoD — a goblin killed by each style**: melee (bronze sword, 49 ticks), ranged
+  (shortbow from 5+ tiles, 24 ticks, 5 arrows spent → 3 recovered as one ground
+  pile), magic (7 gale strikes, exactly 7 gale + 7 spirit consumed, Magic xp exact:
+  7×5.5 base + 4×5 damage = 58.5).
+- **DoD — triangle verified** (hit chances at flat level 20): vs plate — magic 0.642
+  ≫ melee 0.411 (Magic melts Melee armor); vs robes — ranged 0.621 ≫ vs-plate ranged
+  0.416 (Ranged shreds Magic robes); leather balanced between. Both assertions hold.
+- Staff substitution: a gale staff reduces Gale Strike's cost to {1 spirit}.
+- Prayers: drain exact (0.24/tick × 20 = 4.8), empty → auto-off + message, altar
+  restore via the real Pray-at, group exclusivity (Ironflesh replaces Stoneskin),
+  multipliers flow into combat stats (str ×1.05, def ×1.10), Swiftguard 15% wired.
+- Burying: 4.5 xp, bones consumed. Fletching: shortbow +10 Crafting xp; 12 arrows
+  from 15 tips + 12 feathers (min-bound batching). Church door admits, walls block.
+- Regressions green; 1.59 ms/frame.
+
+## Definition of Done — Phase 7
+
+- [x] Kill a goblin with each of the three styles
+- [x] Triangle bonuses verified
+
+---
+
+## Phase 6 — Equipment Depth — COMPLETE
 
 ## What was built (Phase 6)
 
@@ -389,13 +442,11 @@
 
 ## Exact next step
 
-**Phase 7 — Magic, Ranged, Prayer**: spellbook UI + Strike/Bolt lines per element with
-fixed max hits and 5-tick casts, glyph stone economy (Ember/Gale/Tide/Stone + Spirit/
-Sigil/Void — staff shop is Phase 8, so seed stones via drops/spawns), elemental staves
-substituting their stones, auto-cast; shortbow/longbow + arrows (ammo slot is ready,
-~80% arrow ground-recovery), fletching under Crafting (knife + logs → bows; feathers +
-tips → arrows — arrowtips at the anvil); Prayer: bone burying (bones 4.5 xp), altar
-restore (the church needs building or a courtyard altar stand-in), 8 original prayers
-with per-tick drain and the §5.1 prayer multipliers entering the effective-level math.
-DoD: kill a goblin with each of the three styles; triangle bonuses verified (mage robes
-terrible ranged defence etc.).
+**Phase 8 — NPCs, Shops, Banking**: dialogue engine (branching data-driven trees in
+data/dialogue/), general store + specialty shops with restock ticks (the staff shop
+can absorb the arcane-corner glyph spawns; a sword shop the courtyard smithy spares),
+bank UI with deposit/withdraw 1/5/10/All/X and search (bank chest upstairs in the keep
+per the atlas), gold as the universal medium, ambient villager NPCs with idle chatter
+(Talk-to on mobs/NPCs, typewriter dialogue box with numbered options per §12).
+DoD: sell 100 cowhides, bank the gold, buy an iron scimitar. Needs data/npcs.js,
+data/shops.js, data/dialogue/*.js, src/dialogue.js, src/bank.js, src/shop.js.

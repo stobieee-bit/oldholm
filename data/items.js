@@ -415,6 +415,102 @@ export const ITEMS = {
   },
 };
 
+// ---- magic, ranged & prayer supplies (Phase 7) -------------------------------
+const GLYPHS = [
+  ['ember_glyph', 'Ember glyph', 0xe07a2a, 'Bottled hearth-anger.'],
+  ['gale_glyph', 'Gale glyph', 0xcfd8dc, 'A sliver of caught wind.'],
+  ['tide_glyph', 'Tide glyph', 0x4a90c2, 'The river, folded small.'],
+  ['stone_glyph', 'Stone glyph', 0x8a7a5a, 'Patience, mineralized.'],
+  ['spirit_glyph', 'Spirit glyph', 0xd8d0f0, 'A thought that stayed.'],
+  ['sigil_glyph', 'Sigil glyph', 0xc23a5a, 'A word too old to say aloud.'],
+  ['void_glyph', 'Void glyph', 0x2a2432, 'The absence of everything else.'],
+];
+for (const [id, name, hex, examine] of GLYPHS) {
+  const css = '#' + hex.toString(16).padStart(6, '0');
+  ITEMS[id] = {
+    name, examine, value: 4, stackable: true,
+    icon: `<rect x="6" y="6" width="12" height="12" rx="2" transform="rotate(45 12 12)" fill="${css}"/><circle cx="12" cy="12" r="2.4" fill="#00000045"/>`,
+    model: { kind: 'box', color: hex, w: 0.12, h: 0.05, d: 0.12 },
+  };
+}
+
+const STAVES = [
+  ['gale_staff', 'Gale staff', 0xcfd8dc], ['tide_staff', 'Tide staff', 0x4a90c2],
+  ['stone_staff', 'Stone staff', 0x8a7a5a], ['ember_staff', 'Ember staff', 0xe07a2a],
+];
+for (const [id, name, hex] of STAVES) {
+  const css = '#' + hex.toString(16).padStart(6, '0');
+  ITEMS[id] = {
+    name, examine: 'It hums with its element and never runs dry.',
+    value: 200, stackable: false,
+    slot: 'weapon', speed: 5, styleSet: 'crusher',
+    reqs: { Attack: 1 },
+    atk: [1, 0, 3, 10, 0], str: 2, def: [1, 1, 1, 2, 1],
+    icon: `<rect x="11" y="6" width="2" height="15" rx="1" fill="#6e4f33"/><circle cx="12" cy="5" r="3" fill="${css}"/>`,
+    model: { kind: 'rod', color: hex },
+  };
+}
+
+ITEMS.shortbow = {
+  name: 'Shortbow', examine: 'Bent wood with strong opinions about distance.', value: 40, stackable: false,
+  slot: 'weapon', speed: 5, styleSet: 'bow', twoHanded: true, reqs: { Ranged: 1 },
+  atk: [0, 0, 0, 0, 8], str: 0, def: [0, 0, 0, 0, 0], bowRange: 7,
+  icon: '<path d="M8 3c6 3 6 15 0 18" fill="none" stroke="#8a6a42" stroke-width="2"/><path d="M8 3v18" stroke="#c9bf98" stroke-width="0.9"/>',
+  model: { kind: 'rod', color: 0x8a6a42 },
+};
+ITEMS.longbow = {
+  name: 'Longbow', examine: 'For disagreeing with people far away.', value: 80, stackable: false,
+  slot: 'weapon', speed: 6, styleSet: 'bow', twoHanded: true, reqs: { Ranged: 1 },
+  atk: [0, 0, 0, 0, 10], str: 0, def: [0, 0, 0, 0, 0], bowRange: 9,
+  icon: '<path d="M9 2c7 4 7 16 0 20" fill="none" stroke="#7a5a38" stroke-width="2"/><path d="M9 2v20" stroke="#c9bf98" stroke-width="0.9"/>',
+  model: { kind: 'rod', color: 0x7a5a38 },
+};
+const ARROW_METALS = [
+  ['bronze', 'Bronze', '#b5854b', 0xb5854b, 7, 2],
+  ['iron', 'Iron', '#9a9aa2', 0x9a9aa2, 10, 5],
+  ['steel', 'Steel', '#c8ccd4', 0xc8ccd4, 16, 18],
+];
+for (const [mid, label, css, hex, rStr, value] of ARROW_METALS) {
+  ITEMS[`${mid}_arrow`] = {
+    name: `${label} arrow`, examine: 'Sharp mail, hand-delivered.', value, stackable: true,
+    slot: 'ammo', reqs: {}, atk: [0, 0, 0, 0, 0], str: 0, def: [0, 0, 0, 0, 0], rangedStr: rStr,
+    icon: `<path d="M4 20 18 6" stroke="#8a6a42" stroke-width="1.6"/><path d="M18 6l-1 5 5-1Z" fill="${css}"/><path d="M4 20l4-1-3-3Z" fill="#e8e4da"/>`,
+    model: { kind: 'box', color: hex, w: 0.03, h: 0.02, d: 0.4 },
+  };
+  ITEMS[`${mid}_arrowtips`] = {
+    name: `${label} arrowtips`, examine: 'The pointy part of the plan.', value: Math.max(1, value - 1), stackable: true,
+    icon: `<path d="M8 16l4-10 4 10-4-3Z" fill="${css}"/>`,
+    model: { kind: 'box', color: hex, w: 0.1, h: 0.04, d: 0.1 },
+  };
+}
+ITEMS.knife = {
+  name: 'Knife', examine: 'For whittling wood and winning arguments with rope.', value: 3, stackable: false,
+  tool: 'knife', toolReq: 1,
+  icon: '<path d="M6 18 15 9l3 3-9 9H6Z" fill="#c8ccd4"/><rect x="14.6" y="4.6" width="4.8" height="4.8" rx="1" transform="rotate(45 17 7)" fill="#6e4f33"/>',
+  model: { kind: 'blade', color: 0xc8ccd4, handle: 0x6e4f33 },
+};
+ITEMS.big_bones = {
+  name: 'Big bones', examine: "Somebody's former somebody, but larger.", value: 2, stackable: false,
+  icon: '<path d="M6 18 18 6" stroke="#e8e2d0" stroke-width="4" stroke-linecap="round"/><circle cx="5" cy="19" r="2.6" fill="#e8e2d0"/><circle cx="19" cy="5" r="2.6" fill="#e8e2d0"/>',
+  model: { kind: 'bones', color: 0xe8e2d0 },
+};
+
+const WIZARD_WEAR = [
+  ['wizard_hat', 'Wizard hat', 'head', [0, 0, 0, 3, -1], 'Pointy. Non-negotiable.'],
+  ['wizard_robe_top', 'Wizard robe top', 'body', [0, 0, 0, 6, -4], 'Woven with confidence and static.'],
+  ['wizard_robe_bottom', 'Wizard robe bottom', 'legs', [0, 0, 0, 5, -3], 'Swishes importantly.'],
+];
+for (const [id, name, slot, def, examine] of WIZARD_WEAR) {
+  ITEMS[id] = {
+    name, examine, value: 15, stackable: false,
+    slot, reqs: {}, atk: [0, 0, 0, 2, 0], str: 0, def,
+    icon: slot === 'head'
+      ? '<path d="M12 3l5 11H7Z" fill="#3a4a8f"/><path d="M5 15h14l-2 4H7Z" fill="#3a4a8f"/>'
+      : '<path d="M8 4h8l3 16H5Z" fill="#3a4a8f"/><path d="M8 4c1.5 2 6.5 2 8 0" stroke="#2a3568" stroke-width="1.4" fill="none"/>',
+    model: { kind: 'box', color: 0x3a4a8f, w: 0.3, h: 0.06, d: 0.28 },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Generated gear: metals × smithable shapes, plus leather wearables.
 // One compact table each; the loop below writes full ITEMS entries.

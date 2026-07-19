@@ -5,7 +5,10 @@
 
 import { ITEMS, METAL_SMITHING } from '../data/items.js';
 import { FIREMAKING, COOKING } from '../data/resources.js';
-import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, GEMS, STRINGING } from '../data/crafting.js';
+import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING } from '../data/crafting.js';
+import { SPELLS } from '../data/spells.js';
+import { PRAYERS } from '../data/prayers.js';
+import { BONES } from '../data/prayers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -218,6 +221,8 @@ const TABS = [
   { id: 'skills', label: 'Skills', key: 'F2' },
   { id: 'inventory', label: 'Pack', key: 'F4' },
   { id: 'equipment', label: 'Gear', key: 'F5' },
+  { id: 'prayer', label: 'Pray', key: 'F6' },
+  { id: 'spellbook', label: 'Magic', key: 'F7' },
 ];
 
 const EQUIP_SLOTS = [
@@ -231,6 +236,7 @@ const KIND_HINT = {
   aggressive: 'trains Strength',
   defensive: 'trains Defence',
   controlled: 'trains Att/Str/Def',
+  ranged: 'trains Ranged',
 };
 
 export class TabPanel {
@@ -244,6 +250,8 @@ export class TabPanel {
       skills: document.getElementById('tab-skills'),
       inventory: document.getElementById('tab-inventory'),
       equipment: document.getElementById('tab-equipment'),
+      prayer: document.getElementById('tab-prayer'),
+      spellbook: document.getElementById('tab-spellbook'),
     };
     for (const t of TABS) {
       const b = document.createElement('button');
@@ -262,7 +270,54 @@ export class TabPanel {
     this.renderInventory();
     this.renderCombat();
     this.renderEquipment();
+    this.renderPrayers();
+    this.renderSpellbook();
     this.show(this.active);
+  }
+
+  renderPrayers() {
+    const el = this.pages.prayer;
+    el.innerHTML = '';
+    const prayers = this.ui.prayers;
+    const lvl = this.player.skillByName('Prayer').level;
+    const head = document.createElement('div');
+    head.className = 'combat-head';
+    head.innerHTML = `<div class="combat-lvl">Prayer points: <span>${prayers ? Math.ceil(prayers.points) : lvl} / ${lvl}</span></div>`;
+    el.appendChild(head);
+    for (const p of PRAYERS) {
+      const b = document.createElement('button');
+      const active = prayers?.active.has(p.id);
+      const locked = lvl < p.req;
+      b.className = 'style-btn prayer-btn' + (active ? ' active' : '') + (locked ? ' locked' : '');
+      b.innerHTML = `${p.name}<small>lvl ${p.req} · ${p.examine}</small>`;
+      b.addEventListener('click', () => prayers?.toggle(p.id));
+      el.appendChild(b);
+    }
+  }
+
+  renderSpellbook() {
+    const el = this.pages.spellbook;
+    el.innerHTML = '';
+    const magic = this.ui.magic;
+    const lvl = this.player.skillByName('Magic').level;
+    const head = document.createElement('div');
+    head.className = 'combat-head';
+    head.innerHTML = `<div class="combat-lvl">Magic level: <span>${lvl}</span></div>` +
+      `<div class="combat-lvl" style="margin-top:2px">${magic?.autocast ? 'Auto-casting' : 'Click a spell to auto-cast'}</div>`;
+    el.appendChild(head);
+    for (const s of SPELLS) {
+      const b = document.createElement('button');
+      const active = magic?.autocast === s.id;
+      const locked = lvl < s.req;
+      const css = '#' + s.color.toString(16).padStart(6, '0');
+      const cost = Object.entries(s.cost)
+        .map(([id, n]) => `${n} ${ITEMS[id].name.toLowerCase().replace(' glyph', '')}`).join(', ');
+      b.className = 'style-btn spell-btn' + (active ? ' active' : '') + (locked ? ' locked' : '');
+      b.innerHTML = `<span class="spell-dot" style="background:${css}"></span>${s.name}` +
+        `<small>lvl ${s.req} · max ${s.maxHit} · ${cost}</small>`;
+      b.addEventListener('click', () => magic?.setAutocast(s.id));
+      el.appendChild(b);
+    }
   }
 
   renderEquipment() {
@@ -272,8 +327,10 @@ export class TabPanel {
       const id = this.player.equipment[slotName];
       const row = document.createElement('div');
       row.className = 'equip-row' + (id ? ' filled' : '');
+      const countTag = slotName === 'ammo' && id && this.player.ammoCount > 0
+        ? ` ×${this.player.ammoCount}` : '';
       row.innerHTML = `<span class="equip-slot">${label}</span>` +
-        `<span class="equip-item">${id ? ITEMS[id].name : '—'}</span>`;
+        `<span class="equip-item">${id ? ITEMS[id].name + countTag : '—'}</span>`;
       if (id) row.addEventListener('mousedown', (e) => {
         if (e.button !== 0 && e.button !== 2) return;
         this.ui.menu.open([
@@ -389,6 +446,8 @@ export class UI {
     this.hpOrb = document.getElementById('hp-orb');
     this.hpFill = document.getElementById('hp-fill');
     this.hpText = document.getElementById('hp-text');
+    this.prayerFill = document.getElementById('prayer-fill');
+    this.prayerText = document.getElementById('prayer-text');
     this.fpsEl = document.getElementById('fps');
     this.banner = document.getElementById('region-banner');
     this.actionEl = document.getElementById('action-text');
@@ -400,10 +459,21 @@ export class UI {
   }
 
   /** Late-bound refs the item menus / combat displays need. */
-  bind({ world, combatLevelFn, actions }) {
+  bind({ world, combatLevelFn, actions, prayers, magic }) {
     this.world = world;
     if (combatLevelFn) this._combatLevelFn = combatLevelFn;
     if (actions) this.actions = actions;
+    if (prayers) this.prayers = prayers;
+    if (magic) this.magic = magic;
+  }
+
+  refreshPrayers() { this.panel.renderPrayers(); }
+  refreshSpellbook() { this.panel.renderSpellbook(); }
+
+  setPrayerOrb(points, max) {
+    const pct = max > 0 ? Math.round((points / max) * 100) : 0;
+    this.prayerFill.style.height = pct + '%';
+    this.prayerText.textContent = Math.ceil(points);
   }
 
   combatLevel() { return this._combatLevelFn(); }
@@ -586,6 +656,23 @@ export class UI {
     if (slot.id === 'ball_of_wool') entries.push({
       label: 'Sew wool cape',
       run: () => this.actions.startCraftCape(),
+    });
+    if (BONES[slot.id]) entries.push({
+      label: 'Bury ' + def.name,
+      run: () => this.actions.buryBones(slotIndex),
+    });
+    if (slot.id === 'logs') entries.push({
+      label: 'Fletch',
+      run: () => {
+        this.menu.open(Object.entries(FLETCHING.bows).map(([bowId, r]) => ({
+          label: `${ITEMS[bowId].name} (lvl ${r.req}, ${r.logs} logs)`,
+          run: () => this.actions.startFletchBow(slotIndex, bowId),
+        })), null);
+      },
+    });
+    if (slot.id.endsWith('_arrowtips')) entries.push({
+      label: 'Fletch arrows',
+      run: () => this.actions.startFletchArrows(slot.id),
     });
     if (slot.id === 'leather') entries.push({
       label: 'Craft leather',

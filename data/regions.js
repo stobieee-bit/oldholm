@@ -78,6 +78,10 @@ export const REGIONS = {
     // Tanning rack by the pasture (the tanner themselves remains a rumor).
     tanningRack: { x: 128.5, z: 88.8 },
 
+    // The church of Aurel, east of the north road. Door on the south wall;
+    // the altar inside restores prayer points.
+    church: { x0: 80, x1: 89, z0: 58, z1: 65 },
+
     // Fishing spots hug the west edge of the channel (x derived from the river).
     fishingSpots: [
       { type: 'net', z: 95 },
@@ -145,6 +149,24 @@ export const REGIONS = {
       { item: 'shears', x: 130.5, z: 77.8, respawn: 150 },           // at the coop
       { item: 'needle', x: 127.6, z: 89.5, respawn: 150 },           // by the tanning rack
       { item: 'thread', count: 40, x: 128.2, z: 89.8, respawn: 200 },
+      // ranged & fletching supplies
+      { item: 'knife', x: 55.5, z: 89.8, respawn: 150 },             // keep ground floor
+      { item: 'shortbow', x: 74.5, z: 84.5, respawn: 200 },          // by the gate, with a quiver
+      { item: 'bronze_arrow', count: 30, x: 74.9, z: 85.2, respawn: 200 },
+      // the arcane corner (keep upper floor): staves, glyphs, robes
+      { item: 'gale_staff', x: 51.5, z: 89.5, plane: 1, respawn: 200 },
+      { item: 'tide_staff', x: 52.5, z: 90.5, plane: 1, respawn: 200 },
+      { item: 'stone_staff', x: 51.5, z: 91.2, plane: 1, respawn: 200 },
+      { item: 'ember_staff', x: 53.5, z: 89.2, plane: 1, respawn: 200 },
+      { item: 'gale_glyph', count: 40, x: 54.5, z: 90.8, plane: 1, respawn: 180 },
+      { item: 'spirit_glyph', count: 25, x: 55.2, z: 89.8, plane: 1, respawn: 180 },
+      { item: 'sigil_glyph', count: 12, x: 55.8, z: 90.6, plane: 1, respawn: 180 },
+      { item: 'tide_glyph', count: 18, x: 54.9, z: 91.3, plane: 1, respawn: 180 },
+      { item: 'stone_glyph', count: 18, x: 56.4, z: 90.2, plane: 1, respawn: 180 },
+      { item: 'ember_glyph', count: 18, x: 56.9, z: 91.0, plane: 1, respawn: 180 },
+      { item: 'wizard_hat', x: 58.5, z: 90.8, plane: 1, respawn: 200 },
+      { item: 'wizard_robe_top', x: 59.2, z: 89.9, plane: 1, respawn: 200 },
+      { item: 'wizard_robe_bottom', x: 59.8, z: 90.7, plane: 1, respawn: 200 },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate
