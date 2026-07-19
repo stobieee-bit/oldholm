@@ -6,7 +6,9 @@
 //   { att, str, def, attBonus, strBonus, defBonus } via stats.
 
 import { ITEMS } from '../data/items.js';
-import { XP_PER_DAMAGE_STYLE, XP_PER_DAMAGE_HP } from './skills.js';
+import { MOBS } from '../data/mobs.js';
+import { styleXp } from '../data/styles.js';
+import { XP_PER_DAMAGE_HP } from './skills.js';
 
 // ---- spec §5 formulas (use exactly these) ----------------------------------
 
@@ -45,7 +47,6 @@ export function rollDamage(atk, dfn) {
 
 // ---- the engine -------------------------------------------------------------
 
-const STYLE_SKILL = { accurate: 'Attack', aggressive: 'Strength', defensive: 'Defence' };
 const MELEE_REACH = 1.8; // player center to mob center, world units
 
 const DEATH_LINES = [
@@ -63,12 +64,24 @@ export class Combat {
     this._regen = 0;
   }
 
+  /** Offensive stats for the player's current style (typed attack bonus). */
   playerStats() {
-    const s = (n) => this.player.skillByName(n).level;
-    const eq = this.player.equipBonuses();
+    const p = this.player;
+    const s = (n) => p.skillByName(n).level;
+    const style = p.currentStyle();
     return {
       att: s('Attack'), str: s('Strength'), def: s('Defence'),
-      attBonus: eq.att, strBonus: eq.str, defBonus: eq.def,
+      attBonus: p.attackBonus(style.type),
+      strBonus: p.strengthBonus(),
+      defBonus: p.defenceBonus('crush'), // generic; typed per-attacker in mobAttack
+    };
+  }
+
+  /** Defensive stats against a specific incoming attack type. */
+  playerDefence(vsType) {
+    return {
+      def: this.player.skillByName('Defence').level,
+      defBonus: this.player.defenceBonus(vsType),
     };
   }
 
@@ -118,11 +131,8 @@ export class Combat {
     mob.takeDamage(dmg, tickNo, this);
     this.ui.fx.hitsplat(() => mob.splatAnchor(), dmg);
     if (dealt > 0) {
-      const skill = STYLE_SKILL[this.player.style] ?? 'Attack';
-      const gains = [
-        [skill, XP_PER_DAMAGE_STYLE * dealt],
-        ['Hitpoints', XP_PER_DAMAGE_HP * dealt],
-      ];
+      const gains = styleXp(this.player.currentStyle().kind, dealt);
+      gains.push(['Hitpoints', XP_PER_DAMAGE_HP * dealt]);
       for (const [name, xp] of gains) this.player.addXp(name, xp, this.ui);
       this.ui.fx.xpDrop(gains);
     }
@@ -130,7 +140,8 @@ export class Combat {
 
   mobAttack(mob, tickNo) {
     const p = this.player;
-    const dmg = rollDamage(mob.stats(), this.playerStats());
+    const vsType = MOBS[mob.defId].attackType ?? 'crush';
+    const dmg = rollDamage(mob.stats(), this.playerDefence(vsType));
     p.hp = Math.max(0, p.hp - dmg);
     this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
     if (p.hp <= 0) { this.playerDie(tickNo); return; }

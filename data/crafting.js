@@ -54,6 +54,9 @@ export const LEATHER_TICKS_PER_ITEM = 3;
 // Spinning at the wheel: wool -> ball of wool.
 export const SPINNING = { input: 'wool', output: 'ball_of_wool', req: 1, xp: 2.5, ticksPer: 2 };
 
+// A wool cape: 3 balls of wool + needle & thread. Fashion for the cape slot.
+export const WOOL_CAPE = { output: 'wool_cape', balls: 3, req: 5, xp: 20, ticks: 4 };
+
 // Gem cutting with a chisel (instant, satisfying).
 export const GEMS = {
   uncut_sapphire: { cut: 'cut_sapphire', req: 20, xp: 50 },

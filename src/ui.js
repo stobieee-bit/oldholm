@@ -221,16 +221,17 @@ const TABS = [
 ];
 
 const EQUIP_SLOTS = [
-  ['head', 'Head'], ['neck', 'Neck'], ['weapon', 'Weapon'], ['body', 'Body'],
-  ['shield', 'Shield'], ['legs', 'Legs'], ['gloves', 'Gloves'], ['boots', 'Boots'],
-  ['ring', 'Ring'],
+  ['head', 'Head'], ['cape', 'Cape'], ['neck', 'Neck'], ['ammo', 'Ammo'],
+  ['weapon', 'Weapon'], ['body', 'Body'], ['shield', 'Shield'], ['legs', 'Legs'],
+  ['gloves', 'Gloves'], ['boots', 'Boots'], ['ring', 'Ring'],
 ];
 
-const STYLES = [
-  ['accurate', 'Accurate', 'trains Attack'],
-  ['aggressive', 'Aggressive', 'trains Strength'],
-  ['defensive', 'Defensive', 'trains Defence'],
-];
+const KIND_HINT = {
+  accurate: 'trains Attack',
+  aggressive: 'trains Strength',
+  defensive: 'trains Defence',
+  controlled: 'trains Att/Str/Def',
+};
 
 export class TabPanel {
   constructor(player, ui) {
@@ -282,10 +283,16 @@ export class TabPanel {
       });
       el.appendChild(row);
     }
-    const b = this.player.equipBonuses();
+    // classic-style typed bonus readout
+    const p = this.player;
     const foot = document.createElement('div');
-    foot.className = 'skill-total';
-    foot.textContent = `Atk +${b.att}  Str +${b.str}  Def +${b.def}`;
+    foot.className = 'equip-bonuses';
+    const atk = ['stab', 'slash', 'crush'].map((t) => `${t} +${p.attackBonus(t)}`).join('  ');
+    const dfn = ['stab', 'slash', 'crush'].map((t) => `${t} +${p.defenceBonus(t)}`).join('  ');
+    foot.innerHTML =
+      `<div><span>Attack</span>${atk}</div>` +
+      `<div><span>Defence</span>${dfn}</div>` +
+      `<div><span>Other</span>str +${p.strengthBonus()}</div>`;
     el.appendChild(foot);
   }
 
@@ -298,16 +305,17 @@ export class TabPanel {
     head.innerHTML = `<div class="weapon-name">${wid ? ITEMS[wid].name : 'Fists'}</div>` +
       `<div class="combat-lvl">Combat level: <span>${this.ui.combatLevel()}</span></div>`;
     el.appendChild(head);
-    for (const [id, label, hint] of STYLES) {
+    this.player.currentStyles().forEach((st, i) => {
       const b = document.createElement('button');
-      b.className = 'style-btn' + (this.player.style === id ? ' active' : '');
-      b.innerHTML = `${label}<small>${hint}</small>`;
+      b.className = 'style-btn' + (this.player.styleIndex === i ? ' active' : '');
+      b.innerHTML = `${st.name}<small>${st.kind} · ${st.type} · ${KIND_HINT[st.kind]}</small>`;
       b.addEventListener('click', () => {
-        this.player.style = id;
+        this.player.styleIndex = i;
         this.renderCombat();
+        this.renderEquipment(); // the atk bonus readout follows the style's type
       });
       el.appendChild(b);
-    }
+    });
     const auto = document.createElement('button');
     auto.className = 'style-btn retaliate' + (this.player.autoRetaliate ? ' active' : '');
     auto.innerHTML = `Auto-retaliate<small>${this.player.autoRetaliate ? 'on' : 'off'}</small>`;
@@ -574,6 +582,10 @@ export class UI {
     if (slot.id === STRINGING.input) entries.push({
       label: 'String ' + def.name,
       run: () => this.actions.stringAmulet(slotIndex),
+    });
+    if (slot.id === 'ball_of_wool') entries.push({
+      label: 'Sew wool cape',
+      run: () => this.actions.startCraftCape(),
     });
     if (slot.id === 'leather') entries.push({
       label: 'Craft leather',

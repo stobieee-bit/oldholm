@@ -7,7 +7,7 @@ import { ITEMS } from '../data/items.js';
 import { TREES, ROCKS, FISHING, FIREMAKING, COOKING, burnChance } from '../data/resources.js';
 import {
   SMELTING, SMITHABLES, SMITH_TICKS_PER_ITEM, TANNING, LEATHER_RECIPES,
-  LEATHER_TICKS_PER_ITEM, SPINNING, GEMS, GEM_CHANCE, GEM_WEIGHTS,
+  LEATHER_TICKS_PER_ITEM, SPINNING, WOOL_CAPE, GEMS, GEM_CHANCE, GEM_WEIGHTS,
   JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING,
 } from '../data/crafting.js';
 import { METAL_SMITHING } from '../data/items.js';
@@ -403,6 +403,35 @@ export class Actions {
         if (!this._give(recipeId, 'You make ' + ITEMS[recipeId].name.toLowerCase() + '.')) return;
         this._grant('Crafting', def.xp);
         if (!have()) this.cancel();
+      },
+    });
+  }
+
+  startCraftCape() {
+    const def = WOOL_CAPE;
+    const level = this.player.skillByName('Crafting').level;
+    if (!this.findTool('needle')) { this.ui.chat.add('You need a needle to sew a cape.'); return; }
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Crafting level of ${def.req} to sew a cape.`);
+      return;
+    }
+    const have = () => this._countItem('ball_of_wool') >= def.balls && this._countItem('thread') >= 1;
+    if (!have()) {
+      this.ui.chat.add(`You need ${def.balls} balls of wool and some thread for a cape.`);
+      return;
+    }
+    let cadence = 0;
+    this._start({
+      kind: 'cape',
+      startMsg: 'You begin sewing a cape.',
+      validate: have,
+      onTick: () => {
+        if (++cadence % def.ticks !== 0) return;
+        this._takeItems('ball_of_wool', def.balls);
+        this._takeItems('thread', 1);
+        if (!this._give(def.output, 'You sew a wool cape. Dashing, arguably.')) return;
+        this._grant('Crafting', def.xp);
+        this.cancel();
       },
     });
   }

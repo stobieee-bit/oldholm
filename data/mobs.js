@@ -22,6 +22,7 @@ export const MOBS = {
     examine: 'Yep, definitely a chicken.',
     stats: { att: 1, str: 1, def: 1, hp: 3 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'stab', // the peck
     speed: 4, aggroRadius: 0, wanderRadius: 3, respawnTicks: 40,
     drops: [
       { item: 'bones', count: 1, weight: 1 },       // always
@@ -47,6 +48,7 @@ export const MOBS = {
     examine: 'Converts grass into beef.',
     stats: { att: 1, str: 1, def: 1, hp: 8 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'crush', // the headbutt
     speed: 4, aggroRadius: 0, wanderRadius: 4, respawnTicks: 42,
     drops: [
       { item: 'bones', count: 1, weight: 1 },
@@ -76,6 +78,7 @@ export const MOBS = {
     examine: 'Overgrown vermin. The giant part is not a compliment.',
     stats: { att: 2, str: 3, def: 2, hp: 5 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'stab', // the bite
     speed: 4, aggroRadius: 4, wanderRadius: 4, respawnTicks: 35,
     drops: [{ item: 'bones', count: 1, weight: 1 }],
     alwaysDrops: 1,
@@ -96,6 +99,7 @@ export const MOBS = {
     examine: 'Ugly, loud, and oddly opinionated about armor colors.',
     stats: { att: 1, str: 1, def: 1, hp: 5 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'crush', // crude fists
     speed: 4, aggroRadius: 0, wanderRadius: 3, respawnTicks: 42,
     drops: [
       { item: 'bones', count: 1, weight: 1 },
@@ -123,6 +127,7 @@ export const MOBS = {
     examine: 'A goblin of consequence. The red armor is non-negotiable, apparently.',
     stats: { att: 2, str: 4, def: 3, hp: 12 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'slash', // a rusty blade, argued over at length
     speed: 4, aggroRadius: 5, wanderRadius: 3, respawnTicks: 42,
     drops: [
       { item: 'bones', count: 1, weight: 1 },
@@ -153,6 +158,7 @@ export const MOBS = {
     shear: true,       // Shear with shears -> wool (see crafting SHEARING)
     stats: { att: 1, str: 1, def: 1, hp: 5 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'crush', // hypothetical; sheep do not attack
     speed: 4, aggroRadius: 0, wanderRadius: 4, respawnTicks: 40,
     drops: [],
     alwaysDrops: 0,
@@ -176,6 +182,7 @@ export const MOBS = {
     examine: 'Eight legs, zero manners.',
     stats: { att: 1, str: 1, def: 1, hp: 2 },
     bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'stab', // fangs
     speed: 5, aggroRadius: 0, wanderRadius: 3, respawnTicks: 30,
     drops: [], // spiders drop nothing; the realm is fair like that
     alwaysDrops: 0,

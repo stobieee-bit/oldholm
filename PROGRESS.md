@@ -1,6 +1,49 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 5 — Smithing & Crafting — COMPLETE
+## Current status: Phase 6 — Equipment Depth — COMPLETE
+
+## What was built (Phase 6)
+
+- **data/styles.js**: attack style sets per weapon family (unarmed/stabber/slasher/
+  crusher) — each style has a name (Stab/Lunge/Chop/Pound/Block…), a kind
+  (accurate/aggressive/defensive/controlled), and an attack TYPE (stab/slash/crush).
+  styleXp() routes 4 xp/damage to the kind's skill; Controlled splits 1.33×3 (§4.1/§5).
+- **Per-style combat math**: the swing uses the style's attack-type column summed
+  across ALL gear (player.attackBonus(type)); defence against mobs uses the incoming
+  attack's type (every mob now declares attackType — chicken pecks stab, the strong
+  goblin slashes with his much-debated rusty blade). playerStats/playerDefence replace
+  the Phase 5 max-of-array aggregate.
+- **Weapon-driven style picker**: the Combat tab renders the wielded weapon's own
+  style set (dagger: Stab/Lunge/Slash/Block; warhammer: Pound/Pummel/Block…), showing
+  kind · type · trained skill; swapping weapons resets the stance.
+- **All 11 slots live**: cape + ammo added (spec §8 order in the Gear tab). The cape
+  slot has real content — a wool cape sewn from 3 spun balls + thread (Crafting 5);
+  ammo holds arrows when Ranged lands in Phase 7. Gear tab shows the classic typed
+  bonus readout (Attack stab/slash/crush, Defence stab/slash/crush, str).
+
+## Phase 6 — tested (live browser, real pipelines)
+
+- **DoD — measurable bronze→steel differences**: analytic — sword accuracy vs a cow
+  0.7675 → 0.7832, 2h max hit 2 → 3, 2h accuracy 0.7832 → 0.8090; empirical — 8,000
+  swings each: bronze 2h mean damage 0.774 vs steel 1.238 (**+59.9%**).
+- Style xp routing on real cow fights, exact to the decimal: Accurate → Attack only
+  (32 = 4×8), Aggressive → Strength, Defensive → Defence, Controlled → 10.64 each
+  (1.33×8) to all three; Hitpoints 1.33× always.
+- Style typing is live: dagger's Stab uses the +4 stab column, its Slash uses +2.
+  Typed defence: platebody defends 15 vs spiders (stab), 14 vs armed goblins (slash),
+  9 vs cows (crush) — routed correctly through combat.playerDefence.
+- Weapon speeds empirically: 14 dagger swings per 60 ticks (4t) vs 10 for the 2h (6t).
+- Weapon swap resets the stance; warhammer tab shows Pound/Pummel/Block. 11 gear rows.
+- Cape chain end-to-end: sheared 3 sheep → spun 3 balls → sewn ("Dashing, arguably.")
+  → worn in the cape slot. Regressions green; 1.52 ms/frame.
+
+## Definition of Done — Phase 6
+
+- [x] Measurable accuracy/max-hit differences swapping bronze → steel
+
+---
+
+## Phase 5 — Smithing & Crafting — COMPLETE
 
 ## What was built (Phase 5)
 
@@ -346,12 +389,13 @@
 
 ## Exact next step
 
-**Phase 6 — Equipment Depth**: all 11 slots live (cape + ammo remain), full bonus math
-flowing into combat — per-style attack bonuses (the §5 tri-style tables replace the
-current max-of-array aggregate), attack style picker driven by the wielded weapon's
-styles (training the right skills), weapon speeds (already applied) verified end-to-end,
-two-hand vs shield exclusivity (already enforced), tier requirements with rude messages
-(already worded). DoD: measurable accuracy/max-hit differences swapping bronze → steel.
-Items already carry full atk/def arrays and str; the main work is per-style combat
-aggregation, defender-style-aware defence, weapon-specific style sets in the Combat
-tab, and the cape/ammo slots.
+**Phase 7 — Magic, Ranged, Prayer**: spellbook UI + Strike/Bolt lines per element with
+fixed max hits and 5-tick casts, glyph stone economy (Ember/Gale/Tide/Stone + Spirit/
+Sigil/Void — staff shop is Phase 8, so seed stones via drops/spawns), elemental staves
+substituting their stones, auto-cast; shortbow/longbow + arrows (ammo slot is ready,
+~80% arrow ground-recovery), fletching under Crafting (knife + logs → bows; feathers +
+tips → arrows — arrowtips at the anvil); Prayer: bone burying (bones 4.5 xp), altar
+restore (the church needs building or a courtyard altar stand-in), 8 original prayers
+with per-tick drain and the §5.1 prayer multipliers entering the effective-level math.
+DoD: kill a goblin with each of the three styles; triangle bonuses verified (mage robes
+terrible ranged defence etc.).

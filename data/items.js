@@ -401,6 +401,12 @@ export const ITEMS = {
     icon: '<path d="M12 8a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" fill="#e0b83a"/><rect x="10.8" y="5" width="2.4" height="3" fill="#e0b83a"/>',
     model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.09, rBot: 0.09, h: 0.03 },
   },
+  wool_cape: {
+    name: 'Wool cape', examine: 'Warm. Fashion is subjective.', value: 12, stackable: false,
+    slot: 'cape', reqs: {}, atk: [0, 0, 0, 0, 0], str: 0, def: [0, 1, 1, 0, 1],
+    icon: '<path d="M8 4h8l3 15-7 2-7-2Z" fill="#e8e4da"/><path d="M8 4c1.5 2 6.5 2 8 0" stroke="#c9c4b8" stroke-width="1.4" fill="none"/>',
+    model: { kind: 'box', color: 0xe8e4da, w: 0.34, h: 0.05, d: 0.3 },
+  },
   gold_amulet: {
     name: 'Gold amulet', examine: 'Ready to dangle importantly.', value: 100, stackable: false,
     slot: 'neck', reqs: {}, def: [0, 0, 0, 0, 0],
@@ -420,19 +426,19 @@ const METALS = {
 };
 
 const WEAPON_SHAPES = {
-  dagger:     { label: 'dagger', atk: [4, 2, 1, 0, 0], str: 1, speed: 4, value: 10,
+  dagger:     { label: 'dagger', styleSet: 'stabber', atk: [4, 2, 1, 0, 0], str: 1, speed: 4, value: 10,
     examine: 'A pointy beginning.', icon: (c) => `<path d="M12 2.5 14 12l-2 2.2L10 12Z" fill="${c}"/><rect x="8.4" y="13.6" width="7.2" height="1.8" rx="0.9" fill="#6e4f33"/><rect x="11.1" y="15.2" width="1.8" height="5.2" rx="0.9" fill="#6e4f33"/>` },
-  sword:      { label: 'sword', atk: [5, 3, 1, 0, 0], str: 4, speed: 4, value: 26,
+  sword:      { label: 'sword', styleSet: 'stabber', atk: [5, 3, 1, 0, 0], str: 4, speed: 4, value: 26,
     examine: 'Short, sharp, and to the point.', icon: (c) => `<path d="M11 2h2l0.6 11h-3.2Z" fill="${c}"/><rect x="8" y="13.6" width="8" height="1.8" rx="0.9" fill="#6e4f33"/><rect x="11" y="15.4" width="2" height="5.4" rx="1" fill="#6e4f33"/>` },
-  scimitar:   { label: 'scimitar', atk: [1, 7, 1, 0, 0], str: 6, speed: 4, value: 32,
+  scimitar:   { label: 'scimitar', styleSet: 'slasher', atk: [1, 7, 1, 0, 0], str: 6, speed: 4, value: 32,
     examine: 'Curved for enthusiasm.', icon: (c) => `<path d="M7 3c6 2 9 7 8 12l-3 1c2-5 0-9-5-13Z" fill="${c}"/><rect x="10" y="15.4" width="5" height="1.8" rx="0.9" fill="#6e4f33"/><rect x="11.6" y="17" width="1.8" height="4" rx="0.9" fill="#6e4f33"/>` },
-  longsword:  { label: 'longsword', atk: [2, 8, 2, 0, 0], str: 8, speed: 5, value: 40,
+  longsword:  { label: 'longsword', styleSet: 'slasher', atk: [2, 8, 2, 0, 0], str: 8, speed: 5, value: 40,
     examine: 'Longer than a sword. Naming is hard.', icon: (c) => `<path d="M11.2 1h1.6l0.5 13h-2.6Z" fill="${c}"/><rect x="7.6" y="14.4" width="8.8" height="1.8" rx="0.9" fill="#6e4f33"/><rect x="11" y="16.2" width="2" height="5.4" rx="1" fill="#6e4f33"/>` },
-  warhammer:  { label: 'warhammer', atk: [0, 0, 9, 0, 0], str: 10, speed: 6, value: 45,
+  warhammer:  { label: 'warhammer', styleSet: 'crusher', atk: [0, 0, 9, 0, 0], str: 10, speed: 6, value: 45,
     examine: 'Diplomacy, blunt edition.', icon: (c) => `<rect x="6" y="3.5" width="12" height="7" rx="1" fill="${c}"/><rect x="10.8" y="10.5" width="2.4" height="10.5" rx="1" fill="#6e4f33"/>` },
-  battleaxe:  { label: 'battleaxe', atk: [0, 8, 6, 0, 0], str: 12, speed: 5, value: 52,
+  battleaxe:  { label: 'battleaxe', styleSet: 'slasher', atk: [0, 8, 6, 0, 0], str: 12, speed: 5, value: 52,
     examine: 'For trees that fight back.', icon: (c) => `<path d="M12 4 5 6c0 4 2 6 6 6.5V6Z" fill="${c}"/><path d="M12 4l7 2c0 4-2 6-6 6.5V6Z" fill="${c}"/><rect x="10.8" y="6" width="2.4" height="15" rx="1" fill="#6e4f33"/>` },
-  two_handed: { label: '2h sword', atk: [3, 10, 8, 0, 0], str: 14, speed: 6, value: 80, twoHanded: true,
+  two_handed: { label: '2h sword', styleSet: 'slasher', atk: [3, 10, 8, 0, 0], str: 14, speed: 6, value: 80, twoHanded: true,
     examine: 'Requires both hands and one big opinion.', icon: (c) => `<path d="M10.9 1h2.2l0.6 14h-3.4Z" fill="${c}"/><rect x="6.6" y="15.4" width="10.8" height="2" rx="1" fill="#6e4f33"/><rect x="10.9" y="17.4" width="2.2" height="5" rx="1" fill="#6e4f33"/>` },
 };
 
@@ -466,7 +472,7 @@ for (const [mid, metal] of Object.entries(METALS)) {
       name: `${metal.label} ${w.label}`,
       examine: w.examine,
       value: Math.round(w.value * metal.valueMult), stackable: false,
-      slot: 'weapon', twoHanded: !!w.twoHanded, speed: w.speed,
+      slot: 'weapon', twoHanded: !!w.twoHanded, speed: w.speed, styleSet: w.styleSet,
       reqs: { Attack: metal.equipReq },
       atk: scaleArr(w.atk, metal.mult), str: Math.round(w.str * metal.mult), def: [0, 0, 0, 0, 0],
       icon: w.icon(metal.css),

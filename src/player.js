@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { ITEMS } from '../data/items.js';
+import { STYLE_SETS, typeIndex } from '../data/styles.js';
 import { XP_TABLE, levelForXp } from './skills.js';
 
 export const SKILL_NAMES = [
@@ -67,12 +68,12 @@ export class Player {
     this.target = null;        // a mob, or null
     this.attackCooldown = 0;   // ticks until the next swing
     this.attackSpeed = 4;      // unarmed; wielding sets the weapon's speed
-    this.style = 'accurate';   // accurate|aggressive|defensive -> Attack/Strength/Defence
+    this.styleIndex = 0;       // index into the wielded weapon's style set
     this.autoRetaliate = true;
-    // equipment (9 of the 11 slots live; cape/ammo arrive with Ranged in Phase 7)
+    // all 11 equipment slots (spec §8); ammo holds arrows once Ranged lands in Phase 7
     this.equipment = {
-      weapon: null, shield: null, head: null, body: null, legs: null,
-      gloves: null, boots: null, neck: null, ring: null,
+      head: null, cape: null, neck: null, ammo: null, weapon: null,
+      body: null, shield: null, legs: null, gloves: null, boots: null, ring: null,
     };
     this.keys = { forward: false, back: false, left: false, right: false };
     this.pointerLocked = false;
@@ -268,6 +269,7 @@ export class Player {
     if (def.slot === 'weapon' || displaced.includes('weapon')) {
       const w = this.equipment.weapon ? ITEMS[this.equipment.weapon] : null;
       this.attackSpeed = w?.speed ?? 4;
+      this.styleIndex = 0; // a new weapon means a new stance
     }
     ui.chat.add(`You ${def.slot === 'weapon' ? 'wield' : 'wear'} the ${def.name.toLowerCase()}.`);
     ui.refreshInventory();
@@ -282,24 +284,55 @@ export class Player {
       return;
     }
     this.equipment[slotName] = null;
-    if (slotName === 'weapon') this.attackSpeed = 4;
+    if (slotName === 'weapon') { this.attackSpeed = 4; this.styleIndex = 0; }
     ui.chat.add('You remove the ' + ITEMS[id].name.toLowerCase() + '.');
     ui.refreshInventory();
     ui.refreshEquipment();
   }
 
-  /** Aggregate equipment bonuses for the §5 formulas (Phase 6 adds styles). */
-  equipBonuses() {
-    let att = 0, str = 0, def = 0;
-    for (const id of Object.values(this.equipment)) {
-      if (!id) continue;
-      const d = ITEMS[id];
-      str += d.str ?? 0;
-      if (d.def) def += Math.round((d.def[0] + d.def[1] + d.def[2]) / 3);
-    }
+  /** The wielded weapon's style set (unarmed when bare-fisted). */
+  currentStyles() {
     const w = this.equipment.weapon ? ITEMS[this.equipment.weapon] : null;
-    if (w?.atk) att = Math.max(...w.atk);
-    return { att, str, def };
+    return STYLE_SETS[w?.styleSet ?? 'unarmed'];
+  }
+
+  currentStyle() {
+    const styles = this.currentStyles();
+    return styles[Math.min(this.styleIndex, styles.length - 1)];
+  }
+
+  /** Attack bonus for a given attack type name, summed across all gear. */
+  attackBonus(type) {
+    const i = typeIndex(type);
+    let v = 0;
+    for (const id of Object.values(this.equipment))
+      if (id && ITEMS[id].atk) v += ITEMS[id].atk[i] ?? 0;
+    return v;
+  }
+
+  /** Defence bonus against an incoming attack type, summed across all gear. */
+  defenceBonus(type) {
+    const i = typeIndex(type);
+    let v = 0;
+    for (const id of Object.values(this.equipment))
+      if (id && ITEMS[id].def) v += ITEMS[id].def[i] ?? 0;
+    return v;
+  }
+
+  strengthBonus() {
+    let v = 0;
+    for (const id of Object.values(this.equipment))
+      if (id) v += ITEMS[id].str ?? 0;
+    return v;
+  }
+
+  /** Summary used by the Gear tab footer. */
+  equipBonuses() {
+    return {
+      att: this.attackBonus(this.currentStyle().type),
+      str: this.strengthBonus(),
+      def: this.defenceBonus('crush'),
+    };
   }
 
   /** Eat food from an inventory slot: instant heal, 3-tick attack delay (§5). */
