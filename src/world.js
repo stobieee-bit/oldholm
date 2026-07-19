@@ -542,7 +542,7 @@ export class World {
 
   _tileColor(tx, tz, centerH, out) {
     const d = this.def, c = d.castle;
-    const v = (hash2(d.seed ^ 0x51ab, tx, tz) - 0.5) * 0.06;
+    const v = (hash2(d.seed ^ 0x51ab, tx, tz) - 0.5) * 0.035; // gentler per-tile speckle → less checkerboard
 
     // castle bailey floor (flagstones), including under the walls
     if (tx >= c.x0 && tx < c.x1 && tz >= c.z0 && tz < c.z1) {
@@ -572,11 +572,19 @@ export class World {
         return;
       }
     }
-    // grass, with large dry patches and the swamp darkening southward
+    // grass: two octaves of colour — large moss-vs-dry regions + finer mottling
     const patch = this._noise(tx * 0.03 + 71.3, tz * 0.03 + 44.9);
-    let rr = lerp(0.38, 0.50, patch * 0.6) + v;
-    let gg = lerp(0.50, 0.53, patch * 0.6) + v;
-    let bb = lerp(0.28, 0.33, patch * 0.6) + v;
+    const patch2 = this._noise(tx * 0.009 + 12.7, tz * 0.009 + 5.1);
+    const dry = clamp(patch * 0.5 + patch2 * 0.62 - 0.06, 0, 1);
+    let rr = lerp(0.35, 0.53, dry) + v;
+    let gg = lerp(0.47, 0.55, dry) + v;
+    let bb = lerp(0.25, 0.35, dry) + v;
+    // soft contact shading: slope feet, hollows and banks sit a touch darker
+    const h0 = this.cornerHeight(tx, tz), h1 = this.cornerHeight(tx + 1, tz);
+    const h2 = this.cornerHeight(tx, tz + 1), h3 = this.cornerHeight(tx + 1, tz + 1);
+    const spread = Math.max(h0, h1, h2, h3) - Math.min(h0, h1, h2, h3);
+    const ao = 1 - clamp(spread, 0, 0.7) * 0.22;
+    rr *= ao; gg *= ao; bb *= ao;
     if (d.swamp) {
       const t = smoothstep((tz - d.swamp.zStart) / d.swamp.fade) *
         (d.swamp.zEnd ? (1 - smoothstep((tz - d.swamp.zEnd) / d.swamp.fade)) : 1) * 0.8;
@@ -593,9 +601,6 @@ export class World {
       if (t > 0) { rr = lerp(rr, 0.30, t); gg = lerp(gg, 0.27, t); bb = lerp(bb, 0.26, t); }
     }
     // steep faces wear through to bare rock (blend by the tile's corner spread)
-    const c0 = this.cornerHeight(tx, tz), c1 = this.cornerHeight(tx + 1, tz);
-    const c2 = this.cornerHeight(tx, tz + 1), c3 = this.cornerHeight(tx + 1, tz + 1);
-    const spread = Math.max(c0, c1, c2, c3) - Math.min(c0, c1, c2, c3);
     if (spread > 0.7) {
       const rk = clamp((spread - 0.7) / 1.1, 0, 0.82);
       rr = lerp(rr, 0.37 + v, rk); gg = lerp(gg, 0.34 + v, rk); bb = lerp(bb, 0.30 + v, rk);
