@@ -145,9 +145,12 @@ export class FX {
   }
 
   hitsplat(anchorFn, amount) {
-    const el = document.createElement('div');
-    el.className = 'hitsplat ' + (amount > 0 ? 'hs-dmg' : 'hs-zero');
-    el.textContent = amount;
+    const el = document.createElement('div'); // anchor: JS translates this
+    el.className = 'hitsplat-anchor';
+    const body = document.createElement('div'); // the splat: CSS pops this
+    body.className = 'hitsplat ' + (amount > 0 ? 'hs-dmg' : 'hs-zero');
+    body.textContent = amount;
+    el.appendChild(body);
     this.layer.appendChild(el);
     this.splats.push({ el, anchorFn, until: performance.now() + 850 });
   }
