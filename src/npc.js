@@ -29,6 +29,7 @@ function bakeMobGeometry(defId, def) {
     else g = new THREE.IcosahedronGeometry(p.r, 0);
     if (p.rotX) g.rotateX(p.rotX);
     if (p.rotY) g.rotateY(p.rotY);
+    if (p.rotZ) g.rotateZ(p.rotZ);
     g.translate(...p.at);
     color.setHex(p.color); // hex setters convert sRGB -> linear working space
     const n = g.getAttribute('position').count;
@@ -98,7 +99,17 @@ class Mob {
     if (this.dead) return;
     this.hp = Math.max(0, this.hp - dmg);
     this.lastCombatTick = tickNo;
-    if (this.hp <= 0) { this.die(tickNo, combat); return; }
+    if (this.hp <= 0) {
+      // some foes cannot die without a specific item in hand (spec §7: Ravenmoor + stake)
+      const need = this.def.needsItemToKill;
+      if (need && !combat.player.inventory.slots.some((s) => s && s.id === need)) {
+        this.hp = 1;
+        if (tickNo > (this._nagAt ?? 0)) {
+          this._nagAt = tickNo + 4;
+          combat.ui.chat.add('Your blows pass through him. He cannot be slain without the stake.', 'system');
+        }
+      } else { this.die(tickNo, combat); return; }
+    }
     if (!this.target) { this.target = 'player'; this.returning = false; } // auto-retaliate
   }
 
@@ -110,6 +121,9 @@ class Mob {
     this.respawnAt = tickNo + this.def.respawnTicks;
     if (combat.player.target === this) combat.player.target = null;
     this.rollDrops(tickNo);
+    const oq = this.def.onDeathQuest; // [questId, fromStage, toStage]
+    if (oq && combat.quests && combat.quests.stage(oq[0]) >= oq[1])
+      combat.quests.setStage(oq[0], oq[2]);
   }
 
   rollDrops(tickNo) {
@@ -117,7 +131,7 @@ class Mob {
     const opts = { despawnAtTick: tickNo + 300 }; // mob drops linger ~3 minutes
     const dropAt = (id, count) => this.world.addGroundItem(
       id, count, this.tile.x + 0.3 + Math.random() * 0.4,
-      this.tile.z + 0.3 + Math.random() * 0.4, 0, 0, opts);
+      this.tile.z + 0.3 + Math.random() * 0.4, this.plane, 0, opts);
     const roll = (e) => dropAt(e.item, Array.isArray(e.count) ? randInt(e.count[0], e.count[1]) : e.count);
     table.slice(0, this.def.alwaysDrops).forEach(roll);
     const rest = table.slice(this.def.alwaysDrops);
@@ -314,6 +328,10 @@ export class NPCManager {
     if (p === 'towerBasement') return this.world.towerBasementPlane ?? 0;
     if (p === 'corvathSewers') return this.world.sewersPlane ?? 0;
     if (p === 'guild') return this.world.guildPlane ?? 0;
+    if (p === 'iceCave') return this.world.iceCavePlane ?? 0;
+    if (p === 'corvathTomb') return this.world.tombPlane ?? 0;
+    if (p === 'manorCrypt') return this.world.manorCryptPlane ?? 0;
+    if (p === 'ashkaraCaldera') return this.world.calderaPlane ?? 0;
     return p ?? 0;
   }
 

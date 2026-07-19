@@ -240,6 +240,10 @@ export class Player {
     if (!slot) return;
     const def = ITEMS[slot.id];
     if (!def.slot) return;
+    if (def.equipQuest && ui.quests && !ui.quests.complete(def.equipQuest)) {
+      ui.chat.add('You have not earned the right to wear this. The wyrm must fall first.');
+      return;
+    }
     for (const [skill, lvl] of Object.entries(def.reqs ?? {})) {
       if (this.skillByName(skill).level < lvl) {
         const verb = def.slot === 'weapon' ? 'wield' : 'wear';

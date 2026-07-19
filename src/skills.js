@@ -574,6 +574,31 @@ export class Actions {
     this.ui.refreshInventory();
   }
 
+  /** Instant: poison fish food (Phase 11 manor puzzle). */
+  poisonFishFood() {
+    if (this._countItem('poison') < 1 || this._countItem('fish_food') < 1) {
+      this.ui.chat.add('You need both fish food and a vial of poison.');
+      return;
+    }
+    this._takeItems('poison', 1);
+    this._takeItems('fish_food', 1);
+    if (!this.player.inventory.add('poisoned_food', 1)) { this.ui.chat.add('Your pack is full.'); return; }
+    this.ui.chat.add('You lace the fish food with poison. The flakes glisten unwholesomely.');
+    this.ui.refreshInventory();
+  }
+
+  /** Rub a combat xp lamp: choose a combat skill, gain a chunk of xp. */
+  rubLamp(slotIndex, skillName) {
+    const slot = this.player.inventory.slots[slotIndex];
+    if (!slot || slot.id !== 'combat_lamp') return;
+    const LAMP_XP = 4000;
+    if (slot.count > 1) slot.count--;
+    else this.player.inventory.slots[slotIndex] = null;
+    this._grant(skillName, LAMP_XP);
+    this.ui.chat.add(`You rub the lamp. ${LAMP_XP} ${skillName} xp flows into you.`, 'system');
+    this.ui.refreshInventory();
+  }
+
   /** Instant: milk the dairy cow into an empty bucket. */
   milkCow(mob) {
     if (mob.dead) return;

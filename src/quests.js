@@ -2,7 +2,7 @@
 // The quest state machine: stage ints per quest (0 = not started,
 // 100 = complete), journal queries, rewards, and the completion fanfare.
 
-import { QUESTS, QUEST_ORDER } from '../data/quests.js';
+import { QUESTS, QUEST_ORDER, CHAMPIONS_QP_GATE } from '../data/quests.js';
 
 export class Quests {
   constructor(player, ui) {
@@ -63,4 +63,7 @@ export class Quests {
   // gates other systems ask about
   rangeUnlocked() { return this.complete('cooks_calamity'); }
   glyphcraftUnlocked() { return this.complete('severed_circle'); }
+  championsGuildOpen() { return this.questPoints() >= CHAMPIONS_QP_GATE; }
+  /** Can this item be equipped? (quest-gated capstone gear, spec §8.) */
+  canEquip(item) { return !item.equipQuest || this.complete(item.equipQuest); }
 }

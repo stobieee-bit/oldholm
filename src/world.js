@@ -119,7 +119,15 @@ export class World {
     this._buildTowns();
     this._buildSewers();
     this._buildMiningGuild();
-    this._buildMine(); // after the guild so its basement plane exists
+    // Phase 11 dungeons & sites (build planes before mines/ground items resolve them)
+    this._buildIceCave();
+    this._buildTomb();
+    this._buildCaldera();
+    this._buildManorInterior();
+    this._buildChampionsGuild();
+    this._buildDocks();
+    this._buildTollGate();
+    this._buildMine(); // after the guilds/caves so their basement planes exist
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -258,6 +266,17 @@ export class World {
     return (this.flags[tz * this.size + tx] & FLAG_WATER) !== 0;
   }
 
+  /** Remove up to n coins from a player's pack (tolls, fares). */
+  _spendCoins(player, n) {
+    for (let i = 0; i < player.inventory.slots.length && n > 0; i++) {
+      const s = player.inventory.slots[i];
+      if (!s || s.id !== 'coins') continue;
+      const take = Math.min(n, s.count);
+      s.count -= take; n -= take;
+      if (s.count <= 0) player.inventory.slots[i] = null;
+    }
+  }
+
   markBlockedRect(tx0, tz0, tx1, tz1) {
     for (let tz = tz0; tz <= tz1; tz++)
       for (let tx = tx0; tx <= tx1; tx++)
@@ -285,6 +304,17 @@ export class World {
         for (const [freq, amp] of d.noise.octaves)
           h += (n(cx * freq + 31.7, cz * freq + 17.3) - 0.5) * 2 * amp;
 
+        // Phase 11: desert dunes (gentle rolling swells around Sunmarch)
+        if (d.desert) {
+          const dt = this._bandWeight(cx, cz, d.desert);
+          if (dt > 0) h += dt * (n(cx * 0.03 + 200.1, cz * 0.03 + 300.7) - 0.5) * 2 * d.desert.dune;
+        }
+        // Phase 11: the Blight roughens the ground into cracked ridges
+        if (d.blight) {
+          const bt = this._bandWeight(cx, cz, d.blight);
+          if (bt > 0) h += bt * (n(cx * 0.09 + 411.3, cz * 0.09 + 511.9) - 0.5) * 2 * d.blight.roughen;
+        }
+
         // rim hills so the region reads as a valley, not a table edge
         const edge = Math.min(cx, cz, size - cx, size - cz);
         if (edge < d.rim.width) {
@@ -297,6 +327,12 @@ export class World {
           let t = smoothstep((cz - d.swamp.zStart) / d.swamp.fade);
           if (d.swamp.zEnd) t *= 1 - smoothstep((cz - d.swamp.zEnd) / d.swamp.fade);
           h -= t * (d.swamp.sink + n(cx * 0.07 + 53.1, cz * 0.07 + 91.7) * d.swamp.sinkVar);
+        }
+
+        // Phase 11: the southern sea — terrain drops below the waterline
+        if (d.sea) {
+          const t = smoothstep((cz - d.sea.zStart) / d.sea.fade);
+          if (t > 0) h = lerp(h, d.sea.floorH + n(cx * 0.1 + 7.7, cz * 0.1 + 9.9) * 0.6, t);
         }
 
         // carve the river channel — fading the carve out near the border so the
@@ -326,9 +362,31 @@ export class World {
           if (fd < m) h = lerp(f.h, h, smoothstep(fd / m));
         }
 
+        // Phase 11: islands rise from the sea, with volcano cones
+        for (const isl of d.islands ?? []) {
+          const dr = Math.hypot(cx - isl.x, cz - isl.z);
+          if (dr < isl.r) {
+            const t = smoothstep((isl.r - dr) / isl.rim);
+            h = lerp(h, isl.h, t);
+            const v = isl.volcano;
+            if (v && dr < v.r) {
+              const vt = smoothstep((v.r - dr) / (v.r * 0.5));
+              h += vt * v.h;
+              if (dr < v.caldera) h -= smoothstep((v.caldera - dr) / v.caldera) * (v.h + 2); // the crater
+            }
+          }
+        }
+
         this.heights[cz * (size + 1) + cx] = h;
       }
     }
+  }
+
+  /** 1 inside a rectangular band, fading to 0 over `fade` tiles outside it. */
+  _bandWeight(cx, cz, b) {
+    const dx = Math.max(b.x0 - cx, cx - b.x1, 0);
+    const dz = Math.max(b.z0 - cz, cz - b.z1, 0);
+    return 1 - smoothstep(Math.max(dx, dz) / (b.fade ?? 8));
   }
 
   _computeBridgeSpan() {
@@ -417,14 +475,36 @@ export class World {
       out[0] = 0.50 + v; out[1] = 0.43 + v; out[2] = 0.30 + v;
       return;
     }
+    // Phase 11: the volcano's bare rock near Ashkara's caldera
+    for (const isl of d.islands ?? []) {
+      const vv = isl.volcano;
+      if (!vv) continue;
+      const dr = Math.hypot(tx + 0.5 - isl.x, tz + 0.5 - isl.z);
+      if (dr < vv.r + 1) {
+        const t = clamp((vv.r + 1 - dr) / vv.r, 0, 1);
+        out[0] = lerp(0.42, 0.24, t) + v; out[1] = lerp(0.44, 0.18, t) + v; out[2] = lerp(0.30, 0.16, t) + v;
+        return;
+      }
+    }
     // grass, with large dry patches and the swamp darkening southward
     const patch = this._noise(tx * 0.03 + 71.3, tz * 0.03 + 44.9);
     let rr = lerp(0.38, 0.50, patch * 0.6) + v;
     let gg = lerp(0.50, 0.53, patch * 0.6) + v;
     let bb = lerp(0.28, 0.33, patch * 0.6) + v;
     if (d.swamp) {
-      const t = smoothstep((tz - d.swamp.zStart) / d.swamp.fade) * 0.8;
+      const t = smoothstep((tz - d.swamp.zStart) / d.swamp.fade) *
+        (d.swamp.zEnd ? (1 - smoothstep((tz - d.swamp.zEnd) / d.swamp.fade)) : 1) * 0.8;
       rr = lerp(rr, 0.30, t); gg = lerp(gg, 0.36, t); bb = lerp(bb, 0.26, t);
+    }
+    // Phase 11: desert sand blends in around Sunmarch
+    if (d.desert) {
+      const t = this._bandWeight(tx + 0.5, tz + 0.5, d.desert);
+      if (t > 0) { rr = lerp(rr, 0.76, t); gg = lerp(gg, 0.66, t); bb = lerp(bb, 0.42, t); }
+    }
+    // Phase 11: the Blight — ashen grey, cracked and lifeless
+    if (d.blight) {
+      const t = this._bandWeight(tx + 0.5, tz + 0.5, d.blight);
+      if (t > 0) { rr = lerp(rr, 0.30, t); gg = lerp(gg, 0.27, t); bb = lerp(bb, 0.26, t); }
     }
     out[0] = rr; out[1] = gg; out[2] = bb;
   }
@@ -882,6 +962,11 @@ export class World {
         const bb = tn.bounds;
         if (bb && tx >= bb.x0 - 2 && tx < bb.x1 + 2 && tz >= bb.z0 - 2 && tz < bb.z1 + 2) return true;
       }
+      // no random forests in the desert or the ashen Blight
+      const de = d.desert;
+      if (de && tx >= de.x0 && tx < de.x1 && tz >= de.z0 && tz < de.z1) return true;
+      const bl = d.blight;
+      if (bl && tx >= bl.x0 && tx < bl.x1 && tz >= bl.z0 && tz < bl.z1) return true;
       const s = d.trees.minSpacing;
       for (let dz = -s; dz <= s; dz++)
         for (let dx = -s; dx <= s; dx++)
@@ -1691,6 +1776,419 @@ export class World {
     });
   }
 
+  // ---- Phase 11 dungeons, docks, guild, toll ---------------------------------
+
+  /** A square underground chamber on a fresh plane. Returns the plane index. */
+  _undergroundChamber(cx, cz, r, by, color) {
+    const p = this.addPlane(by);
+    const stone = new THREE.MeshLambertMaterial({ color, flatShading: true });
+    for (let tx = cx - r; tx <= cx + r; tx++)
+      for (let tz = cz - r; tz <= cz + r; tz++)
+        this.setPlaneTile(p, tx, tz, by, Math.max(Math.abs(tx - cx), Math.abs(tz - cz)) === r);
+    const w = 2 * r + 2;
+    this._addBox(w, 0.3, w, cx + 0.5, by - 0.15, cz + 0.5, stone);       // floor
+    this._addBox(w, 0.3, w, cx + 0.5, by + 3.6, cz + 0.5, stone);        // ceiling
+    for (const [dx, dz, ww, dd] of [[0, -(r + 0.5), w + 0.5, 0.5], [0, r + 0.5, w + 0.5, 0.5], [-(r + 0.5), 0, 0.5, w], [r + 0.5, 0, 0.5, w]])
+      this._addBox(ww, 3.9, dd, cx + 0.5 + dx, by + 1.75, cz + 0.5 + dz, stone);
+    return p;
+  }
+
+  /** A surface trapdoor + matching plane ladder between the world and a plane. */
+  _addDungeonPortal(sx, sz, plane, ax, az, by, opts) {
+    const dk = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const sy = this.getGroundHeight(sx, sz);
+    const trap = this._addBox(0.95, 0.09, 0.95, sx, sy + 0.05, sz, dk);
+    this.addInteractable({
+      kind: 'ladder', name: opts.name ?? 'Ladder', meshes: [trap],
+      examine: opts.downExamine ?? 'Down into the dark.',
+      actions: [{
+        label: 'Climb-down',
+        fn: (ctx) => {
+          if (opts.gate && !opts.gate(ctx)) return;
+          ctx.player.setPosition(ax, az, undefined, plane);
+          ctx.ui.chat.add(opts.downMsg ?? 'You descend.');
+          if (opts.onDown) opts.onDown(ctx);
+        },
+      }],
+    });
+    const up = this._addBox(0.95, 0.09, 0.95, ax, by + 0.06, az, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'Ladder', meshes: [up],
+      examine: 'Back to the surface.',
+      actions: [{
+        label: 'Climb-up',
+        fn: (ctx) => { ctx.player.setPosition(sx, sz, undefined, 0); ctx.ui.chat.add(opts.upMsg ?? 'You climb out.'); },
+      }],
+    });
+  }
+
+  _buildIceCave() {
+    const c = this.def.iceCave;
+    if (!c) return;
+    const by = -6;
+    const p = this._undergroundChamber(c.cx, c.cz, c.r, by, 0x8ab0c0);
+    this.iceCavePlane = p;
+    // frost pillars + coldiron veins (on the plane)
+    const ice = new THREE.MeshLambertMaterial({ color: 0xc8e8f0, flatShading: true });
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2;
+      const pil = this._addBox(0.5, 3.6, 0.5, c.cx + 0.5 + Math.cos(a) * (c.r - 2), by + 1.8, c.cz + 0.5 + Math.sin(a) * (c.r - 2), ice);
+    }
+    this._buildOneMine({ x: c.cx, z: c.cz, rocks: c.rocks }, p);
+    this._addDungeonPortal(c.entrance.x, c.entrance.z, p, c.cx + 0.5, c.cz - 2.5, by, {
+      name: 'Ice cave mouth', downExamine: 'Cold breathes up from a jagged hole.',
+      downMsg: 'You edge down into the ice cave. Your breath fogs.',
+      upMsg: 'You climb out of the frost.',
+    });
+  }
+
+  _buildTomb() {
+    const t = this.def.tomb;
+    if (!t) return;
+    const by = -8;
+    const p = this._undergroundChamber(t.cx, t.cz, t.r, by, 0x4a4652);
+    this.tombPlane = p;
+    // the summoning circle (decor) and Dawnbrand's reliquary
+    const rune = new THREE.MeshLambertMaterial({ color: 0x8f2f4a, emissive: 0x3a0f1a });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.12, 6, 20), rune);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(t.cx + 0.5, by + 0.1, t.cz + 0.5);
+    this.group.add(ring);
+    this.addInteractable({
+      kind: 'scenery', name: 'Summoning circle', meshes: [ring],
+      examine: 'Malgrim’s mark, half-drawn. Something wants finishing.',
+      actions: [{
+        label: 'Speak-the-wards',
+        fn: (ctx) => this._speakWards(ctx),
+      }],
+    });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
+    const gold = new THREE.MeshLambertMaterial({ color: 0xe0b83a });
+    const relMeshes = [
+      this._addBox(1.2, 1.2, 0.8, t.cx + 0.5, by + 0.6, t.cz - t.r + 1.5, stone),
+      this._addBox(1.4, 0.16, 1.0, t.cx + 0.5, by + 1.28, t.cz - t.r + 1.5, gold),
+    ];
+    this.addInteractable({
+      kind: 'reliquary', name: "Dawnbrand's reliquary", meshes: relMeshes,
+      examine: 'A blessed blade sleeps within, behind three locks.',
+      actions: [{ label: 'Open', fn: (ctx) => this._openReliquary(ctx) }],
+    });
+    this._addDungeonPortal(t.entrance.x, t.entrance.z, p, t.cx + 0.5, t.cz - t.r + 1.5 + 2, by, {
+      name: 'Tomb trapdoor', downExamine: 'A sealed slab, recently disturbed.',
+      downMsg: 'You descend into the sealed tomb. The air is very old.',
+      upMsg: 'You climb up from the tomb.',
+    });
+  }
+
+  _speakWards(ctx) {
+    const q = ctx.quests;
+    if (!q || q.stage('shadow_over_corvath') < 2) { ctx.ui.chat.add('The circle is quiet. You have nothing to say to it yet.'); return; }
+    if (q.stage('shadow_over_corvath') >= 3) { ctx.ui.chat.add('Zarkhul is already loose. Less talking, more Dawnbrand.'); return; }
+    const has = (id) => ctx.player.inventory.slots.some((s) => s && s.id === id);
+    if (!has('warding_words') || !has('dawnbrand')) { ctx.ui.chat.add('You need the warding words and Dawnbrand in hand.'); return; }
+    ctx.ui.chat.add('You speak the warding words. The circle flares — and ZARKHUL claws his way through!', 'system');
+    q.setStage('shadow_over_corvath', 3);
+    ctx.npcs?.unhide('zarkhul');
+  }
+
+  _openReliquary(ctx) {
+    const q = ctx.quests;
+    const inv = ctx.player.inventory;
+    const has = (id) => inv.slots.some((s) => s && s.id === id);
+    if (has('dawnbrand')) { ctx.ui.chat.add('The reliquary is empty. Dawnbrand is yours already.'); return; }
+    if (!(has('key_stone') && has('key_flame') && has('key_deep'))) {
+      ctx.ui.chat.add('Three locks, three keys. You are short. Answer the wardens’ riddles.');
+      return;
+    }
+    for (const k of ['key_stone', 'key_flame', 'key_deep']) {
+      const i = inv.slots.findIndex((s) => s && s.id === k);
+      if (i !== -1) inv.slots[i] = null;
+    }
+    inv.add('dawnbrand', 1);
+    inv.add('warding_words', 1);
+    ctx.ui.chat.add('The reliquary opens. You take Dawnbrand and a slip of warding words.', 'system');
+    if (q && q.stage('shadow_over_corvath') === 1) q.setStage('shadow_over_corvath', 2);
+    ctx.ui.refreshInventory();
+  }
+
+  _buildCaldera() {
+    const c = this.def.caldera;
+    if (!c) return;
+    const by = 6; // the caldera arena sits high in the crater
+    const p = this.addPlane(by);
+    this.calderaPlane = p;
+    const rock = new THREE.MeshLambertMaterial({ color: 0x3a221a, flatShading: true });
+    const lava = new THREE.MeshLambertMaterial({ color: 0xd8531a, emissive: 0x8a2a08 });
+    for (let tx = c.cx - c.r; tx <= c.cx + c.r; tx++)
+      for (let tz = c.cz - c.r; tz <= c.cz + c.r; tz++) {
+        const edge = Math.max(Math.abs(tx - c.cx), Math.abs(tz - c.cz)) >= c.r;
+        this.setPlaneTile(p, tx, tz, by, edge);
+      }
+    const w = 2 * c.r + 2;
+    this._addBox(w, 0.3, w, c.cx + 0.5, by - 0.15, c.cz + 0.5, rock);
+    // lava pools ringing the arena
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const pool = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.1, 8), lava);
+      pool.position.set(c.cx + 0.5 + Math.cos(a) * (c.r - 1.5), by + 0.02, c.cz + 0.5 + Math.sin(a) * (c.r - 1.5));
+      this.group.add(pool);
+    }
+    // the only way IN is the one-way boat; a raft lets you leave (esp. after victory)
+    this.calderaArrive = c.arrive;
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const raft = this._addBox(1.4, 0.3, 2.0, c.cx + 0.5, by + 0.1, c.cz + c.r - 1.5, wood);
+    this.addInteractable({
+      kind: 'boat', name: 'Rickety raft', meshes: [raft],
+      examine: 'It floated you in. It might, generously, float you out.',
+      actions: [{
+        label: 'Leave-the-caldera',
+        fn: (ctx) => {
+          const d = this.def.docks;
+          ctx.player.setPosition(d.x + 0.0, d.z1 - 1, undefined, 0);
+          ctx.ui.chat.add('The raft carries you back to Gullwick, mostly dry.');
+        },
+      }],
+    });
+  }
+
+  _buildManorInterior() {
+    const m = this.def.manor;
+    if (!m) return;
+    const b = m.building;
+    const y = this.getGroundHeight((b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2);
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4432, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2028, flatShading: true });
+    const iron = new THREE.MeshLambertMaterial({ color: 0x4a4a52, flatShading: true });
+
+    // interior partition splitting off the east study (behind the puzzle door)
+    const studyX = b.x1 - 4; // wall column
+    for (let tz = b.z0 + 1; tz < b.z1 - 1; tz++) {
+      if (tz === m.entry.z) continue; // the study doorway row
+      this._addBox(0.4, 3.0, 1, studyX + 0.5, y + 1.4, tz + 0.5, wood);
+      this.setTileBlocked(studyX, tz, true);
+    }
+    const studyDoorTile = { x: studyX, z: m.entry.z };
+    this.setTileBlocked(studyDoorTile.x, studyDoorTile.z, true);
+    const doorHinge = new THREE.Group();
+    doorHinge.position.set(studyX + 0.5, y, m.entry.z + 0.02);
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.6, 0.98), wood);
+    panel.position.set(0, 1.3, 0.49);
+    doorHinge.add(panel);
+    this.group.add(doorHinge);
+
+    // the puzzle state — the odd levers (1,3,5) open the study door
+    const puzzle = { levers: [false, false, false, false, false, false], oiled: false, piranhaClear: false, open: false };
+    this.manorPuzzle = puzzle;
+    const checkSolved = (ctx) => {
+      const solved = puzzle.levers[0] && puzzle.levers[2] && puzzle.levers[4];
+      if (solved && !puzzle.open) {
+        puzzle.open = true;
+        doorHinge.rotation.y = -Math.PI / 2;
+        this.setTileBlocked(studyDoorTile.x, studyDoorTile.z, false);
+        ctx.npcs?.unhide('professor');
+        ctx.ui.chat.add('Deep in the manor, a warded door grinds open. A muffled cluck of relief follows.', 'system');
+      }
+    };
+
+    // six levers along the west wall
+    const leverBase = b.x0 + 2;
+    for (let i = 0; i < 6; i++) {
+      const lx = leverBase + (i % 3) * 1.4, lz = b.z0 + 2 + Math.floor(i / 3) * 2;
+      const stuck = i === 2, piranha = i === 4;
+      const lever = this._addBox(0.14, 0.8, 0.14, lx, y + 0.5, lz, iron);
+      const idx = i;
+      const actions = [{
+        label: 'Pull',
+        fn: (ctx) => {
+          if (stuck && !puzzle.oiled) { ctx.ui.chat.add('The lever will not budge. Rust has claimed it. (Oil it.)'); return; }
+          if (piranha && !puzzle.piranhaClear) { ctx.ui.chat.add('You reach for the lever; the piranhas lunge. Deal with them first.'); return; }
+          puzzle.levers[idx] = !puzzle.levers[idx];
+          lever.rotation.z = puzzle.levers[idx] ? 0.6 : 0;
+          lever.updateMatrix();
+          ctx.ui.chat.add(`Lever ${idx + 1} clunks ${puzzle.levers[idx] ? 'up' : 'down'}.`);
+          checkSolved(ctx);
+        },
+      }];
+      if (stuck) actions.unshift({
+        label: 'Oil',
+        fn: (ctx) => {
+          if (puzzle.oiled) { ctx.ui.chat.add('Already oiled. It swings freely now.'); return; }
+          const oi = ctx.player.inventory.slots.findIndex((s) => s && s.id === 'oil_can');
+          if (oi === -1) { ctx.ui.chat.add('You need an oil can for this.'); return; }
+          puzzle.oiled = true;
+          ctx.ui.chat.add('You work oil into the rust. The lever gives a promising creak.', 'system');
+        },
+      });
+      this.addInteractable({
+        kind: 'lever', name: `Lever ${i + 1}`, meshes: [lever],
+        examine: stuck ? 'Rusted solid. It needs oil.' : piranha ? 'Slick with fountain-spray. The piranhas guard it.' : 'A brass lever, worn smooth.',
+        actions,
+      });
+    }
+    // a hint plaque
+    const plaque = this._addBox(0.8, 0.5, 0.06, b.x0 + 4, y + 1.4, b.z0 + 0.6, wood);
+    this.addInteractable({
+      kind: 'scenery', name: 'Brass plaque', meshes: [plaque],
+      examine: 'Etched: "Let the ODD stand tall, and the way is thine."',
+      actions: [],
+    });
+
+    // the piranha fountain
+    const fx = b.x0 + 8, fz = b.z0 + 6;
+    const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.7, 10), new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true }));
+    basin.position.set(fx + 0.5, y + 0.35, fz + 0.5);
+    const water = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.1, 10), new THREE.MeshLambertMaterial({ color: 0x8a2a2a, transparent: true, opacity: 0.85 }));
+    water.position.set(fx + 0.5, y + 0.66, fz + 0.5);
+    this.group.add(basin, water);
+    this.occluders.push(basin);
+    this.markBlockedCircle(fx + 0.5, fz + 0.5, 1.6);
+    this.manorFountain = { water };
+    this.addInteractable({
+      kind: 'fountain', name: 'Piranha fountain', meshes: [basin],
+      examine: 'The water churns with teeth. A snack — a poisoned one — might settle them.',
+      actions: [{ label: 'Feed-poison', fn: (ctx) => this._feedPiranhas(ctx) }],
+    });
+
+    // ---- the crypt (Ravenmoor sleeps below) ----
+    const cby = -7;
+    const cp = this._undergroundChamber(m.crypt.cx, m.crypt.cz, m.crypt.r, cby, 0x3a3640);
+    this.manorCryptPlane = cp;
+    // a stone sarcophagus at the crypt's heart
+    const sarc = this._addBox(1.2, 0.8, 2.4, m.crypt.cx + 0.5, cby + 0.4, m.crypt.cz + 0.5, new THREE.MeshLambertMaterial({ color: 0x5a5560, flatShading: true }));
+    this.addInteractable({
+      kind: 'scenery', name: 'Sarcophagus', meshes: [sarc],
+      examine: 'Lord Ravenmoor’s bed. The lid is ajar.', actions: [],
+    });
+    this._addDungeonPortal(m.cryptStair.x, m.cryptStair.z, cp, m.crypt.cx + 0.5, m.crypt.cz - m.crypt.r + 1.5, cby, {
+      name: 'Crypt stair', downExamine: 'Worn steps spiral into cold dark.',
+      downMsg: 'You descend into the manor crypt.',
+      upMsg: 'You climb up from the crypt.',
+      onDown: (ctx) => {
+        if (ctx.quests && ctx.quests.stage('lord_of_murkwell') >= 1) ctx.npcs?.unhide('ravenmoor');
+      },
+    });
+  }
+
+  _feedPiranhas(ctx) {
+    if (this.manorPuzzle?.piranhaClear) { ctx.ui.chat.add('The fountain is still. The piranhas are past caring.'); return; }
+    const i = ctx.player.inventory.slots.findIndex((s) => s && s.id === 'poisoned_food');
+    if (i === -1) { ctx.ui.chat.add('You need poisoned fish food. (Poison some fish food first.)'); return; }
+    ctx.player.inventory.slots[i] = null;
+    this.manorPuzzle.piranhaClear = true;
+    if (this.manorFountain) this.manorFountain.water.material.color.setHex(0x2a3a4a);
+    ctx.ui.chat.add('You scatter the poisoned flakes. The churning stops. The lever is yours.', 'system');
+    ctx.ui.refreshInventory();
+  }
+
+  _buildChampionsGuild() {
+    // find the guild building among the towns and gate its door on quest points
+    let g = null;
+    for (const t of this.def.towns ?? [])
+      for (const bl of t.buildings ?? [])
+        if (bl.name === "Champions' Guild") g = bl;
+    if (!g) return;
+    const doorZ = g.z1 - 1, doorX = Math.floor((g.x0 + g.x1) / 2);
+    this.setTileBlocked(doorX, doorZ, true); // sealed until 12 QP
+    const y = this.getGroundHeight(doorX, doorZ);
+    const barMat = new THREE.MeshLambertMaterial({ color: 0xb0a878, flatShading: true });
+    const bars = this._addBox(1, 2.4, 0.2, doorX + 0.5, y + 1.2, doorZ + 0.5, barMat);
+    this.championsGate = { tile: { x: doorX, z: doorZ }, open: false, bars };
+    this.addInteractable({
+      kind: 'door', name: 'Guild door', meshes: [bars],
+      examine: 'Barred. It opens for the proven — twelve quest points’ worth.',
+      actions: [{
+        label: 'Enter',
+        fn: (ctx) => {
+          if (this.championsGate.open) { ctx.ui.chat.add('The way is open. Walk in.'); return; }
+          if (!ctx.quests || !ctx.quests.championsGuildOpen()) {
+            ctx.ui.chat.add(`The door does not stir. (You need 12 quest points — you have ${ctx.quests?.questPoints() ?? 0}.)`);
+            return;
+          }
+          this.championsGate.open = true;
+          this.setTileBlocked(this.championsGate.tile.x, this.championsGate.tile.z, false);
+          this.group.remove(bars);
+          this.removeInteractable(this.championsGate.entry);
+          ctx.ui.chat.add('The bars withdraw. The Champions’ Guild admits you.', 'system');
+        },
+      }],
+    });
+    this.championsGate.entry = this.interactables[this.interactables.length - 1];
+  }
+
+  _buildDocks() {
+    const d = this.def.docks;
+    if (!d) return;
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const deckH = 1.0;
+    // the pier: walkable deck tiles over the sea (override the water)
+    for (let tz = d.z0; tz <= d.z1; tz++) {
+      for (const tx of [d.x - 1, d.x]) this.overrides.set(tx + ',' + tz, { h: deckH, blocked: false });
+      this._addBox(2, 0.3, 1, d.x + 0.0, deckH - 0.15, tz + 0.5, wood);
+      // pilings
+      if (tz % 3 === 0) {
+        const pile = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 4.5, 6), wood);
+        pile.position.set(d.x + 0.0, deckH - 2.4, tz + 0.5);
+        this.group.add(pile); this.occluders.push(pile);
+      }
+    }
+    // the leaky charter boat at the pier's end
+    const bx = d.boat.x, bz = d.boat.z;
+    const hull = this._addBox(1.6, 0.6, 3.0, bx, deckH - 0.1, bz, wood);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.6, 6), wood);
+    mast.position.set(bx, deckH + 1.2, bz);
+    this.group.add(mast);
+    this.addInteractable({
+      kind: 'boat', name: 'Charter boat', meshes: [hull, mast],
+      examine: 'A leaky one-way boat to Ashkara. The ferryman insists it floats.',
+      actions: [{ label: 'Sail-to-Ashkara', fn: (ctx) => this._sailToAshkara(ctx) }],
+    });
+  }
+
+  _sailToAshkara(ctx) {
+    const q = ctx.quests;
+    if (!q || q.stage('wyrm_of_ashkara') < 2) { ctx.ui.chat.add('You have no reason — or chart — to sail into a volcano yet.'); return; }
+    const coins = ctx.player.inventory.slots.reduce((a, s) => a + (s && s.id === 'coins' ? s.count : 0), 0);
+    if (coins < 30) { ctx.ui.chat.add('The ferryman wants 30 gold for the crossing. You are short.'); return; }
+    this._spendCoins(ctx.player, 30);
+    ctx.player.setPosition(this.calderaArrive.x, this.calderaArrive.z, undefined, this.calderaPlane);
+    ctx.npcs?.unhide('cindermaw');
+    if (q.stage('wyrm_of_ashkara') === 2) q.setStage('wyrm_of_ashkara', 3);
+    ctx.ui.chat.add('The boat lurches, leaks, and lands you in the caldera. Cindermaw uncoils.', 'system');
+    ctx.ui.refreshInventory();
+  }
+
+  _buildTollGate() {
+    const t = this.def.tollGate;
+    if (!t) return;
+    // block the gate gap until the toll is paid
+    this.setTileBlocked(t.x, t.z, true);
+    this.setTileBlocked(t.x - 1, t.z, true);
+    const y = this.getGroundHeight(t.x, t.z);
+    const barMat = new THREE.MeshLambertMaterial({ color: 0x8a6a3a, flatShading: true });
+    const bar = this._addBox(2, 0.3, 0.4, t.x, y + 1.3, t.z + 0.5, barMat);
+    this.tollGate = { open: false, tiles: [[t.x, t.z], [t.x - 1, t.z]], bar };
+    let entry;
+    entry = this.addInteractable({
+      kind: 'toll', name: 'Toll gate', meshes: [bar],
+      examine: `Ten gold to pass into Sunmarch. The desert is free; the guard is not.`,
+      actions: [{
+        label: 'Pay-toll',
+        fn: (ctx) => {
+          if (this.tollGate.open) { ctx.ui.chat.add('The toll is paid. Pass freely.'); return; }
+          const coins = ctx.player.inventory.slots.reduce((a, s) => a + (s && s.id === 'coins' ? s.count : 0), 0);
+          if (coins < t.cost) { ctx.ui.chat.add(`The guard shakes his head. (You need ${t.cost} gold.)`); return; }
+          this._spendCoins(ctx.player, t.cost);
+          this.tollGate.open = true;
+          for (const [bx, bz] of this.tollGate.tiles) this.setTileBlocked(bx, bz, false);
+          this.group.remove(bar);
+          this.removeInteractable(entry);
+          ctx.ui.chat.add('You pay the toll. The bar lifts. Welcome to Sunmarch.', 'system');
+          ctx.ui.refreshInventory();
+        },
+      }],
+    });
+  }
+
   // ---- Phase 9: windmill, wizard tower, churchyard, gale altar, pickables ------------
 
   _buildWindmill() {
@@ -2221,9 +2719,18 @@ export class World {
 
   // ---- ground items ----------------------------------------------------------
 
+  _planeKey(key) {
+    const map = {
+      towerBasement: this.towerBasementPlane, corvathSewers: this.sewersPlane,
+      guild: this.guildPlane, iceCave: this.iceCavePlane, corvathTomb: this.tombPlane,
+      manorCrypt: this.manorCryptPlane, ashkaraCaldera: this.calderaPlane,
+    };
+    return typeof key === 'string' ? (map[key] ?? 0) : (key ?? 0);
+  }
+
   _spawnGroundItems() {
     for (const g of this.def.groundItems ?? []) {
-      const plane = g.plane === 'towerBasement' ? this.towerBasementPlane : (g.plane ?? 0);
+      const plane = this._planeKey(g.plane);
       const opts = g.respawn ? { respawnTicks: g.respawn } : {};
       if (g.onTakeQuest) {
         const [q, from, to] = g.onTakeQuest;

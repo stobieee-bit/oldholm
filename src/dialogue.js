@@ -36,6 +36,11 @@ export class Dialogue {
     }, true);
   }
 
+  _count(id) {
+    return this.player.inventory.slots.reduce(
+      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+  }
+
   _cond(c) {
     if (!c) return true;
     if (c.quest) {
@@ -44,10 +49,15 @@ export class Dialogue {
       if (c.gte !== undefined && s < c.gte) return false;
       if (c.lt !== undefined && s >= c.lt) return false;
     }
+    if (c.qp !== undefined && (this.quests?.questPoints() ?? 0) < c.qp) return false;
     if (c.hasAll) {
-      const count = (id) => this.player.inventory.slots.reduce(
-        (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
-      for (const id of c.hasAll) if (count(id) < 1) return false;
+      for (const id of c.hasAll) if (this._count(id) < 1) return false;
+    }
+    if (c.hasCount) {
+      for (const [id, n] of Object.entries(c.hasCount)) if (this._count(id) < n) return false;
+    }
+    if (c.lacks) {
+      for (const id of c.lacks) if (this._count(id) >= 1) return false;
     }
     return true;
   }
@@ -57,6 +67,7 @@ export class Dialogue {
     if (verb === 'openShop') this._deferred = () => this.ui.openShop(this.npc?.def?.shop);
     else if (verb === 'openBank') this._deferred = () => this.ui.openBank();
     else if (verb === 'openMarket') this._deferred = () => this.ui.openMarket();
+    else if (verb === 'tan') this._deferred = () => this.actions?.startTan();
     else if (verb === 'quest') this.quests?.setStage(a, Number(b));
     else if (verb === 'complete') this.quests?.setStage(a, 100);
     else if (verb === 'give') {

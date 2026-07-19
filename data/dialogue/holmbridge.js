@@ -384,9 +384,26 @@ export const TREES = {
     start: [
       { if: { quest: 'unquiet_grave', is: 0 }, node: 'hello' },
       { if: { quest: 'unquiet_grave', lt: 100 }, node: 'during' },
+      { if: { quest: 'shadow_over_corvath', is: 0 }, node: 'corvath0' },
+      { if: { quest: 'shadow_over_corvath', lt: 100 }, node: 'corvathprog' },
       { node: 'after' },
     ],
     nodes: {
+      corvath0: {
+        speaker: 'npc', text: 'You have the ear of the dead, and I have grim need of it. Word from the capital: Malgrim’s cult stirs beneath Corvath, working to summon the ash demon Zarkhul. There is a sealed tomb below the palace — and in it, the blessed blade Dawnbrand. Will you go?',
+        options: [
+          { label: 'I’ll stop the summoning.', actions: ['quest:shadow_over_corvath:1'], next: 'corvathgo' },
+          { label: 'That’s Corvath’s problem.', action: 'end' },
+        ],
+      },
+      corvathgo: {
+        speaker: 'npc', text: 'A trapdoor by the Corvath palace descends to the tomb. Three wardens guard Dawnbrand, each with a riddle — answer them for the keys. Take up the blade, learn the warding words within, and end Zarkhul at the circle. Dawnbrand was forged for exactly this.',
+        options: [{ label: 'To Corvath, then.', action: 'end' }],
+      },
+      corvathprog: {
+        speaker: 'npc', text: 'The tomb below the Corvath palace. Answer the wardens, claim Dawnbrand, speak the wards, and strike. Aurel steady your arm against the ash.',
+        options: [{ label: 'It will be done, Father.', action: 'end' }],
+      },
       hello: {
         speaker: 'npc', text: 'Aurel’s light on you, traveler. Order, gold, and punctuality — the three graces. Though… our churchyard has lately known little order at all.',
         options: [
@@ -477,6 +494,454 @@ export const TREES = {
       three: {
         speaker: 'npc', text: 'Work hard, bank often, and never trust a cow that looks relaxed.',
         options: [{ label: 'Words to live by.', action: 'end' }],
+      },
+    },
+  },
+
+  // ================= Phase 11 =================
+  toll_guard: {
+    start: 'hello',
+    nodes: {
+      hello: {
+        speaker: 'npc', text: 'Ten gold to pass into Sunmarch. Pay at the gate bar. The desert is free; I am not.',
+        options: [
+          { label: 'Why a toll?', next: 'why' },
+          { label: 'Understood.', action: 'end' },
+        ],
+      },
+      why: {
+        speaker: 'npc', text: 'Shade costs money. Water costs more. Somebody has to pay for the fountains, and it will not be me.',
+        options: [{ label: 'Fair enough.', action: 'end' }],
+      },
+    },
+  },
+  tanner: {
+    start: 'hello',
+    nodes: {
+      hello: {
+        speaker: 'npc', text: 'Cowhides into leather, one coin the hide. Best in the desert, or my name isn’t on this apron.',
+        options: [
+          { label: 'Tan my hides.', action: 'tan' },
+          { label: 'Just admiring the smell.', action: 'end' },
+        ],
+      },
+    },
+  },
+  ferryman: {
+    start: [
+      { if: { quest: 'wyrm_of_ashkara', gte: 2, lt: 100 }, node: 'ready' },
+      { node: 'flavor' },
+    ],
+    nodes: {
+      ready: {
+        speaker: 'npc', text: 'So you’ve the full chart. The boat’s at the pier — thirty gold, one way, no refunds, no rescues. Board when your courage does.',
+        options: [{ label: 'I’ll board when ready.', action: 'end' }],
+      },
+      flavor: {
+        speaker: 'npc', text: 'Ashkara? No chart, no crossing. And I’ll tell you for free: you’d want a very good shield before you meet what lives there.',
+        options: [{ label: 'Noted.', action: 'end' }],
+      },
+    },
+  },
+  gullwick_barkeep: {
+    start: 'hello',
+    nodes: {
+      hello: {
+        speaker: 'npc', text: 'Ale, rumor, or both? The ale’s honest. The rumors, less so.',
+        options: [
+          { label: 'Show me the bar.', action: 'openShop' },
+          { label: 'Any rumors?', next: 'rumor' },
+          { label: 'Later.', action: 'end' },
+        ],
+      },
+      rumor: {
+        speaker: 'npc', text: 'The retired hunter drinks in Corvath’s Rusty Flagon. Ask him about Ravenmoor — but bring beers. Two, at least. He tells for barter, not for free.',
+        options: [
+          { label: 'Show me the bar.', action: 'openShop' },
+          { label: 'Thanks.', action: 'end' },
+        ],
+      },
+    },
+  },
+  pirate: {
+    start: [
+      { if: { quest: 'wyrm_of_ashkara', gte: 1, lacks: ['sea_chart_b', 'sea_chart'] }, node: 'deal' },
+      { node: 'flavor' },
+    ],
+    nodes: {
+      deal: {
+        speaker: 'npc', text: 'A corner of a sea chart? Aye, I’ve got one, tucked where the guards don’t look. Slide me a beer through the bars and it’s yours, matey.',
+        options: [
+          { label: 'Here’s a beer.', if: { hasCount: { beer: 1 } }, actions: ['take:beer:1', 'give:sea_chart_b:1'], next: 'cheers' },
+          { label: 'I’ll fetch a beer.', action: 'end' },
+        ],
+      },
+      cheers: {
+        speaker: 'npc', text: 'Pleasure doing crime with you. Mind the third corner’s with some Corvath dandy who won’t part with it cheap.',
+        options: [{ label: 'Cheers.', action: 'end' }],
+      },
+      flavor: {
+        speaker: 'npc', text: 'Arr, and other vowels. A cell’s not so bad. Three meals, no weather, and the finest sea stories this side of drowning.',
+        options: [{ label: 'Stay dry.', action: 'end' }],
+      },
+    },
+  },
+  chieftain: {
+    start: [
+      { if: { quest: 'wyrm_of_ashkara', gte: 1, lt: 100 }, node: 'warn' },
+      { node: 'flavor' },
+    ],
+    nodes: {
+      warn: {
+        speaker: 'npc', text: 'You hunt Cindermaw. Brave. Foolish. Same thing here. Wear the anti-flame kiteshield, outlander — its breath is forty deaths without one, and eight with.',
+        options: [{ label: 'I’ll wear the shield.', action: 'end' }],
+      },
+      flavor: {
+        speaker: 'npc', text: 'The isle is peaceful. The mountain sleeps. We would very much like both to continue.',
+        options: [{ label: 'Banana?', next: 'banana' }, { label: 'Peace to you.', action: 'end' }],
+      },
+      banana: {
+        speaker: 'npc', text: 'The grove-seller is right there. We are, as a people, very serious about bananas.',
+        options: [{ label: 'A noble focus.', action: 'end' }],
+      },
+    },
+  },
+  hermit: {
+    start: [
+      { if: { quest: 'wyrm_of_ashkara', gte: 1, lacks: ['sea_chart_a', 'sea_chart'] }, node: 'give' },
+      { node: 'flavor' },
+    ],
+    nodes: {
+      give: {
+        speaker: 'npc', text: 'Company! Ugh. Fine. You want my chart-corner? Take it, take it — anything to make the talking stop. It maps the Ashkara approach. Now go.',
+        options: [{ label: 'Thank you, hermit.', actions: ['give:sea_chart_a:1'], next: 'bye' }],
+      },
+      bye: {
+        speaker: 'npc', text: 'The pirate has the second corner. The Corvath collector, the third. Now GO. Fondly.',
+        options: [{ label: 'Going.', action: 'end' }],
+      },
+      flavor: {
+        speaker: 'npc', text: 'I chose solitude. I regret it, briefly, near mealtimes and whenever anyone speaks to me.',
+        options: [{ label: 'I’ll leave you be.', action: 'end' }],
+      },
+    },
+  },
+  collector: {
+    start: [
+      { if: { quest: 'wyrm_of_ashkara', gte: 1, lacks: ['sea_chart_c', 'sea_chart'] }, node: 'deal' },
+      { node: 'flavor' },
+    ],
+    nodes: {
+      deal: {
+        speaker: 'npc', text: 'The third corner of the Ashkara chart? Oh, I have it. Under glass. Beautiful thing. Five hundred gold and it’s yours — or you could try burgling me, and we’ll see how that ends.',
+        options: [
+          { label: 'Pay 500 gold.', if: { hasCount: { coins: 500 } }, actions: ['take:coins:500', 'give:sea_chart_c:1'], next: 'sold' },
+          { label: 'Robbery. Another time.', action: 'end' },
+        ],
+      },
+      sold: {
+        speaker: 'npc', text: 'Pleasure. Do bring me something rare when you return. Assuming you return.',
+        options: [{ label: 'Assuming.', action: 'end' }],
+      },
+      flavor: {
+        speaker: 'npc', text: 'I collect beautiful things and, regrettably, few friends. The two may be related.',
+        options: [{ label: 'Regrettable indeed.', action: 'end' }],
+      },
+    },
+  },
+  hunter: {
+    start: [
+      { if: { quest: 'lord_of_murkwell', is: 1 }, node: 'q1' },
+      { if: { quest: 'lord_of_murkwell', gte: 2, lt: 100 }, node: 'q2' },
+      { node: 'idle' },
+    ],
+    nodes: {
+      q1: {
+        speaker: 'npc', text: 'Ravenmoor. There’s a name I drink to forget. You want the trick to end him? That’s two beers of remembering, friend.',
+        options: [
+          { label: 'Here are two beers.', if: { hasCount: { beer: 2 } }, actions: ['take:beer:2', 'give:garlic:1', 'give:stake:1', 'quest:lord_of_murkwell:2'], next: 'told' },
+          { label: 'I’ll get the beers.', action: 'end' },
+        ],
+      },
+      told: {
+        speaker: 'npc', text: 'Garlic to weaken the old ghoul. A stake to end him — keep it IN HAND, or he simply won’t die. A hammer to drive it, which you carry already. The crypt’s beneath the manor. Aurel keep you.',
+        options: [{ label: 'My thanks, hunter.', action: 'end' }],
+      },
+      q2: {
+        speaker: 'npc', text: 'Stake in hand? Garlic in pack? Then go, and don’t come back until it’s done — or don’t come back at all.',
+        options: [{ label: 'It’ll be done.', action: 'end' }],
+      },
+      idle: {
+        speaker: 'npc', text: 'Ravenmoor’s dust. I sleep now. First time in years. Buy yourself a beer on me. Actually, no. Buy your own.',
+        options: [{ label: 'Rest easy.', action: 'end' }],
+      },
+    },
+  },
+  squire: {
+    start: [
+      { if: { quest: 'squires_blunder', is: 0 }, node: 's0' },
+      { if: { quest: 'squires_blunder', is: 1 }, node: 'fetch' },
+      { if: { quest: 'squires_blunder', gte: 2, lt: 4 }, node: 'waiting' },
+      { if: { quest: 'squires_blunder', is: 4 }, node: 'ret' },
+      { node: 'done' },
+    ],
+    nodes: {
+      s0: {
+        speaker: 'npc', text: 'I— I broke it. Sir Bellwether’s heirloom sword. I only LEANED on it! He returns at dusk and I’ll be a squire no longer, or worse. Please — can you help?',
+        options: [
+          { label: 'I’ll get it reforged.', actions: ['quest:squires_blunder:1'], next: 's0go' },
+          { label: 'Should’ve leaned less.', action: 'end' },
+        ],
+      },
+      s0go: {
+        speaker: 'npc', text: 'Only cliff-smith Yorra knows the old technique — she forges up by the ice cave, north of here. But she’s prickly. Take her the family portrait from the Hall wall; she was sweet on Sir Bellwether’s mother, they say.',
+        options: [{ label: 'The portrait, then Yorra.', action: 'end' }],
+      },
+      fetch: {
+        speaker: 'npc', text: 'The portrait’s on the Hall wall. Take it to Yorra on the cliffs.',
+        options: [{ label: 'On it.', action: 'end' }],
+      },
+      waiting: {
+        speaker: 'npc', text: 'Yorra is a hard woman and coldiron is a hard metal. Keep at it — dusk is coming.',
+        options: [{ label: 'I’m trying.', action: 'end' }],
+      },
+      ret: {
+        speaker: 'npc', text: 'Is that— IT IS! The heirloom, whole again! You’ve saved my station and my skin.',
+        options: [
+          { label: 'Here’s the heirloom, Aldous.', if: { hasAll: ['heirloom_sword'] }, actions: ['take:heirloom_sword:1', 'complete:squires_blunder', 'end'] },
+        ],
+      },
+      done: {
+        speaker: 'npc', text: 'Sir Bellwether never knew. I owe you everything. And I will never lean on a sword again.',
+        options: [{ label: 'See that you don’t.', action: 'end' }],
+      },
+    },
+  },
+  cliff_smith: {
+    start: [
+      { if: { quest: 'squires_blunder', lt: 2 }, node: 'notyet' },
+      { if: { quest: 'squires_blunder', is: 2 }, node: 'portrait' },
+      { if: { quest: 'squires_blunder', is: 3 }, node: 'bar' },
+      { node: 'done' },
+    ],
+    nodes: {
+      notyet: {
+        speaker: 'npc', text: 'I forge alone, up here, for good reason. Bring me a reason of your own — a certain portrait, perhaps — and we’ll talk.',
+        options: [{ label: 'I’ll be back.', action: 'end' }],
+      },
+      portrait: {
+        speaker: 'npc', text: 'That portrait— …the mother. Yes. All right. For her memory I’ll forge the heirloom. But it must be COLDIRON — mined in the ice cave below (Mining forty-five), smelted to a bar. Bring me one.',
+        options: [
+          { label: 'Here is the portrait.', if: { hasAll: ['family_portrait'] }, actions: ['take:family_portrait:1', 'quest:squires_blunder:3'], next: 'go' },
+        ],
+      },
+      go: {
+        speaker: 'npc', text: 'The cave’s just there. Ice fiends guard the coldiron. Smelt the ore at any furnace — coal helps — and bring the bar to me.',
+        options: [{ label: 'A coldiron bar. Understood.', action: 'end' }],
+      },
+      bar: {
+        speaker: 'npc', text: 'Coldiron. Good and cold. Stand back — this technique is loud.',
+        options: [
+          { label: 'Forge it, Yorra.', if: { hasAll: ['coldiron_bar'] }, actions: ['take:coldiron_bar:1', 'give:heirloom_sword:1', 'quest:squires_blunder:4'], next: 'done2' },
+          { label: 'Still mining.', action: 'end' },
+        ],
+      },
+      done2: {
+        speaker: 'npc', text: 'There. Better than new, and it’ll hold an edge through winter. Take it to the squire. And tell no one where I am.',
+        options: [{ label: 'Your secret’s safe.', action: 'end' }],
+      },
+      done: {
+        speaker: 'npc', text: 'The frost keeps me company enough. Off with you.',
+        options: [{ label: 'Farewell, Yorra.', action: 'end' }],
+      },
+    },
+  },
+  champions_master: {
+    start: [
+      { if: { quest: 'wyrm_of_ashkara', is: 0 }, node: 'assign' },
+      { if: { quest: 'wyrm_of_ashkara', is: 1 }, node: 'chart' },
+      { if: { quest: 'wyrm_of_ashkara', gte: 2, lt: 100 }, node: 'hunt' },
+      { node: 'hero' },
+    ],
+    nodes: {
+      assign: {
+        speaker: 'npc', text: 'Twelve quest points. You’ve earned the door — now earn the legend. Far south lies Ashkara, and in its caldera sleeps Cindermaw, the wyrm. It must fall. First: a sea chart, torn into three, held by a hermit near Sunmarch, a pirate in Gullwick’s jail, and a collector here in Corvath.',
+        options: [
+          { label: 'I’ll assemble the chart.', actions: ['quest:wyrm_of_ashkara:1'], next: 'go' },
+          { label: 'Not today.', action: 'end' },
+        ],
+      },
+      go: {
+        speaker: 'npc', text: 'Bring me all three corners and I’ll piece them together. Then buy an anti-flame kiteshield from the Whitehold armorer — without it, the wyrm’s breath is certain death.',
+        options: [{ label: 'Three corners. Understood.', action: 'end' }],
+      },
+      chart: {
+        speaker: 'npc', text: 'Have you the three corners of the chart?',
+        options: [
+          { label: 'All three — assemble them.', if: { hasAll: ['sea_chart_a', 'sea_chart_b', 'sea_chart_c'] }, actions: ['take:sea_chart_a:1', 'take:sea_chart_b:1', 'take:sea_chart_c:1', 'give:sea_chart:1', 'quest:wyrm_of_ashkara:2'], next: 'assembled' },
+          { label: 'Still gathering.', next: 'remind' },
+        ],
+      },
+      remind: {
+        speaker: 'npc', text: 'The hermit near Sunmarch, the pirate in Gullwick’s cell, the collector here. A corner each.',
+        options: [{ label: 'Right.', action: 'end' }],
+      },
+      assembled: {
+        speaker: 'npc', text: 'There — one chart, whole, pointing at doom. Buy the anti-flame kiteshield in Whitehold, then take the ferryman’s boat from Gullwick’s docks. Wear the shield, champion. Cindermaw shows no mercy and neither should you.',
+        options: [{ label: 'To Ashkara, then.', action: 'end' }],
+      },
+      hunt: {
+        speaker: 'npc', text: 'The chart is yours, the wyrm awaits. Anti-flame kiteshield from Whitehold; the boat from Gullwick. Go and be a legend, or at least a cautionary tale.',
+        options: [{ label: 'I’ll be the former.', action: 'end' }],
+      },
+      hero: {
+        speaker: 'npc', text: 'Cindermaw is fallen and you wear the Starmetal. The Guild — and the realm — salute you. Even the ferryman respects you now, and that man respects NOTHING.',
+        options: [{ label: 'It was an honor.', action: 'end' }],
+      },
+    },
+  },
+  mad_wizard: {
+    start: [
+      { if: { quest: 'poultrified_professor', is: 0 }, node: 'q6' },
+      { if: { quest: 'poultrified_professor', lt: 100 }, node: 'q6prog' },
+      { if: { quest: 'lord_of_murkwell', is: 0 }, node: 'q7' },
+      { if: { quest: 'lord_of_murkwell', lt: 100 }, node: 'q7prog' },
+      { node: 'idle' },
+    ],
+    nodes: {
+      q6: {
+        speaker: 'npc', text: 'A visitor! Splendid. Mind the professor — he pecks the notes. Oh, that IS the professor. I turned Pimm into a chicken. Accidentally! Mostly. He’s locked in the study behind my little puzzle. Free him?',
+        options: [
+          { label: 'I’ll solve your puzzle.', actions: ['give:oil_can:1', 'give:poison:1', 'give:fish_food:1', 'quest:poultrified_professor:1'], next: 'q6go' },
+          { label: 'Turn him back yourself.', action: 'end' },
+        ],
+      },
+      q6go: {
+        speaker: 'npc', text: 'Take these: an oil can, a vial of poison, and fish food. The ODD levers open the study — one, three, five. Lever three is rusted, so OIL it. Lever five sits past my piranha fountain — POISON the fish food and feed them, and they’ll trouble you no more.',
+        options: [{ label: 'Odd levers. Oil three. Poison five.', action: 'end' }],
+      },
+      q6prog: {
+        speaker: 'npc', text: 'The odd levers, remember — one, three, five. Oil the stuck one. Poison the piranhas. Pimm is counting on you. Quietly. In chicken.',
+        options: [{ label: 'Working on it.', action: 'end' }],
+      },
+      q7: {
+        speaker: 'npc', text: 'Now that Pimm is de-chickened — a darker matter. Lord Ravenmoor stirs in the crypt below my manor. The village trembles. Someone ought to put the old ghoul down for good.',
+        options: [
+          { label: 'I’ll end Ravenmoor.', actions: ['quest:lord_of_murkwell:1'], next: 'q7go' },
+          { label: 'Not my department.', action: 'end' },
+        ],
+      },
+      q7go: {
+        speaker: 'npc', text: 'The retired hunter in Corvath’s Rusty Flagon knows the trick — two beers loosens his tongue. He’ll give you garlic and a stake. The crypt stair is here in the manor.',
+        options: [{ label: 'Corvath, then the crypt.', action: 'end' }],
+      },
+      q7prog: {
+        speaker: 'npc', text: 'The crypt is below. Keep the stake in hand or Ravenmoor simply laughs at you. Undeath is very smug.',
+        options: [{ label: 'Understood.', action: 'end' }],
+      },
+      idle: {
+        speaker: 'npc', text: 'Science! And chickens. And the occasional undead nobleman. A full life, really.',
+        options: [{ label: 'Quite.', action: 'end' }],
+      },
+    },
+  },
+  professor: {
+    start: [
+      { if: { quest: 'poultrified_professor', lt: 100 }, node: 'free' },
+      { node: 'freed' },
+    ],
+    nodes: {
+      free: {
+        speaker: 'npc', text: 'BAWK— ahem — thank the heavens! Professor Pimm, at your service, currently poultry. The wizard can restore me now that I’m free of that dreadful study. Here — three hundred gold, and my eternal, clucking gratitude.',
+        options: [{ label: 'Glad to help, Professor.', actions: ['complete:poultrified_professor', 'end'] }],
+      },
+      freed: {
+        speaker: 'npc', text: 'Human again, mostly. I still crave seeds, but the lectures resume Monday. You have my thanks.',
+        options: [{ label: 'Any time.', action: 'end' }],
+      },
+    },
+  },
+  warden_stone: {
+    start: [
+      { if: { quest: 'shadow_over_corvath', gte: 1, lacks: ['key_stone'] }, node: 'riddle' },
+      { node: 'idle' },
+    ],
+    nodes: {
+      riddle: {
+        speaker: 'npc', text: 'I am the Warden of Stone. Answer, and the key is yours: "The more you take, the more you leave behind. What am I?"',
+        options: [
+          { label: 'Footsteps.', actions: ['give:key_stone:1'], next: 'right' },
+          { label: 'Gold.', next: 'wrong' },
+          { label: 'Shadows.', next: 'wrong' },
+        ],
+      },
+      right: {
+        speaker: 'npc', text: 'Just so. The stone key is yours. Two wardens remain.',
+        options: [{ label: 'My thanks.', action: 'end' }],
+      },
+      wrong: {
+        speaker: 'npc', text: 'No. The stone does not yield to the wrong word. Think again.',
+        options: [{ label: 'Ask me once more.', next: 'riddle' }, { label: 'Later.', action: 'end' }],
+      },
+      idle: {
+        speaker: 'npc', text: 'You hold my key. Seek the others.',
+        options: [{ label: 'I will.', action: 'end' }],
+      },
+    },
+  },
+  warden_flame: {
+    start: [
+      { if: { quest: 'shadow_over_corvath', gte: 1, lacks: ['key_flame'] }, node: 'riddle' },
+      { node: 'idle' },
+    ],
+    nodes: {
+      riddle: {
+        speaker: 'npc', text: 'Warden of Flame, I. Answer true: "I am not alive, yet I grow; I have no lungs, yet I need air; I have no mouth, yet water slays me. What am I?"',
+        options: [
+          { label: 'Fire.', actions: ['give:key_flame:1'], next: 'right' },
+          { label: 'A ghost.', next: 'wrong' },
+          { label: 'The sea.', next: 'wrong' },
+        ],
+      },
+      right: {
+        speaker: 'npc', text: 'Correct, and warm of you. Take the flame key.',
+        options: [{ label: 'My thanks.', action: 'end' }],
+      },
+      wrong: {
+        speaker: 'npc', text: 'The flame gutters at your error. Try once more.',
+        options: [{ label: 'Ask me again.', next: 'riddle' }, { label: 'Later.', action: 'end' }],
+      },
+      idle: {
+        speaker: 'npc', text: 'My key is yours. The deep warden waits.',
+        options: [{ label: 'I go.', action: 'end' }],
+      },
+    },
+  },
+  warden_deep: {
+    start: [
+      { if: { quest: 'shadow_over_corvath', gte: 1, lacks: ['key_deep'] }, node: 'riddle' },
+      { node: 'idle' },
+    ],
+    nodes: {
+      riddle: {
+        speaker: 'npc', text: 'Warden of the Deep. Last riddle, deepest: "Roots that nobody sees, taller than trees; up, up it goes, and yet it never grows. What am I?"',
+        options: [
+          { label: 'A mountain.', actions: ['give:key_deep:1'], next: 'right' },
+          { label: 'A river.', next: 'wrong' },
+          { label: 'The moon.', next: 'wrong' },
+        ],
+      },
+      right: {
+        speaker: 'npc', text: 'Deep and true. The last key is yours. Open the reliquary; take up Dawnbrand.',
+        options: [{ label: 'At last.', action: 'end' }],
+      },
+      wrong: {
+        speaker: 'npc', text: 'The deep is patient, and wrong. Consider again.',
+        options: [{ label: 'Ask me again.', next: 'riddle' }, { label: 'Later.', action: 'end' }],
+      },
+      idle: {
+        speaker: 'npc', text: 'All three keys you hold. The reliquary awaits.',
+        options: [{ label: 'To the reliquary.', action: 'end' }],
       },
     },
   },

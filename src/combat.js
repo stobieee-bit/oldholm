@@ -66,8 +66,20 @@ export class Combat {
     this.ui = ui;
     this.prayers = null; // wired by main.js
     this.magic = null;
+    this.quests = null;  // wired by main.js (boss deaths advance quests)
     this._regen = 0;
     this._ray = new THREE.Raycaster();
+  }
+
+  /** Bonus vs demons/weak-to targets from the wielded weapon (spec §11). */
+  smiteMultiplier(mob) {
+    const wid = this.player.equipment.weapon;
+    if (!wid) return 1;
+    const w = ITEMS[wid];
+    let m = 1;
+    if (mob.def.weakTo === wid) m *= 2;          // Dawnbrand vs Zarkhul
+    else if (w.smiteDemons && mob.def.demon) m *= 1.5; // blessed steel vs demon-class
+    return m;
   }
 
   /** Line of sight for projectiles/spells: solid occluders block, trees don't. */
@@ -182,7 +194,8 @@ export class Combat {
   }
 
   playerAttack(mob, tickNo) {
-    const dmg = rollDamage(this.playerStats(), mob.stats());
+    let dmg = rollDamage(this.playerStats(), mob.stats());
+    if (dmg > 0) dmg = Math.round(dmg * this.smiteMultiplier(mob));
     const dealt = Math.min(dmg, mob.hp); // xp only for damage that lands on real hp
     mob.takeDamage(dmg, tickNo, this);
     this.ui.fx.hitsplat(() => mob.splatAnchor(), dmg);
@@ -261,7 +274,24 @@ export class Combat {
 
   mobAttack(mob, tickNo) {
     const p = this.player;
-    const vsType = MOBS[mob.defId].attackType ?? 'crush';
+    const def = MOBS[mob.defId];
+    const vsType = def.attackType ?? 'crush';
+
+    // Cindermaw's dragonfire: lethal (40) unless an anti-flame shield is worn.
+    if (def.dragonfire && Math.random() < 0.28) {
+      const shieldId = p.equipment.shield;
+      const guarded = shieldId && ITEMS[shieldId].dragonfireGuard;
+      const dmg = guarded ? 4 + Math.floor(Math.random() * 5) : 40;
+      p.hp = Math.max(0, p.hp - dmg);
+      this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
+      this.ui.chat.add(guarded
+        ? 'Dragonfire washes over your shield and mostly gives up.'
+        : 'DRAGONFIRE! You are engulfed. A shield would have helped.', 'system');
+      if (p.hp <= 0) { this.playerDie(tickNo); return; }
+      if (p.autoRetaliate && !p.target) p.target = mob;
+      return;
+    }
+
     if (this.prayers && Math.random() < this.prayers.blockChance()) {
       this.ui.fx.hitsplat(() => ({ screen: true }), 0); // Swiftguard turns it aside
       if (p.autoRetaliate && !p.target) p.target = mob;
@@ -274,18 +304,27 @@ export class Combat {
     if (p.autoRetaliate && !p.target) p.target = mob;
   }
 
+  /** Is this world position inside the Blight (death drops everything)? */
+  inBlight(x, z) {
+    const b = this.world.def.blight;
+    return b && x >= b.x0 && x < b.x1 && z >= b.z0 && z < b.z1;
+  }
+
   /** Spec §3.4: keep the 3 most valuable stacks, drop the rest where you fell. */
   playerDie(tickNo) {
     const p = this.player;
     const deathX = p.pos.x, deathZ = p.pos.z, deathPlane = p.plane;
 
     const slots = p.inventory.slots;
+    // The Blight keeps nothing (spec §6): death there drops EVERYTHING.
+    const keepCount = this.inBlight(deathX, deathZ) ? 0 : 3;
     const keep = slots
       .map((s, i) => s && { i, v: (this._value(s.id) || 0) * s.count })
       .filter(Boolean)
       .sort((a, b) => b.v - a.v)
-      .slice(0, 3)
+      .slice(0, keepCount)
       .map((e) => e.i);
+    if (keepCount === 0) this.ui.chat.add('The Blight is not a bank. You dropped everything.', 'system');
     for (let i = 0; i < slots.length; i++) {
       if (!slots[i] || keep.includes(i)) continue;
       const s = slots[i];

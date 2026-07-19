@@ -243,4 +243,155 @@ export const NPCS = {
       'Keep off the wheat. We do not have wheat yet, but keep off it.',
     ],
   },
+
+  // ---- Phase 11: Sunmarch ----
+  toll_guard: {
+    ...base, name: 'Toll guard', examine: 'Ten gold and a smile. The smile is optional.',
+    talk: 'toll_guard', wanderRadius: 0,
+    model: human(0xb08050, 0xcaa96a, 0x8a6a3a, 0x2a2624),
+    chatter: ['Ten gold to pass. Rules are rules.', 'The desert takes no tolls. I do.'],
+  },
+  scimitar_seller: {
+    ...base, name: 'Scimitar-seller', examine: 'Curved goods, straight prices.',
+    talk: 'shopkeeper', shop: 'sunmarch_scimitars', wanderRadius: 0,
+    model: human(0xb08050, 0x8a3a2a, 0x5a2a1a, 0x2a2624),
+  },
+  sunmarch_tanner: {
+    ...base, name: 'Tanner', examine: 'Turns yesterday’s cows into tomorrow’s fashion.',
+    talk: 'tanner', wanderRadius: 0,
+    model: human(0xb08050, 0x8a6a42, 0x5a4a33, 0x3a3028),
+  },
+  gem_seller: {
+    ...base, name: 'Gem-seller', examine: 'Every stone a promise; every promise, cut.',
+    talk: 'shopkeeper', shop: 'sunmarch_gems', wanderRadius: 0,
+    model: human(0xc9a27a, 0x4a3a8a, 0x2a2a5a, 0x2a2624),
+  },
+  meat_vendor: {
+    ...base, name: 'Meat vendor', examine: 'Sells kebabs. Never names the animal.',
+    talk: 'shopkeeper', shop: 'sunmarch_meat', wanderRadius: 0,
+    model: human(0xb08050, 0xb5542a, 0x6a3a2a, 0x2a2624),
+    chatter: ['Kebab! Fresh-ish kebab!', 'The meat is a surprise. A nice surprise.'],
+  },
+
+  // ---- Phase 11: Port Gullwick ----
+  fishmonger: {
+    ...base, name: 'Fishmonger', examine: 'Smells of the sea and honest labor.',
+    talk: 'shopkeeper', shop: 'gullwick_fishing', wanderRadius: 0,
+    model: human(0xc9a27a, 0x2a6a7a, 0x1a4a5a, 0x5a4a33),
+  },
+  ferryman: {
+    ...base, name: 'Ferryman', examine: 'He has seen you struggle. He is not impressed. Yet.',
+    talk: 'ferryman', wanderRadius: 0,
+    model: human(0xb08050, 0x3a4a5a, 0x2a3040, 0x8a8078),
+    chatter: ['The sea keeps its own counsel.', 'Ashkara? You’d need a chart. And a death wish.'],
+  },
+  gullwick_barkeep: {
+    ...base, name: 'Barkeep', examine: 'Pours a fair pint and a foul rumor.',
+    talk: 'gullwick_barkeep', shop: 'gullwick_tavern', wanderRadius: 0,
+    model: human(0xc9a27a, 0x6a4a3a, 0x3a3028, 0x3a3632),
+  },
+  pirate: {
+    ...base, name: 'Pirate', examine: 'Jailed, jovial, and full of nautical opinions.',
+    talk: 'pirate', wanderRadius: 0,
+    model: human(0xb08050, 0x5a2a3a, 0x2a2a30, 0x2a2624),
+    chatter: ['Arr, and other vowels!', 'A third of a chart’s worth more than a whole cell.'],
+  },
+
+  // ---- Phase 11: Ashkara ----
+  chieftain: {
+    ...base, name: 'Chieftain Vola', examine: 'Rules the isle and the bananas equally.',
+    talk: 'chieftain', wanderRadius: 1,
+    model: human(0x9a6a4a, 0x5a7a3a, 0x3a5a2a, 0x2a2624),
+    chatter: ['The mountain sleeps. Keep it that way.', 'Cindermaw stirs. You brought a shield, yes?'],
+  },
+  banana_seller: {
+    ...base, name: 'Banana-seller', examine: 'Vertically integrated. Horizontally delicious.',
+    talk: 'shopkeeper', shop: 'ashkara_bananas', wanderRadius: 0,
+    model: human(0x9a6a4a, 0xe0c83a, 0x6a5a2a, 0x2a2624),
+  },
+  hermit: {
+    ...base, name: 'Hermit', examine: 'Chose solitude. Regrets it near mealtimes.',
+    talk: 'hermit', wanderRadius: 1,
+    model: human(0xc9a27a, 0x7a7060, 0x5a5040, 0xd8d0c2),
+    chatter: ['I keep a corner of a chart. And my own counsel.', 'Company! At last! Please leave.'],
+  },
+
+  // ---- Phase 11: Corvath quest folk ----
+  hunter: {
+    ...base, name: 'Retired hunter', examine: 'Hunted monsters. Now hunts a quiet pint.',
+    talk: 'hunter', wanderRadius: 0,
+    model: human(0xc9a27a, 0x4a5a3a, 0x3a3028, 0x8a8078),
+    chatter: ['Ravenmoor? Bad memories, that name.', 'Two beers and I might remember the trick.'],
+  },
+  collector: {
+    ...base, name: 'Collector', examine: 'Owns beautiful things and few friends.',
+    talk: 'collector', wanderRadius: 0,
+    model: human(0xd8b090, 0x5a3a6a, 0x2a2a4a, 0x3a3632),
+  },
+
+  // ---- Phase 11: Whitehold quest folk ----
+  squire: {
+    ...base, name: 'Squire Aldous', examine: 'Broke the heirloom. Has not slept since.',
+    talk: 'squire', wanderRadius: 0,
+    model: human(0xd8b090, 0xd8d8d2, 0x8a8a92, 0xb5854b),
+    chatter: ['The sword! I only leaned on it a little!', 'Sir Bellwether will have my head. Rightly.'],
+  },
+  armorer: {
+    ...base, name: 'Armorer', examine: 'Fits knights and, occasionally, dragon-slayers.',
+    talk: 'shopkeeper', shop: 'whitehold_armory', wanderRadius: 0,
+    model: human(0xc9a27a, 0x8a8a92, 0x5a5a62, 0x3a3632),
+  },
+  cliff_smith: {
+    ...base, name: 'Cliff-smith Yorra', examine: 'Left the guilds to forge in peace and frost.',
+    talk: 'cliff_smith', wanderRadius: 0,
+    model: human(0xb08050, 0x5a4a3a, 0x3a3028, 0xb5542a),
+  },
+
+  // ---- Phase 11: Champions' Guild ----
+  champions_master: {
+    ...base, name: 'Guildmaster of Champions', examine: 'Weighs your quest points, not your muscles.',
+    talk: 'champions_master', wanderRadius: 0,
+    model: human(0xd8b090, 0xb0a878, 0x8a7a3a, 0x8a8078),
+  },
+
+  // ---- Phase 11: Murkwell manor ----
+  mad_wizard: {
+    ...base, name: 'The mad wizard', examine: 'His experiments have opinions. Loud ones.',
+    talk: 'mad_wizard', wanderRadius: 0,
+    model: human(0xc9a27a, 0x6a3a8a, 0x4a2a5a, 0xe8e4da),
+    chatter: ['The professor pecks at my notes!', 'Levers! Everything is levers, if you think about it.'],
+  },
+  professor: {
+    ...base, name: 'Professor Pimm', examine: 'A distinguished academic. Also, currently, a chicken.',
+    talk: 'professor', wanderRadius: 1,
+    model: {
+      height: 0.62,
+      parts: [
+        { kind: 'box', size: [0.34, 0.3, 0.42], at: [0, 0.3, 0], color: 0xe8e4da },
+        { kind: 'box', size: [0.18, 0.18, 0.18], at: [0, 0.56, -0.22], color: 0xe8e4da },
+        { kind: 'box', size: [0.2, 0.06, 0.02], at: [0, 0.58, -0.3], color: 0x2a2624 }, // spectacles
+        { kind: 'cone', r: 0.05, h: 0.12, at: [0, 0.56, -0.34], rotX: -1.57, color: 0xd8a03a },
+        { kind: 'box', size: [0.05, 0.08, 0.05], at: [0, 0.6, -0.16], color: 0xc84b38 },
+        { kind: 'box', size: [0.04, 0.16, 0.04], at: [-0.08, 0.08, 0], color: 0xd8a03a },
+        { kind: 'box', size: [0.04, 0.16, 0.04], at: [0.08, 0.08, 0], color: 0xd8a03a },
+      ],
+    },
+  },
+
+  // ---- Phase 11: tomb wardens (quest 9 riddles) ----
+  warden_stone: {
+    ...base, name: 'Warden of Stone', examine: 'A statue that answers, if you ask correctly.',
+    talk: 'warden_stone', wanderRadius: 0,
+    model: human(0x8a8a82, 0x6a6a62, 0x5a5a52, 0x7a7a72),
+  },
+  warden_flame: {
+    ...base, name: 'Warden of Flame', examine: 'It flickers with borrowed life.',
+    talk: 'warden_flame', wanderRadius: 0,
+    model: human(0xd86a2a, 0xa84a1a, 0x8a3a10, 0xe0a83a),
+  },
+  warden_deep: {
+    ...base, name: 'Warden of the Deep', examine: 'Cold, patient, and very sure of itself.',
+    talk: 'warden_deep', wanderRadius: 0,
+    model: human(0x5a6a8a, 0x3a4a6a, 0x2a3a5a, 0x6a7a9a),
+  },
 };

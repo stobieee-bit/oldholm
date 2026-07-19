@@ -112,4 +112,73 @@ export const SHOPS = {
       ['steel_dagger', 2], ['steel_sword', 1],
     ],
   },
+
+  // ---- Phase 11 shops ----
+  sunmarch_scimitars: {
+    name: 'Sunmarch Scimitars',
+    buyMult: 1.25, sellMult: 0.55,
+    buysMatcher: (id) => /_scimitar$/.test(id),
+    restockTicks: 30,
+    stock: [
+      ['bronze_scimitar', 5], ['iron_scimitar', 4], ['steel_scimitar', 3],
+    ],
+  },
+  sunmarch_gems: {
+    name: 'Sunmarch Gem Stall',
+    buyMult: 1.1, sellMult: 0.7,
+    buysMatcher: (id) => /^(uncut_|cut_)/.test(id),
+    restockTicks: 40,
+    stock: [
+      ['uncut_sapphire', 6], ['uncut_emerald', 4], ['uncut_ruby', 3], ['chisel', 3],
+    ],
+  },
+  sunmarch_meat: {
+    name: 'The Questionable Kebab',
+    buyMult: 1.3, sellMult: 0.4,
+    buysMatcher: (id) => ['raw_beef', 'raw_chicken', 'cooked_beef', 'cooked_chicken'].includes(id),
+    restockTicks: 25,
+    stock: [['kebab', 12], ['banana', 8]],
+  },
+  gullwick_fishing: {
+    name: 'Gullwick Fishmonger',
+    buyMult: 1.2, sellMult: 0.5,
+    buysMatcher: (id) => /^(raw_|)/.test(id) && (ITEM_IS_FISH[id] ?? false),
+    restockTicks: 26,
+    stock: [
+      ['small_net', 4], ['fishing_rod', 4], ['fly_rod', 3], ['fishing_bait', 200],
+      ['feather', 200], ['trout', 8], ['salmon', 6], ['lobster', 4],
+    ],
+  },
+  gullwick_tavern: {
+    name: 'The Rusty Anchor',
+    buyMult: 1.0, sellMult: 0.3,
+    buysMatcher: () => false,
+    restockTicks: 15,
+    stock: [['beer', 20], ['kebab', 6]],
+  },
+  ashkara_bananas: {
+    name: 'Banana Grove',
+    buyMult: 1.1, sellMult: 0.4,
+    buysMatcher: (id) => id === 'banana',
+    restockTicks: 20,
+    stock: [['banana', 20]],
+  },
+  whitehold_armory: {
+    name: 'Whitehold Armory',
+    buyMult: 1.2, sellMult: 0.55,
+    buysMatcher: (id) => /_(kiteshield|sq_shield|platebody|platelegs|full_helm|chainbody)$/.test(id),
+    restockTicks: 40,
+    stock: [
+      ['steel_kiteshield', 3], ['steel_platebody', 2], ['steel_platelegs', 2],
+      ['steel_full_helm', 3], ['anti_flame_kiteshield', 2],
+    ],
+  },
+};
+
+// (a tiny lookup so the fishmonger only buys fish — cooked or raw)
+const ITEM_IS_FISH = {
+  raw_shrimp: true, shrimp: true, raw_sardine: true, sardine: true,
+  raw_herring: true, herring: true, raw_trout: true, trout: true,
+  raw_pike: true, pike: true, raw_salmon: true, salmon: true,
+  raw_tuna: true, tuna: true, raw_lobster: true, lobster: true, raw_swordfish: true, swordfish: true,
 };

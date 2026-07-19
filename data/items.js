@@ -253,6 +253,36 @@ export const ITEMS = {
     icon: '<path d="M3 12c4-5 12-5 15 0l3-3v6l-3-3c-3 5-11 5-15 0Z" fill="#d88a72"/>',
     model: { kind: 'box', color: 0xd88a72, w: 0.34, h: 0.06, d: 0.11 },
   },
+  raw_tuna: {
+    name: 'Raw tuna', examine: 'A torpedo with fins.', value: 22, stackable: false,
+    icon: '<path d="M2 12c5-5 14-5 18 0l2-3v6l-2-3c-4 5-13 5-18 0Z" fill="#5a7a8a"/>',
+    model: { kind: 'box', color: 0x5a7a8a, w: 0.4, h: 0.07, d: 0.12 },
+  },
+  tuna: {
+    name: 'Tuna', examine: 'Steaked and serious.', value: 24, stackable: false, heals: 10,
+    icon: '<path d="M2 12c5-5 14-5 18 0l2-3v6l-2-3c-4 5-13 5-18 0Z" fill="#8a5a4a"/>',
+    model: { kind: 'box', color: 0x8a5a4a, w: 0.4, h: 0.07, d: 0.12 },
+  },
+  raw_lobster: {
+    name: 'Raw lobster', examine: 'Grumpy, blue, and heavily armed.', value: 28, stackable: false,
+    icon: '<ellipse cx="12" cy="13" rx="5" ry="7" fill="#3a5a8a"/><path d="M8 6l-2-2M16 6l2-2" stroke="#3a5a8a" stroke-width="1.6"/>',
+    model: { kind: 'box', color: 0x3a5a8a, w: 0.22, h: 0.12, d: 0.3 },
+  },
+  lobster: {
+    name: 'Lobster', examine: 'Now red, now delicious.', value: 30, stackable: false, heals: 12,
+    icon: '<ellipse cx="12" cy="13" rx="5" ry="7" fill="#c23a2a"/><path d="M8 6l-2-2M16 6l2-2" stroke="#c23a2a" stroke-width="1.6"/>',
+    model: { kind: 'box', color: 0xc23a2a, w: 0.22, h: 0.12, d: 0.3 },
+  },
+  raw_swordfish: {
+    name: 'Raw swordfish', examine: 'It came at you point-first.', value: 34, stackable: false,
+    icon: '<path d="M4 12c5-4 12-4 15 0l3-2v4l-3-2c-3 4-10 4-15 0Z" fill="#6a8090"/><path d="M2 12h4" stroke="#c8ccd4" stroke-width="1.4"/>',
+    model: { kind: 'box', color: 0x6a8090, w: 0.44, h: 0.06, d: 0.11 },
+  },
+  swordfish: {
+    name: 'Swordfish', examine: 'The finest fish, disarmed and grilled.', value: 38, stackable: false, heals: 14,
+    icon: '<path d="M4 12c5-4 12-4 15 0l3-2v4l-3-2c-3 4-10 4-15 0Z" fill="#9a7a5a"/><path d="M2 12h4" stroke="#c8ccd4" stroke-width="1.4"/>',
+    model: { kind: 'box', color: 0x9a7a5a, w: 0.44, h: 0.06, d: 0.11 },
+  },
   cooked_beef: {
     name: 'Cooked beef', examine: 'Moo, well done.', value: 4, stackable: false, heals: 3,
     icon: '<path d="M5 8c5-4 12-2 14 2-1 5-6 8-11 7S3 11 5 8Z" fill="#8a5a44"/>',
@@ -571,6 +601,90 @@ ITEMS.amulet_of_accuracy = {
   slot: 'neck', reqs: {}, atk: [4, 4, 4, 2, 4], str: 0, def: [0, 0, 0, 0, 0],
   icon: '<path d="M5 5c2 4 5 6 7 6s5-2 7-6" fill="none" stroke="#c9bf98" stroke-width="1.4"/><circle cx="12" cy="14" r="4" fill="#4a72e0"/>',
   model: { kind: 'cylinder', color: 0x4a72e0, rTop: 0.09, rBot: 0.09, h: 0.03 },
+};
+
+// ---- Phase 11 quest items, consumables, and capstone gear -------------------
+const P11_ITEMS = {
+  beer: ['Beer', 'Liquid courage, mostly foam.', 3, '<path d="M7 8h8v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1Z" fill="#d8a83a"/><rect x="14" y="10" width="3" height="6" rx="1.5" fill="none" stroke="#d8a83a" stroke-width="1.4"/><rect x="7" y="6" width="8" height="3" rx="1.5" fill="#f0ecdc"/>',
+    { kind: 'cylinder', color: 0xd8a83a, rTop: 0.09, rBot: 0.09, h: 0.24 }],
+  garlic: ['Garlic', 'Repels vampires and conversation.', 2, '<circle cx="12" cy="14" r="5" fill="#eae6da"/><path d="M12 9V5M10 13c0 3 4 3 4 0" stroke="#c9c4b4" stroke-width="1.2" fill="none"/>',
+    { kind: 'sphere', color: 0xeae6da, r: 0.12 }],
+  stake: ['Wooden stake', 'One end pointed with grim intent.', 4, '<path d="M11 3h2l1 14-2 4-2-4Z" fill="#8a6a42"/>',
+    { kind: 'box', color: 0x8a6a42, w: 0.06, h: 0.5, d: 0.06 }],
+  oil_can: ['Oil can', 'For hinges, levers, and stubborn machinery.', 5, '<path d="M6 12h9l3-2v6l-3-2H6Z" fill="#5a5a62"/><path d="M15 10l4-4" stroke="#5a5a62" stroke-width="1.6"/>',
+    { kind: 'box', color: 0x5a5a62, w: 0.2, h: 0.16, d: 0.14 }],
+  fish_food: ['Fish food', 'Flakes. Piranhas are not fussy.', 2, '<circle cx="9" cy="10" r="1.6" fill="#c9a24a"/><circle cx="14" cy="9" r="1.6" fill="#c9a24a"/><circle cx="12" cy="14" r="1.6" fill="#c9a24a"/><circle cx="15" cy="14" r="1.6" fill="#c9a24a"/>',
+    { kind: 'box', color: 0xc9a24a, w: 0.1, h: 0.06, d: 0.1 }],
+  poison: ['Vial of poison', 'The label is a skull. The skull is smiling.', 6, '<path d="M9 4h6v3l2 4v8a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-8l2-4Z" fill="#5aa84a"/><circle cx="12" cy="14" r="2" fill="#2a2624"/>',
+    { kind: 'cylinder', color: 0x5aa84a, rTop: 0.06, rBot: 0.08, h: 0.16 }],
+  poisoned_food: ['Poisoned fish food', 'Dinner, with a fatal seasoning.', 2, '<circle cx="9" cy="10" r="1.6" fill="#5aa84a"/><circle cx="14" cy="9" r="1.6" fill="#5aa84a"/><circle cx="12" cy="14" r="1.6" fill="#5aa84a"/><circle cx="15" cy="14" r="1.6" fill="#5aa84a"/>',
+    { kind: 'box', color: 0x5aa84a, w: 0.1, h: 0.06, d: 0.1 }],
+  family_portrait: ['Family portrait', 'A stern knight, sterner frame.', 8, '<rect x="5" y="4" width="14" height="16" rx="1" fill="#8a6a42"/><rect x="7" y="6" width="10" height="12" fill="#c9b48a"/><circle cx="12" cy="11" r="2.4" fill="#5a4a3a"/>',
+    { kind: 'box', color: 0x8a6a42, w: 0.28, h: 0.36, d: 0.04 }],
+  coldiron_ore: ['Coldiron ore', 'Cold to the marrow, even in your hand.', 22, '<path d="M6 17l3-8 4-2 5 4-2 7Z" fill="#8a8078"/><circle cx="12" cy="12" r="2.6" fill="#9ad0e0"/>',
+    { kind: 'sphere', color: 0x9ad0e0, r: 0.15 }],
+  coldiron_bar: ['Coldiron bar', 'It frosts the anvil it rests on.', 60, '<path d="M5 10h11l3 5H8Z" fill="#9ad0e0"/><path d="M5 10l3 5" stroke="#6ea8b8" stroke-width="1"/>',
+    { kind: 'box', color: 0x9ad0e0, w: 0.34, h: 0.09, d: 0.15 }],
+  heirloom_sword: ['Heirloom sword', 'Reforged. The knight need never know it broke.', 120, '<path d="M11 2h2l0.6 12h-3.2Z" fill="#c8e4ec"/><rect x="8" y="14" width="8" height="1.8" rx="0.9" fill="#c9a232"/><rect x="11" y="15.6" width="2" height="5" rx="1" fill="#6e4f33"/>',
+    { kind: 'blade', color: 0xc8e4ec, handle: 0xc9a232 }],
+  warding_words: ['Warding words', 'Say them and the dark leans away.', 0, '<rect x="5" y="5" width="14" height="14" rx="1" fill="#e8e2d0"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#5a4a3a" stroke-width="1.1"/>',
+    { kind: 'box', color: 0xe8e2d0, w: 0.2, h: 0.02, d: 0.24 }],
+  key_stone: ['Stone key', 'Heavy, patient, unhurried.', 0, '<circle cx="8" cy="12" r="3.5" fill="none" stroke="#8a8a82" stroke-width="2"/><path d="M11 12h9M17 12v4M20 12v3" stroke="#8a8a82" stroke-width="2"/>',
+    { kind: 'box', color: 0x8a8a82, w: 0.06, h: 0.02, d: 0.2 }],
+  key_flame: ['Flame key', 'Warm to the touch, warmer to the lock.', 0, '<circle cx="8" cy="12" r="3.5" fill="none" stroke="#d86a2a" stroke-width="2"/><path d="M11 12h9M17 12v4M20 12v3" stroke="#d86a2a" stroke-width="2"/>',
+    { kind: 'box', color: 0xd86a2a, w: 0.06, h: 0.02, d: 0.2 }],
+  key_deep: ['Deep key', 'It smells of tomb and old rain.', 0, '<circle cx="8" cy="12" r="3.5" fill="none" stroke="#5a6a8a" stroke-width="2"/><path d="M11 12h9M17 12v4M20 12v3" stroke="#5a6a8a" stroke-width="2"/>',
+    { kind: 'box', color: 0x5a6a8a, w: 0.06, h: 0.02, d: 0.2 }],
+  sea_chart_a: ['Chart: the hermit’s corner', 'A torn third of a sea chart, in crayon.', 0, '<path d="M5 5h14v14H5Z" fill="#e8dcc0"/><path d="M6 12h6M12 6v10" stroke="#8a5a3a" stroke-width="1" stroke-dasharray="2 2"/>',
+    { kind: 'box', color: 0xe8dcc0, w: 0.2, h: 0.02, d: 0.24 }],
+  sea_chart_b: ['Chart: the pirate’s corner', 'A torn third, stained with rum and regret.', 0, '<path d="M5 5h14v14H5Z" fill="#e8dcc0"/><path d="M12 12h6M12 6v10" stroke="#8a5a3a" stroke-width="1" stroke-dasharray="2 2"/>',
+    { kind: 'box', color: 0xe8dcc0, w: 0.2, h: 0.02, d: 0.24 }],
+  sea_chart_c: ['Chart: the collector’s corner', 'A torn third, kept under glass and greed.', 0, '<path d="M5 5h14v14H5Z" fill="#e8dcc0"/><path d="M6 12h12M12 12v6" stroke="#8a5a3a" stroke-width="1" stroke-dasharray="2 2"/>',
+    { kind: 'box', color: 0xe8dcc0, w: 0.2, h: 0.02, d: 0.24 }],
+  sea_chart: ['Sea chart to Ashkara', 'Three thirds, one dread destination.', 0, '<path d="M4 5h16v14H4Z" fill="#e8dcc0"/><path d="M6 12h12M12 6v10" stroke="#8a5a3a" stroke-width="1.2"/><path d="M15 9l2 2-2 2" stroke="#b03030" stroke-width="1"/>',
+    { kind: 'box', color: 0xe8dcc0, w: 0.28, h: 0.02, d: 0.3 }],
+  banana: ['Banana', 'Curved, cheerful, faintly smug.', 2, '<path d="M6 16c4 3 10 1 12-4-1 5-7 8-12 4Z" fill="#e0c83a"/>',
+    { kind: 'box', color: 0xe0c83a, w: 0.06, h: 0.06, d: 0.2 }],
+  kebab: ['Kebab', 'The meat is a mystery. The mystery is delicious.', 3, '<rect x="11" y="3" width="2" height="18" fill="#8a6a42"/><circle cx="12" cy="8" r="3" fill="#b5542a"/><circle cx="12" cy="13" r="3" fill="#5aa84a"/><circle cx="12" cy="18" r="3" fill="#b5542a"/>',
+    { kind: 'box', color: 0xb5542a, w: 0.08, h: 0.3, d: 0.08 }],
+  combat_lamp: ['Combat lamp', 'Rub it to teach yourself. No genie included.', 0, '<path d="M5 14h10l4-3v3l-4-1a5 3 0 0 1-10 1Z" fill="#c9a232"/><path d="M8 14v3h4v-3" fill="#c9a232"/>',
+    { kind: 'box', color: 0xc9a232, w: 0.2, h: 0.1, d: 0.12 }],
+  starmetal_bar: ['Starmetal bar', 'It holds a little of the night sky.', 400, '<path d="M5 10h11l3 5H8Z" fill="#6a72c8"/><path d="M5 10l3 5" stroke="#4a52a8" stroke-width="1"/><circle cx="10" cy="12" r="0.7" fill="#e8e4ff"/>',
+    { kind: 'box', color: 0x6a72c8, w: 0.34, h: 0.09, d: 0.15 }],
+};
+for (const [id, [name, examine, value, icon, model]] of Object.entries(P11_ITEMS)) {
+  ITEMS[id] = { name, examine, value, stackable: false, icon, model };
+}
+ITEMS.beer.stackable = true;
+ITEMS.combat_lamp.stackable = true;
+ITEMS.banana.heals = 2;
+ITEMS.kebab.heals = 8;
+
+ITEMS.dawnbrand = {
+  name: 'Dawnbrand', examine: 'A blessed blade. It hates the dark, personally.',
+  value: 2000, stackable: false,
+  slot: 'weapon', speed: 4, styleSet: 'slasher', reqs: { Attack: 40 },
+  atk: [8, 60, 8, 0, 0], str: 56, def: [0, 0, 0, 0, 0], smiteDemons: true,
+  icon: '<path d="M11 2h2l0.7 13h-3.4Z" fill="#fbe8a0"/><rect x="7.5" y="15" width="9" height="2" rx="1" fill="#e0b83a"/><rect x="11" y="17" width="2" height="4.5" rx="1" fill="#c9a232"/>',
+  model: { kind: 'blade', color: 0xfbe8a0, handle: 0xe0b83a },
+};
+
+ITEMS.anti_flame_kiteshield = {
+  name: 'Anti-flame kiteshield', examine: 'Dragon-tested, wyrm-approved. Mostly.',
+  value: 800, stackable: false,
+  slot: 'shield', reqs: { Defence: 30 },
+  atk: [0, 0, 0, 0, 0], str: 0, def: [14, 18, 16, 6, 16], dragonfireGuard: true,
+  icon: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6Z" fill="#9a5a3a"/><path d="M12 6l3 3-3 3-3-3Z" fill="#e0b83a"/>',
+  model: { kind: 'box', color: 0x9a5a3a, w: 0.34, h: 0.1, d: 0.3 },
+};
+
+ITEMS.starmetal_platebody = {
+  name: 'Starmetal platebody', examine: 'Worn only by the wyrm’s undoing. That’s you now.',
+  value: 5000, stackable: false,
+  slot: 'body', reqs: {}, equipQuest: 'wyrm_of_ashkara',
+  atk: [0, 0, 0, 0, 0], str: 0, def: [42, 40, 30, -4, 40],
+  icon: '<path d="M7 4h10l2 6-2 10H9L7 10Z" fill="#6a72c8"/><path d="M12 4v16M9 8h6" stroke="#e8e4ff40" stroke-width="1.2"/><circle cx="10" cy="12" r="0.8" fill="#e8e4ff"/><circle cx="14" cy="15" r="0.8" fill="#e8e4ff"/>',
+  model: { kind: 'box', color: 0x6a72c8, w: 0.36, h: 0.1, d: 0.3 },
 };
 
 // ---------------------------------------------------------------------------

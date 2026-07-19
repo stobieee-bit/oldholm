@@ -27,6 +27,8 @@ export const ROCKS = {
     examine: 'A rock with expensive opinions.' },
   slate: { label: 'Pale vein', req: 1, xp: 5, ore: 'blank_slate', respawnTicks: 10, vein: 0xb8b8c2,
     examine: 'A pale seam of listening stone.' },
+  coldiron: { label: 'Coldiron vein', req: 45, xp: 80, ore: 'coldiron_ore', respawnTicks: 40, vein: 0x9ad0e0,
+    examine: 'Iron that never learned to be warm.' },
 };
 
 // Fishing. Each spot type: required tool, optional consumable per catch, and
@@ -76,6 +78,9 @@ export const COOKING = {
   raw_trout: { cooked: 'trout', burnt: 'burnt_fish', req: 20, xp: 70, burnStop: 49 },
   raw_pike: { cooked: 'pike', burnt: 'burnt_fish', req: 25, xp: 80, burnStop: 53 },
   raw_salmon: { cooked: 'salmon', burnt: 'burnt_fish', req: 30, xp: 90, burnStop: 58 },
+  raw_tuna: { cooked: 'tuna', burnt: 'burnt_fish', req: 35, xp: 100, burnStop: 63 },
+  raw_lobster: { cooked: 'lobster', burnt: 'burnt_fish', req: 40, xp: 120, burnStop: 68 },
+  raw_swordfish: { cooked: 'swordfish', burnt: 'burnt_fish', req: 45, xp: 140, burnStop: 86 },
   raw_beef: { cooked: 'cooked_beef', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   raw_chicken: { cooked: 'cooked_chicken', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   RANGE_BONUS: 4,           // the range stops burning 4 levels earlier

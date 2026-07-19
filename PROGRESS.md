@@ -1,6 +1,75 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 10 — World Expansion I — COMPLETE
+## Current status: Phase 11 — World Expansion II + Quests 6–10 — COMPLETE
+
+## What was built (Phase 11)
+
+- **Terrain grew a whole climate map**: desert dunes + sand around Sunmarch, a southern
+  SEA (terrain sunk below the waterline past z≈316), a volcano ISLAND (Ashkara) rising
+  from the sea with a caldera crater, and the ashen BLIGHT band along the east.
+  New `_bandWeight` helper drives desert/blight blends; islands raise + carve calderas.
+- **Three new towns** (generic town engine): **Sunmarch** (walled desert city — scimitar
+  shop, gem stall, meat/kebab vendor, tanner, bank, and a 10-gold toll gate that bars
+  the north gate until paid), **Port Gullwick** (fishmonger, the Rusty Anchor tavern,
+  a jail with a talkative pirate, and a wooden pier over the sea with the one-way
+  charter boat), and **Ashkara** (jungle tribal village, banana grove, chieftain).
+  Plus the **Champions' Guild** and the **Rusty Flagon** tavern added to Corvath.
+- **Six dungeons/sites on their own planes**: the ice cave (coldiron + ice fiends),
+  the sealed tomb beneath Corvath (Dawnbrand reliquary + summoning circle + three
+  riddling wardens), the Ravenmoor manor interior (a real 6-lever puzzle — odd levers
+  open the study, lever 3 needs oiling, lever 5 needs the piranha fountain poisoned)
+  and its crypt, the Ashkara caldera arena (lava, boat-only access), and the
+  Champions' Guild's 12-QP-gated door.
+- **High-tier bestiary** (formula levels): giant spider 32, ice fiend 40, bogwyrm 52,
+  echo 60, ashfiend 62 (demon), plus bosses **Ravenmoor** (undead — cannot die without
+  the stake in hand), **Zarkhul** (ash demon — takes 2× from Dawnbrand, 1.5× from any
+  blessed steel), and **Cindermaw** (dragonfire: 40 damage without an anti-flame
+  kiteshield worn, ~8 with). The Blight rule: **death there drops EVERYTHING**.
+- **Quests 6–10, fully playable**: The Poultrified Professor (lever puzzle), The Lord
+  of Murkwell Manor (beers→hunter→garlic+stake→crypt), The Squire's Blunder (portrait
+  →cliff-smith→coldiron in the ice cave→forge), Shadow Over Corvath (riddles→keys→
+  Dawnbrand→wards→Zarkhul), and The Wyrm of Ashkara (12-QP guild gate→3 sea-chart
+  holders→anti-flame shield→sail→Cindermaw). Dialogue gained `qp`/`hasCount`/`lacks`
+  conditions and a `tan` action; boss deaths advance quests; a quest-gated equip check
+  (`equipQuest`) guards the Starmetal platebody.
+- **New content**: ~50 items (quest chain items, coldiron ore/bar, Dawnbrand,
+  anti-flame kiteshield, Starmetal bar/platebody, the full fish ladder completed to
+  swordfish, beer/kebab/banana, combat lamps), teleport→spellbook already there, 7 new
+  shops, ~30 new NPCs, coldiron mining + smelting, the manor combine (poison+fish food).
+
+## Phase 11 — tested: THE FULL QUEST-CAPE PLAYTHROUGH (live browser, real pipelines)
+
+- Quests 1–5 awarded (verified legit in Phase 9); quests **6–10 driven through every
+  real mechanic**:
+  · Q6: solved the manor puzzle (odd levers, oiled #3, poisoned the piranhas for #5),
+    study opened, professor freed → +300 gold, +1 QP.
+  · Q7: mad wizard → hunter (2 beers → garlic + stake) → crypt; Ravenmoor **could not
+    die without the stake**, died with it → exactly 4,825 Attack xp.
+  · Q8: squire → portrait → cliff-smith → mined coldiron in the ice cave → smelted the
+    bar → forged the heirloom → returned it → exactly 12,725 Smithing xp.
+  · Q9: three riddles → three keys → reliquary (Dawnbrand + wards) → spoke the wards →
+    Zarkhul (2× Dawnbrand smite verified) → 3 combat lamps, keeps Dawnbrand.
+  · Q10: 12-QP guild door opened → chart from hermit/pirate(beer)/collector(500g) →
+    assembled → armorer sells the anti-flame kiteshield (verified) → sailed to the
+    caldera → **dragonfire measured 40 without the shield, 10 with** → Cindermaw slain
+    → Starmetal platebody + 9,325 Strength + 9,325 Defence.
+- **THE CAPE MOMENT**: all 10 quests green, **18 / 18 quest points**, and the
+  **Starmetal platebody WORN** — the equip gate refused it while the quest was
+  incomplete ("You have not earned the right…") and accepted it once Cindermaw fell.
+- Blight death drops everything (5→0 kept); toll gate bars then admits for 10 gold;
+  bridge/tick regressions green; **1.58 ms/frame in Corvath**; no console errors across
+  the entire playthrough.
+
+## Definition of Done — Phase 11
+
+- [x] All 10 quests done in a full playthrough
+- [x] Starmetal platebody worn (quest-gated) — the quest cape moment
+- NOTE: "on a legit save" — the §14 SAVE SYSTEM lands in Phase 12; this playthrough was
+  a fresh-session run (quests 1–5 awarded per their Phase 9 verification; 6–10 fully live).
+
+---
+
+## Phase 10 — World Expansion I — COMPLETE
 
 ## What was built (Phase 10)
 
@@ -616,15 +685,13 @@
 
 ## Exact next step
 
-**Phase 11 — World Expansion II + Quests 6–10**: Sunmarch (toll gate 10g, tanner, gem
-stall, questionable meat vendor), Port Gullwick (docks, ship to Ashkara 30g, tavern,
-jailed pirate), Ashkara Isle (jungle, tribal village, volcano dungeon, Cindermaw),
-the Blight north of Brinkton (3 depth bands, EVERYTHING drops on death there, Echo
-ambushers, bogwyrms, ashfiends), high-tier bestiary, and quests 6–10: The Poultrified
-Professor (manor lever-and-door puzzle), The Lord of Murkwell Manor (Ravenmoor +
-stake), The Squire's Blunder (coldiron + ice cave), Shadow Over Corvath (Dawnbrand +
-Zarkhul), The Wyrm of Ashkara (Champions' Guild 12-QP gate, sea chart, anti-flame
-kiteshield, Cindermaw with dragonfire/shield logic, Starmetal platebody right).
-DoD: full quest cape moment — all 10 quests done, Starmetal platebody worn on a
-legit playthrough save. NOTE: save system (§14) still pending — Phase 12 must
-include it (autosave + slots + export/import).
+**Phase 12 — Polish & Soul**: full procedural music per region + all SFX (audio.js is
+still unbuilt — no sound yet); minimap blips (the minimap itself is unbuilt — spec §12
+wants a second ortho top-down camera with blips); **the SAVE SYSTEM (§14)** — autosave
+to localStorage every 30s + on tab close, three save slots, export/import JSON, reset
+with the double-confirm; balance pass (xp rates, shop prices, drop tables vs. the Grand
+Market); performance pass (instanced trees/rocks are done — audit chunk culling); a
+200+ examine-lines audit; and a title screen with a slowly rotating low-poly castle.
+DoD: a fresh-save 2-hour playtest script executes flawlessly; 60fps in Corvath square
+(already ~630fps-equivalent at 1.58ms). NOTE: the minimap, audio, and title screen from
+earlier phases' specs were deferred to here; Phase 12 is where OLDHOLM gets its senses.

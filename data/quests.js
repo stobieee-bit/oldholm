@@ -63,11 +63,76 @@ export const QUESTS = {
     rewards: ['250 Crafting xp', 'Peace in our time (goblin standards apply)'],
     rewardFn: [['xp', 'Crafting', 250]],
   },
+
+  // ---- Phase 11 quests 6-10 ----
+  poultrified_professor: {
+    name: 'The Poultrified Professor',
+    qp: 1,
+    start: 'Talk to the mad wizard in Ravenmoor Manor, on the Murkwell knoll.',
+    journal: {
+      1: 'The mad wizard turned Professor Pimm into a chicken. Reach the study through the manor’s lever puzzle: oil the stuck lever, and poison the piranha fountain to reach the last lever.',
+      2: 'The study door is open. Free Professor Pimm.',
+    },
+    rewards: ['300 gold', 'The eternal gratitude of a chicken'],
+    rewardFn: [['item', 'coins', 300]],
+  },
+  lord_of_murkwell: {
+    name: 'The Lord of Murkwell Manor',
+    qp: 3,
+    start: 'The villagers whisper of Lord Ravenmoor. Ask the manor’s mad wizard.',
+    journal: {
+      1: 'Ravenmoor sleeps in the manor crypt. The retired hunter in Corvath’s tavern knows the trick — but wants two beers and some convincing.',
+      2: 'The hunter gave me garlic and a stake. With the stake in hand, descend to the manor crypt and end Ravenmoor. He cannot die without it.',
+    },
+    rewards: ['4,825 Attack xp'],
+    rewardFn: [['xp', 'Attack', 4825]],
+  },
+  squires_blunder: {
+    name: "The Squire's Blunder",
+    qp: 1,
+    start: 'Talk to Squire Aldous in the Hall of the Pale Shield, Whitehold.',
+    journal: {
+      1: 'Squire Aldous broke his knight’s heirloom sword. Fetch the family portrait from the Hall so cliff-smith Yorra will help.',
+      2: 'I have the portrait. Take it to cliff-smith Yorra, on the frozen cliffs by the ice cave.',
+      3: 'Yorra needs a coldiron bar. Mine coldiron in the ice cave (Mining 45), smelt it at a furnace, and bring the bar back.',
+      4: 'Yorra forged the heirloom anew. Return it to Squire Aldous.',
+    },
+    rewards: ['12,725 Smithing xp'],
+    rewardFn: [['xp', 'Smithing', 12725]],
+  },
+  shadow_over_corvath: {
+    name: 'Shadow Over Corvath',
+    qp: 3,
+    start: 'Father Merrit fears Malgrim’s cult stirs beneath Corvath.',
+    journal: {
+      1: 'A trapdoor by the Corvath palace leads to a sealed tomb. Three wardens guard the blade Dawnbrand — answer each riddle for a key.',
+      2: 'I hold all three keys. Open Dawnbrand’s reliquary and learn the warding words.',
+      3: 'Dawnbrand is drawn, the words are learned. Slay Zarkhul at the summoning circle.',
+    },
+    rewards: ['Keep Dawnbrand', '3 combat xp lamps'],
+    rewardFn: [['item', 'combat_lamp', 3]],
+  },
+  wyrm_of_ashkara: {
+    name: 'The Wyrm of Ashkara',
+    qp: 5,
+    start: 'Enter the Champions’ Guild in Corvath (12 quest points required).',
+    journal: {
+      1: 'The Guildmaster names the wyrm Cindermaw. Assemble a sea chart from the hermit (near Sunmarch), the pirate (Gullwick jail), and the collector (Corvath).',
+      2: 'I have the full sea chart. Buy an anti-flame kiteshield from the Whitehold armorer, then sail from Gullwick’s docks to the caldera.',
+      3: 'The caldera. Cindermaw waits. Slay it — its dragonfire is lethal without the anti-flame kiteshield worn.',
+    },
+    rewards: ['Right to wear Starmetal platebody', 'Starmetal platebody', '18,650 Strength & Defence xp'],
+    rewardFn: [['item', 'starmetal_platebody', 1], ['xp', 'Strength', 9325], ['xp', 'Defence', 9325]],
+  },
 };
 
 export const QUEST_ORDER = [
   'cooks_calamity', 'unquiet_grave', 'beads_of_the_magus', 'severed_circle', 'matter_of_colors',
+  'poultrified_professor', 'lord_of_murkwell', 'squires_blunder', 'shadow_over_corvath', 'wyrm_of_ashkara',
 ];
+
+// The Champions' Guild opens its door at this many quest points (spec §11).
+export const CHAMPIONS_QP_GATE = 12;
 
 // The imps' four stolen beads (drop roughly evenly).
 export const BEADS = ['red_bead', 'yellow_bead', 'black_bead', 'white_bead'];

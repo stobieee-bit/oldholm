@@ -36,6 +36,10 @@ export const REGIONS = {
       [246, 63, 210, 28],      // north-west fork to Brinkton
       [76, 40, 58, 32],        // north-west to Skalvik
       [76, 140, 76, 204], [76, 204, 88, 210],      // south to Murkwell
+      // Phase 11: roads to the wider realm
+      [296, 160, 296, 214], [296, 214, 278, 244],  // Corvath south to Sunmarch's north gate
+      [76, 204, 120, 260], [120, 260, 160, 300],   // Murkwell south-east to Port Gullwick
+      [246, 88, 320, 100], [320, 100, 340, 120],   // crossroads east to the Blight verge
     ],
     flattens: [
       { x0: 262, z0: 94, x1: 330, z1: 160, h: 2.2, margin: 6 },  // Corvath
@@ -44,7 +48,22 @@ export const REGIONS = {
       { x0: 176, z0: 12, x1: 212, z1: 40, h: 2.3, margin: 5 },   // Brinkton
       { x0: 76, z0: 202, x1: 104, z1: 228, h: 1.6, margin: 5 },  // Murkwell (low, damp)
       { x0: 110, z0: 204, x1: 128, z1: 222, h: 3.4, margin: 5 }, // the manor knoll
+      { x0: 256, z0: 244, x1: 320, z1: 300, h: 2.6, margin: 6 }, // Sunmarch (desert)
+      { x0: 150, z0: 300, x1: 214, z1: 330, h: 1.4, margin: 5 }, // Port Gullwick (low, coastal)
+      { x0: 286, z0: 336, x1: 330, z1: 366, h: 3.0, margin: 6 }, // Ashkara tribal village
     ],
+
+    // ---- Phase 11 terrain bands ----
+    // Desert around Sunmarch: sandy colour + gentle dunes.
+    desert: { x0: 224, z0: 224, x1: 358, z1: 322, fade: 12, dune: 0.6 },
+    // The southern sea: terrain sinks below the waterline past zStart.
+    sea: { zStart: 316, fade: 18, floorH: -3.2 },
+    // Islands rising from the sea. Ashkara has a volcano cone.
+    islands: [
+      { x: 306, z: 358, r: 30, h: 2.6, rim: 6, volcano: { r: 9, h: 7, caldera: 3 } },
+    ],
+    // The eastern Blight: ashen wastes, high-risk, death drops EVERYTHING.
+    blight: { x0: 334, z0: 56, x1: 381, z1: 208, fade: 8, roughen: 0.8 },
 
     // Holmbridge castle: a walled bailey with corner towers and a central keep.
     // x0..x1 / z0..z1 are corner-grid bounds (tiles x0..x1-1 are inside).
@@ -77,6 +96,7 @@ export const REGIONS = {
     treeClusters: [
       { type: 'yew', x: 194, z: 34, count: 7, radius: 8 },      // Brinkton's yews
       { type: 'willow', x: 95, z: 221, count: 8, radius: 9 },   // Murkwell's weepers
+      { type: 'tree', x: 306, z: 348, count: 16, radius: 17 },  // Ashkara jungle
     ],
 
     // Mining outcrop southwest of the castle. rocks: [ore, dx, dz] tile offsets.
@@ -129,6 +149,10 @@ export const REGIONS = {
             name: 'Church of Aurel — Corvath', examine: 'A grander ledger for a grander flock.' },
           { x0: 300, z0: 142, x1: 312, z1: 152, doorSide: 'n', contains: ['anvil', 'furnace'],
             name: 'The Anvil District', examine: 'Legally one building, spiritually a district.' },
+          { x0: 266, z0: 96, x1: 280, z1: 108, doorSide: 's', h: 4, color: 0x8a6a42,
+            name: 'The Rusty Flagon', examine: 'Corvath’s tavern. Sticky floors, honest ale.' },
+          { x0: 314, z0: 96, x1: 328, z1: 108, doorSide: 's', h: 5, color: 0xb0a878,
+            name: "Champions' Guild", examine: 'Twelve quest points buys the door. Glory is extra.' },
         ],
         props: [
           { kind: 'fountain', x: 296.5, z: 126.5 },
@@ -196,6 +220,55 @@ export const REGIONS = {
             examine: 'North: Holmbridge, sunshine, cows. Here: Murkwell. Adjust expectations.' },
         ],
       },
+      {
+        id: 'sunmarch', bounds: { x0: 256, z0: 244, x1: 320, z1: 300 },
+        wall: { x0: 256, z0: 244, x1: 320, z1: 300, h: 4.5, wallColor: 0xcaa96a, gates: [{ side: 'n', at: 284, w: 3 }] },
+        wallColor: 0xcaa96a,
+        buildings: [
+          { x0: 264, z0: 250, x1: 276, z1: 260, doorSide: 'e', contains: ['counter'], color: 0xcaa96a,
+            name: 'Sunmarch Scimitars', examine: 'Curved steel for a curving sun.' },
+          { x0: 300, z0: 250, x1: 312, z1: 260, doorSide: 'w', contains: ['bankChest'], color: 0xcaa96a,
+            name: 'Bank of Aldera — Sunmarch', examine: 'Cool vault, warm welcome.' },
+          { x0: 264, z0: 282, x1: 274, z1: 292, doorSide: 'n', color: 0xcaa96a,
+            name: 'The Tannery', examine: 'Hides become handbags become history.' },
+        ],
+        props: [
+          { kind: 'fountain', x: 288.5, z: 272.5 },
+          { kind: 'stall', x: 296.5, z: 264.5, name: 'Gem stall', awning: 0x4a72e0,
+            examine: 'Uncut fortunes under a blue awning.' },
+          { kind: 'stall', x: 280.5, z: 264.5, name: 'Meat stall', awning: 0xb5542a,
+            examine: 'The vendor calls it kebab. The kebab declines to confirm.' },
+          { kind: 'signpost', x: 284.5, z: 246.5, arms: 2,
+            examine: 'North: Corvath and cooler climes. Within: Sunmarch. Bring water.' },
+        ],
+      },
+      {
+        id: 'gullwick', bounds: { x0: 150, z0: 300, x1: 214, z1: 330 },
+        buildings: [
+          { x0: 156, z0: 306, x1: 166, z1: 314, doorSide: 'e', contains: ['counter'], color: 0x6a6a72,
+            name: 'Gullwick Fishmonger', examine: 'Nets, bait, and rods for the salt-tempered.' },
+          { x0: 176, z0: 306, x1: 190, z1: 316, doorSide: 'n', h: 4, color: 0x6e5a42,
+            name: 'The Rusty Anchor', examine: 'A tavern that has heard every fish story twice.' },
+          { x0: 198, z0: 306, x1: 208, z1: 316, doorSide: 'w', color: 0x5a5a62,
+            name: 'Gullwick Jail', examine: 'One cell, one very talkative pirate.' },
+        ],
+        props: [
+          { kind: 'signpost', x: 168.5, z: 302.5, arms: 2,
+            examine: 'North: the mainland and its manners. South: the docks, and beyond, Ashkara.' },
+        ],
+      },
+      {
+        id: 'ashkara', bounds: { x0: 286, z0: 336, x1: 330, z1: 366 },
+        buildings: [
+          { x0: 292, z0: 342, x1: 302, z1: 350, doorSide: 'e', color: 0x7a5a3a,
+            name: 'Tribal longhut', examine: 'Woven leaves, warm hospitality, distant volcano.' },
+          { x0: 312, z0: 342, x1: 322, z1: 350, doorSide: 'w', contains: ['counter'], color: 0x7a5a3a,
+            name: 'Banana grove stall', examine: 'The realm’s only vertically-integrated banana concern.' },
+        ],
+        props: [
+          { kind: 'firepit', x: 307.5, z: 356.5 },
+        ],
+      },
     ],
     sewers: { x0: 270, z0: 100, x1: 322, z1: 152, entrance: { x: 302.5, z: 122.5 } },
     miningGuild: { x: 301, z: 45 },
@@ -212,6 +285,41 @@ export const REGIONS = {
       { x: 247.5, z: 86.5, arms: 3,
         examine: 'West: Holmbridge. East: Corvath. North: Whitehold & Brinkton. You are: at the crossroads.' },
     ],
+
+    // ---- Phase 11 dungeons & quest sites (world.js builds these) ----
+    // The manor interior sits inside the Ravenmoor Manor footprint; the
+    // lever-and-door puzzle gates the way to the mad wizard's study. The
+    // crypt is a separate plane below (Ravenmoor sleeps there).
+    manor: {
+      building: { x0: 112, z0: 206, x1: 126, z1: 220 }, // matches the Murkwell manor
+      entry: { x: 112.5, z: 213.5 },  // the west door tile (interior)
+      crypt: { cx: 119, cz: 213, r: 4 },
+      cryptStair: { x: 124.5, z: 207.5 },
+    },
+    // The ice cave — coldiron ore + ice fiends (quest 8). Entrance on the
+    // cold cliffs north-west of Whitehold.
+    iceCave: {
+      entrance: { x: 250.5, z: 22.5 },
+      cx: 245, cz: 18, r: 6,
+      rocks: [['coldiron', -2, -1], ['coldiron', 2, 0], ['coldiron', 0, 2]],
+    },
+    // The sealed tomb beneath Corvath — Dawnbrand + 3 key bearers (quest 9).
+    tomb: {
+      entrance: { x: 288.5, z: 104.5 }, // trapdoor by the palace
+      cx: 296, cz: 118, r: 7,
+    },
+    // The Ashkara caldera — Cindermaw's lair (quest 10), reached by boat.
+    caldera: {
+      cx: 306, cz: 358, r: 8,
+      arrive: { x: 306.5, z: 352.5 },
+    },
+    // Port Gullwick docks: a pier over the sea with the Ashkara charter boat.
+    docks: {
+      x: 182, z0: 316, z1: 328,        // pier runs south from the town onto the water
+      boat: { x: 182.5, z: 328.5 },
+    },
+    // Sunmarch's toll gate (10 gold to pass north↔south through the wall).
+    tollGate: { x: 284, z: 244, cost: 10 },
 
     // ---- Phase 9 sites ----
     windmill: { x: 94.5, z: 40.5 },
@@ -258,6 +366,31 @@ export const REGIONS = {
       { npc: 'murkwell_banker', x: 84.5, z: 210.5 },
       { npc: 'villager_man', x: 290.5, z: 128.5 },
       { npc: 'villager_woman', x: 300.5, z: 124.5 },
+      // ---- Phase 11 town & quest folk ----
+      { npc: 'toll_guard', x: 284.5, z: 242.5 },        // Sunmarch north gate
+      { npc: 'scimitar_seller', x: 270.5, z: 255.5 },
+      { npc: 'sunmarch_tanner', x: 269.5, z: 287.5 },
+      { npc: 'gem_seller', x: 296.5, z: 262.5 },
+      { npc: 'meat_vendor', x: 280.5, z: 262.5 },
+      { npc: 'fishmonger', x: 161.5, z: 310.5 },
+      { npc: 'ferryman', x: 182.5, z: 322.5 },          // on the pier
+      { npc: 'gullwick_barkeep', x: 183.5, z: 311.5 },
+      { npc: 'pirate', x: 203.5, z: 311.5 },            // the jail cell
+      { npc: 'chieftain', x: 297.5, z: 346.5 },
+      { npc: 'banana_seller', x: 317.5, z: 346.5 },
+      { npc: 'hermit', x: 232.5, z: 300.5 },            // desert edge
+      { npc: 'hunter', x: 270.5, z: 101.5 },            // Corvath tavern
+      { npc: 'collector', x: 316.5, z: 122.5 },         // Corvath, near the guild
+      { npc: 'squire', x: 283.5, z: 31.5 },             // Whitehold hall
+      { npc: 'armorer', x: 275.5, z: 31.5 },            // Whitehold — anti-flame shield
+      { npc: 'cliff_smith', x: 258.5, z: 26.5 },        // by the ice cave cliffs
+      { npc: 'champions_master', x: 321.5, z: 100.5 },  // inside the guild building
+      { npc: 'mad_wizard', x: 124.5, z: 208.5 },        // manor study
+      { npc: 'professor', x: 118.5, z: 210.5, hidden: true }, // the chicken
+      // tomb key wardens (quest 9)
+      { npc: 'warden_stone', x: 291.5, z: 114.5, plane: 'corvathTomb' },
+      { npc: 'warden_flame', x: 301.5, z: 114.5, plane: 'corvathTomb' },
+      { npc: 'warden_deep', x: 296.5, z: 123.5, plane: 'corvathTomb' },
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
@@ -327,6 +460,28 @@ export const REGIONS = {
       { mob: 'skeleton', x: 319.5, z: 136.5, plane: 'corvathSewers' },
       { mob: 'ghoul', x: 292.5, z: 148.5, plane: 'corvathSewers' },
       { mob: 'ghoul', x: 302.5, z: 148.5, plane: 'corvathSewers' },
+      // ---- Phase 11: the far realm ----
+      // The Blight (x 334-381): three depth bands, worsening eastward.
+      { mob: 'bogwyrm', x: 344.5, z: 90.5 }, { mob: 'bogwyrm', x: 342.5, z: 140.5 },
+      { mob: 'echo', x: 348.5, z: 110.5 }, { mob: 'echo', x: 346.5, z: 170.5 },
+      { mob: 'ashfiend', x: 362.5, z: 100.5 }, { mob: 'ashfiend', x: 366.5, z: 150.5 },
+      { mob: 'echo', x: 372.5, z: 120.5 }, { mob: 'ashfiend', x: 374.5, z: 180.5 },
+      // Desert giant-spider nests around Sunmarch.
+      { mob: 'giant_spider', x: 236.5, z: 262.5 }, { mob: 'giant_spider', x: 240.5, z: 288.5 },
+      { mob: 'giant_spider', x: 332.5, z: 270.5 },
+      // The ice cave (quest 8) — coldiron guarded by ice fiends.
+      { mob: 'ice_fiend', x: 244.5, z: 16.5, plane: 'iceCave' },
+      { mob: 'ice_fiend', x: 247.5, z: 20.5, plane: 'iceCave' },
+      { mob: 'ice_fiend', x: 242.5, z: 21.5, plane: 'iceCave' },
+      // The sealed tomb (quest 9) — undead wardens; Zarkhul waits hidden.
+      { mob: 'skeleton', x: 292.5, z: 114.5, plane: 'corvathTomb' },
+      { mob: 'skeleton', x: 300.5, z: 122.5, plane: 'corvathTomb' },
+      { mob: 'vex_cultist', x: 296.5, z: 120.5, plane: 'corvathTomb' },
+      { mob: 'zarkhul', x: 296.5, z: 116.5, plane: 'corvathTomb', hidden: true },
+      // The manor crypt (quest 7) — Lord Ravenmoor sleeps, awaiting a stake.
+      { mob: 'ravenmoor', x: 119.5, z: 213.5, plane: 'manorCrypt', hidden: true },
+      // The caldera (quest 10) — Cindermaw, the capstone wyrm.
+      { mob: 'cindermaw', x: 306.5, z: 360.5, plane: 'ashkaraCaldera', hidden: true },
     ],
 
     // Items lying about the region at boot. plane: 0 ground, 1 keep floor 2, 2 keep roof.
@@ -362,6 +517,9 @@ export const REGIONS = {
       { item: 'egg', x: 131.9, z: 78.6, respawn: 60 },
       { item: 'skull', x: 48.2, z: 113.5, plane: 'towerBasement', respawn: 80,
         onTakeQuest: ['unquiet_grave', 2, 3] },
+      // Phase 11: the knight's heirloom portrait (quest 8), in the Whitehold hall
+      { item: 'family_portrait', x: 282.5, z: 26.5, respawn: 120,
+        onTakeQuest: ['squires_blunder', 1, 2] },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate

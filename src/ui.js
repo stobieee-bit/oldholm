@@ -991,6 +991,19 @@ export class UI {
       label: 'Fletch arrows',
       run: () => this.actions.startFletchArrows(slot.id),
     });
+    if (slot.id === 'poison' || slot.id === 'fish_food') entries.push({
+      label: 'Poison fish food',
+      run: () => this.actions.poisonFishFood(),
+    });
+    if (slot.id === 'combat_lamp') entries.push({
+      label: 'Rub ' + def.name,
+      run: () => {
+        this.menu.open(['Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic'].map((sk) => ({
+          label: sk,
+          run: () => this.actions.rubLamp(slotIndex, sk),
+        })), null);
+      },
+    });
     if (slot.id === 'leather') entries.push({
       label: 'Craft leather',
       run: () => {
