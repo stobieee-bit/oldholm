@@ -116,6 +116,10 @@ const skyUniforms = {
   uHorizon: { value: new THREE.Color(def.fog.color) },
   uTop: { value: new THREE.Color(def.fog.color) },
   uExp: { value: 0.46 },
+  uNight: { value: 0 },
+  uSunDir: { value: new THREE.Vector3(1, 0, 0) },   // sun's compass direction (xz)
+  uGlow: { value: new THREE.Color(0xffb060) },       // dawn/dusk warm-band colour
+  uGlowStr: { value: 0 },
 };
 const skyDome = new THREE.Mesh(
   new THREE.SphereGeometry(72, 28, 16),
@@ -127,11 +131,23 @@ const skyDome = new THREE.Mesh(
       void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: `
       uniform vec3 uHorizon; uniform vec3 uTop; uniform float uExp;
+      uniform float uNight; uniform vec3 uSunDir; uniform vec3 uGlow; uniform float uGlowStr;
       varying vec3 vDir;
+      float hash(vec3 p){ return fract(sin(dot(floor(p), vec3(12.9898,78.233,37.719))) * 43758.5453); }
       void main() {
-        float h = normalize(vDir).y;
+        vec3 d = normalize(vDir);
+        float h = d.y;
         float t = pow(clamp(h, 0.0, 1.0), uExp);
-        gl_FragColor = vec4(mix(uHorizon, uTop, t), 1.0);
+        vec3 col = mix(uHorizon, uTop, t);
+        // warm glow band low in the sky, concentrated toward the sun's azimuth
+        float az = max(dot(normalize(d.xz), normalize(uSunDir.xz)), 0.0);
+        float band = pow(az, 3.0) * pow(clamp(1.0 - h, 0.0, 1.0), 2.5);
+        col += uGlow * band * uGlowStr;
+        // stars: sparse hash points in the upper sky, fading in at night
+        float sky = smoothstep(0.05, 0.35, h);
+        float s = step(0.9975, hash(d * 260.0)) + step(0.9992, hash(d * 130.0 + 7.0));
+        col += vec3(0.9, 0.93, 1.0) * s * sky * uNight;
+        gl_FragColor = vec4(col, 1.0);
       }`,
   }),
 );
@@ -159,6 +175,26 @@ const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
 sunGlow.renderOrder = -950;
 scene.add(sunGlow);
 const SUN_DIR = new THREE.Vector3(44, 58, 28).normalize();
+
+// a pale moon riding opposite the sun, fading in at night
+const moonTex = (() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const g = cv.getContext('2d');
+  const rg = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  rg.addColorStop(0.0, 'rgba(238,244,255,1)');
+  rg.addColorStop(0.42, 'rgba(226,234,250,0.98)');
+  rg.addColorStop(0.52, 'rgba(200,214,240,0.35)');
+  rg.addColorStop(1.0, 'rgba(180,200,235,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(cv);
+})();
+const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: moonTex, transparent: true, depthWrite: false, fog: false, opacity: 0,
+}));
+moonGlow.renderOrder = -948;
+moonGlow.scale.setScalar(9);
+scene.add(moonGlow);
+const MOON_DIR = new THREE.Vector3(-38, 52, -34).normalize();
 
 // --- drifting clouds ---------------------------------------------------------
 // Soft billboard puffs high in the sky, in a group that follows the player so
@@ -431,11 +467,20 @@ function applyDayTint() {
   _skyTop.copy(DEEP_SKY).multiply(_tintFog);
   skyUniforms.uTop.value.copy(_skyTop);
   skyDome.position.copy(camera.position);
-  // sun glow rides in the sun's direction, tinted + sized by the hour
+  // sun glow rides in the sun's direction, tinted + sized by the hour;
+  // it floors out at deep night when the moon takes over
   sunGlow.position.copy(camera.position).addScaledVector(SUN_DIR, 62);
   sunGlow.material.color.copy(_tintSun);
   sunGlow.scale.setScalar(20 + (1 - si) * 26); // low, dim sun blooms wider
-  sunGlow.material.opacity = 0.55 + si * 0.35;
+  sunGlow.material.opacity = (0.55 + si * 0.35) * (1 - nightAmount * 0.85);
+  // sky: warm sun-band at golden hour, stars + moon at night
+  skyUniforms.uNight.value = nightAmount;
+  skyUniforms.uSunDir.value.set(SUN_DIR.x, 0, SUN_DIR.z);
+  skyUniforms.uGlow.value.copy(_tintSun);
+  skyUniforms.uGlowStr.value = Math.max(0, 1 - (si - 0.86) * (si - 0.86) / 0.02) * (1 - nightAmount) * 0.9;
+  moonGlow.position.copy(camera.position).addScaledVector(MOON_DIR, 62);
+  moonGlow.material.opacity = nightAmount * 0.9;
+  moonGlow.scale.setScalar(8 + nightAmount * 3);
   // the water reflects a lightened version of the current sky
   if (world._waterUniforms) world._waterUniforms.uSky.value.copy(_fogNow).lerp(WHITE, 0.34);
 }
