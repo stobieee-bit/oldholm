@@ -553,6 +553,7 @@ window.__OLDHOLM = {
       npcs.updateVisuals(dt, player.pos);
       world.updateProjectiles(dt);
       world.updateEffects(dt);
+      world.updateSpinners(dt);
     }
     interactions.updateHover();
     applyDayTint();

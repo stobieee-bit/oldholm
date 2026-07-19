@@ -98,6 +98,7 @@ export class World {
     this._tick = 0;             // latest tick seen (for take-time scheduling)
     this._projectiles = [];     // arrows/spell bolts in flight (cosmetic)
     this.lightEmitters = [];    // torches/braziers/lava — main.js lights the nearest few
+    this._windUniforms = { uTime: { value: 0 } }; // shared wind clock for the sway shader
     this.group = new THREE.Group();
     this.group.name = 'world:' + def.id;
     scene.add(this.group);
@@ -746,6 +747,27 @@ export class World {
     return flame;
   }
 
+  /** Add a coherent GPU wind-sway to an INSTANCED material: a breeze travels
+   *  across the world (phase from each instance's world XZ) and bends the mesh
+   *  above baseY, most at topY. Only the vertex shader — no per-frame CPU. */
+  _applyWind(mat, baseY, topY, amp) {
+    const inv = (1 / Math.max(0.01, topY - baseY)).toFixed(4);
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uWindTime = this._windUniforms.uTime;
+      shader.vertexShader = 'uniform float uWindTime;\n' + shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+         {
+           vec3 iw = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+           float ph = dot(iw.xz, vec2(0.82, 0.57)) * 0.2 + uWindTime * 1.5;
+           float m = clamp((transformed.y - ${baseY.toFixed(2)}) * ${inv}, 0.0, 1.0);
+           float sway = sin(ph) * ${amp.toFixed(3)} * m;
+           transformed.x += sway; transformed.z += sway * 0.5;
+         }`);
+    };
+    return mat;
+  }
+
   _buildCastle() {
     const c = this.def.castle;
     const base = c.plateauH;
@@ -1287,6 +1309,7 @@ export class World {
         mesh.frustumCulled = false;
         this.group.add(mesh);
       }
+      for (const mesh of cans) this._applyWind(mesh.material, 1.7, 4.6, 0.16); // canopies shear in the wind; trunks hold
       this.treeSets[type] = { meshes, list: records };
       const tdef = TREES[type];
       this.addInteractable({
@@ -1466,6 +1489,12 @@ export class World {
       lilies.setColorAt(li, col); li++;
     }
     for (let i = li; i < N2.lily; i++) lilies.setMatrixAt(i, zero);
+
+    // a travelling breeze bends the soft growth (rocks + lily pads stay still)
+    this._applyWind(grass.material, 0, 0.42, 0.09);
+    this._applyWind(stems.material, 0, 0.34, 0.06);
+    this._applyWind(heads.material, 0, 0.34, 0.06);
+    this._applyWind(reeds.material, 0, 0.95, 0.13);
 
     for (const m of [...all, ...all2]) this.group.add(m);
     this.clutter = [...all, ...all2];
@@ -2855,6 +2884,7 @@ export class World {
   updateSpinners(dt) {
     for (const s of this._spinners ?? []) s.obj.rotation[s.axis] += s.speed * dt;
     if (this._waterUniforms) this._waterUniforms.uTime.value = (this._waterUniforms.uTime.value + dt) % 6283.0;
+    this._windUniforms.uTime.value = (this._windUniforms.uTime.value + dt) % 6283.0;
   }
 
   // ---- the general store + bank chest ------------------------------------------------
