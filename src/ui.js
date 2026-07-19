@@ -3,8 +3,9 @@
 // panel (Skills F2 / Inventory F4), hover action text, HUD orbs, banner.
 // More tabs slot into TABS as later phases add their systems.
 
-import { ITEMS } from '../data/items.js';
+import { ITEMS, METAL_SMITHING } from '../data/items.js';
 import { FIREMAKING, COOKING } from '../data/resources.js';
+import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, GEMS, STRINGING } from '../data/crafting.js';
 
 // ---------------------------------------------------------------------------
 
@@ -216,6 +217,13 @@ const TABS = [
   { id: 'combat', label: 'Fight', key: 'F1' },
   { id: 'skills', label: 'Skills', key: 'F2' },
   { id: 'inventory', label: 'Pack', key: 'F4' },
+  { id: 'equipment', label: 'Gear', key: 'F5' },
+];
+
+const EQUIP_SLOTS = [
+  ['head', 'Head'], ['neck', 'Neck'], ['weapon', 'Weapon'], ['body', 'Body'],
+  ['shield', 'Shield'], ['legs', 'Legs'], ['gloves', 'Gloves'], ['boots', 'Boots'],
+  ['ring', 'Ring'],
 ];
 
 const STYLES = [
@@ -234,6 +242,7 @@ export class TabPanel {
       combat: document.getElementById('tab-combat'),
       skills: document.getElementById('tab-skills'),
       inventory: document.getElementById('tab-inventory'),
+      equipment: document.getElementById('tab-equipment'),
     };
     for (const t of TABS) {
       const b = document.createElement('button');
@@ -251,7 +260,33 @@ export class TabPanel {
     this.renderSkills();
     this.renderInventory();
     this.renderCombat();
+    this.renderEquipment();
     this.show(this.active);
+  }
+
+  renderEquipment() {
+    const el = this.pages.equipment;
+    el.innerHTML = '';
+    for (const [slotName, label] of EQUIP_SLOTS) {
+      const id = this.player.equipment[slotName];
+      const row = document.createElement('div');
+      row.className = 'equip-row' + (id ? ' filled' : '');
+      row.innerHTML = `<span class="equip-slot">${label}</span>` +
+        `<span class="equip-item">${id ? ITEMS[id].name : '—'}</span>`;
+      if (id) row.addEventListener('mousedown', (e) => {
+        if (e.button !== 0 && e.button !== 2) return;
+        this.ui.menu.open([
+          { label: 'Remove ' + ITEMS[id].name, run: () => this.player.unequip(slotName, this.ui) },
+          { label: 'Examine ' + ITEMS[id].name, run: () => this.ui.chat.add(ITEMS[id].examine, 'examine') },
+        ], { x: e.clientX, y: e.clientY }, e);
+      });
+      el.appendChild(row);
+    }
+    const b = this.player.equipBonuses();
+    const foot = document.createElement('div');
+    foot.className = 'skill-total';
+    foot.textContent = `Atk +${b.att}  Str +${b.str}  Def +${b.def}`;
+    el.appendChild(foot);
   }
 
   renderCombat() {
@@ -259,7 +294,8 @@ export class TabPanel {
     el.innerHTML = '';
     const head = document.createElement('div');
     head.className = 'combat-head';
-    head.innerHTML = `<div class="weapon-name">Fists</div>` +
+    const wid = this.player.equipment.weapon;
+    head.innerHTML = `<div class="weapon-name">${wid ? ITEMS[wid].name : 'Fists'}</div>` +
       `<div class="combat-lvl">Combat level: <span>${this.ui.combatLevel()}</span></div>`;
     el.appendChild(head);
     for (const [id, label, hint] of STYLES) {
@@ -352,6 +388,7 @@ export class UI {
     this.levelFlash = document.getElementById('level-flash');
     this.levelBanner = document.getElementById('level-banner');
     this.deathFade = document.getElementById('death-fade');
+    document.getElementById('anvil-close').addEventListener('click', () => this.closeAnvil());
   }
 
   /** Late-bound refs the item menus / combat displays need. */
@@ -428,6 +465,76 @@ export class UI {
 
   refreshInventory() { this.panel.renderInventory(); }
 
+  refreshEquipment() {
+    this.panel.renderEquipment();
+    this.panel.renderCombat(); // the weapon name lives there
+  }
+
+  /** Furnace: choose a bar to smelt. */
+  openSmeltMenu(furnaceEntry) {
+    const count = (id) => this.player.inventory.slots.reduce(
+      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+    const entries = Object.entries(SMELTING)
+      .filter(([id]) => id !== 'TICKS_PER_BAR' && typeof SMELTING[id] === 'object')
+      .map(([barId, def]) => ({
+        label: `Smelt ${ITEMS[barId].name} (lvl ${def.req})`,
+        run: () => this.actions.startSmelt(furnaceEntry, barId),
+        dim: !Object.entries(def.inputs).every(([id, n]) => count(id) >= n),
+      }));
+    this.menu.open(entries, null);
+  }
+
+  /** Furnace: jewellery casting. */
+  openJewelryMenu(furnaceEntry) {
+    const entries = Object.entries(JEWELRY).map(([rid, def]) => ({
+      label: `Craft ${ITEMS[rid].name} (lvl ${def.req})`,
+      run: () => this.actions.startJewelry(rid),
+    }));
+    this.menu.open(entries, null);
+  }
+
+  /** The anvil interface: bar -> the full smithable list with level gates. */
+  openAnvil() {
+    const count = (id) => this.player.inventory.slots.reduce(
+      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+    const metals = Object.entries(METAL_SMITHING).filter(([, p]) => count(p.bar) > 0);
+    if (!metals.length) { this.chat.add('You have no bars to work.'); return; }
+    if (document.pointerLockElement) document.exitPointerLock(); // the anvil wants a cursor
+    const panel = document.getElementById('anvil-panel');
+    const body = document.getElementById('anvil-body');
+    const lvl = this.player.skillByName('Smithing').level;
+    body.innerHTML = '';
+    for (const [metal, params] of metals) {
+      const head = document.createElement('div');
+      head.className = 'anvil-metal';
+      head.textContent = `${ITEMS[params.bar].name}s: ${count(params.bar)}`;
+      body.appendChild(head);
+      for (const [shapeId, shape] of Object.entries(SMITHABLES)) {
+        const req = params.reqBase + shape.off;
+        const itemId = `${metal}_${shapeId}`;
+        const row = document.createElement('div');
+        const can = lvl >= req && count(params.bar) >= shape.bars;
+        row.className = 'anvil-row' + (can ? '' : ' locked');
+        row.innerHTML = `<span>${ITEMS[itemId].name}</span>` +
+          `<span class="anvil-meta">${shape.bars} bar${shape.bars > 1 ? 's' : ''} · lvl ${req}</span>`;
+        row.addEventListener('mouseup', (e) => {
+          if (e.button !== 0) return;
+          this.closeAnvil();
+          this.actions.startSmith(metal, shapeId);
+        });
+        body.appendChild(row);
+      }
+    }
+    panel.classList.remove('hidden');
+    this._anvilEsc = (e) => { if (e.code === 'Escape') this.closeAnvil(); };
+    window.addEventListener('keydown', this._anvilEsc);
+  }
+
+  closeAnvil() {
+    document.getElementById('anvil-panel').classList.add('hidden');
+    if (this._anvilEsc) { window.removeEventListener('keydown', this._anvilEsc); this._anvilEsc = null; }
+  }
+
   /** Pick a raw food from the pack to cook on this fire/range. */
   openCookMenu(fireEntry) {
     if (fireEntry.expired) { this.chat.add('The fire has burned out.'); return; }
@@ -448,6 +555,10 @@ export class UI {
     if (!slot) return;
     const def = ITEMS[slot.id];
     const entries = [];
+    if (def.slot) entries.push({
+      label: (def.slot === 'weapon' ? 'Wield ' : 'Wear ') + def.name,
+      run: () => this.player.equip(slotIndex, this),
+    });
     if (def.heals) entries.push({
       label: 'Eat ' + def.name,
       run: () => this.player.eat(slotIndex, this),
@@ -455,6 +566,23 @@ export class UI {
     if (FIREMAKING[slot.id]) entries.push({
       label: 'Light fire',
       run: () => this.actions.startLight(slotIndex),
+    });
+    if (GEMS[slot.id]) entries.push({
+      label: 'Cut ' + def.name,
+      run: () => this.actions.cutGem(slotIndex),
+    });
+    if (slot.id === STRINGING.input) entries.push({
+      label: 'String ' + def.name,
+      run: () => this.actions.stringAmulet(slotIndex),
+    });
+    if (slot.id === 'leather') entries.push({
+      label: 'Craft leather',
+      run: () => {
+        this.menu.open(Object.entries(LEATHER_RECIPES).map(([rid, r]) => ({
+          label: `${ITEMS[rid].name} (lvl ${r.req})`,
+          run: () => this.actions.startCraftLeather(rid),
+        })), null);
+      },
     });
     this.menu.open([
       ...entries,

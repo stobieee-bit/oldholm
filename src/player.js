@@ -66,9 +66,14 @@ export class Player {
     this.maxHp = 10;
     this.target = null;        // a mob, or null
     this.attackCooldown = 0;   // ticks until the next swing
-    this.attackSpeed = 4;      // unarmed (weapon speeds arrive in Phase 6)
+    this.attackSpeed = 4;      // unarmed; wielding sets the weapon's speed
     this.style = 'accurate';   // accurate|aggressive|defensive -> Attack/Strength/Defence
     this.autoRetaliate = true;
+    // equipment (9 of the 11 slots live; cape/ammo arrive with Ranged in Phase 7)
+    this.equipment = {
+      weapon: null, shield: null, head: null, body: null, legs: null,
+      gloves: null, boots: null, neck: null, ring: null,
+    };
     this.keys = { forward: false, back: false, left: false, right: false };
     this.pointerLocked = false;
     this.inputEnabled = false; // off while the title/pause overlay is up
@@ -219,6 +224,82 @@ export class Player {
     }
     ui.refreshSkills();
     return gained;
+  }
+
+  /**
+   * Equip a wearable from an inventory slot. Enforces skill requirements
+   * (rudely), swaps with whatever occupied the slot, and handles the
+   * two-hander/shield standoff.
+   */
+  equip(slotIndex, ui) {
+    const inv = this.inventory.slots;
+    const slot = inv[slotIndex];
+    if (!slot) return;
+    const def = ITEMS[slot.id];
+    if (!def.slot) return;
+    for (const [skill, lvl] of Object.entries(def.reqs ?? {})) {
+      if (this.skillByName(skill).level < lvl) {
+        const verb = def.slot === 'weapon' ? 'wield' : 'wear';
+        ui.chat.add(`You need ${skill === 'Attack' ? 'an' : 'a'} ${skill} level of ${lvl} to ${verb} this. ` +
+          `You do not have ${skill === 'Attack' ? 'an' : 'a'} ${skill} level of ${lvl}.`);
+        return;
+      }
+    }
+    // two-handed weapons and shields refuse to share
+    const displaced = [];
+    if (def.slot === 'weapon' && def.twoHanded && this.equipment.shield) displaced.push('shield');
+    if (def.slot === 'shield' && this.equipment.weapon && ITEMS[this.equipment.weapon].twoHanded)
+      displaced.push('weapon');
+    const freeSlots = inv.filter((s) => !s).length;
+    // the equipped item's own slot frees up unless a swapped-out piece reclaims it
+    const available = freeSlots + (this.equipment[def.slot] ? 0 : 1);
+    if (displaced.length > available) {
+      ui.chat.add('Your pack is too full to juggle that much gear.');
+      return;
+    }
+    inv[slotIndex] = null;
+    for (const dSlot of displaced) {
+      this.inventory.add(this.equipment[dSlot], 1);
+      this.equipment[dSlot] = null;
+    }
+    const prev = this.equipment[def.slot];
+    this.equipment[def.slot] = slot.id;
+    if (prev) inv[slotIndex] = { id: prev, count: 1 };
+    if (def.slot === 'weapon' || displaced.includes('weapon')) {
+      const w = this.equipment.weapon ? ITEMS[this.equipment.weapon] : null;
+      this.attackSpeed = w?.speed ?? 4;
+    }
+    ui.chat.add(`You ${def.slot === 'weapon' ? 'wield' : 'wear'} the ${def.name.toLowerCase()}.`);
+    ui.refreshInventory();
+    ui.refreshEquipment();
+  }
+
+  unequip(slotName, ui) {
+    const id = this.equipment[slotName];
+    if (!id) return;
+    if (!this.inventory.add(id, 1)) {
+      ui.chat.add('Your pack is too full to remove that.');
+      return;
+    }
+    this.equipment[slotName] = null;
+    if (slotName === 'weapon') this.attackSpeed = 4;
+    ui.chat.add('You remove the ' + ITEMS[id].name.toLowerCase() + '.');
+    ui.refreshInventory();
+    ui.refreshEquipment();
+  }
+
+  /** Aggregate equipment bonuses for the §5 formulas (Phase 6 adds styles). */
+  equipBonuses() {
+    let att = 0, str = 0, def = 0;
+    for (const id of Object.values(this.equipment)) {
+      if (!id) continue;
+      const d = ITEMS[id];
+      str += d.str ?? 0;
+      if (d.def) def += Math.round((d.def[0] + d.def[1] + d.def[2]) / 3);
+    }
+    const w = this.equipment.weapon ? ITEMS[this.equipment.weapon] : null;
+    if (w?.atk) att = Math.max(...w.atk);
+    return { att, str, def };
   }
 
   /** Eat food from an inventory slot: instant heal, 3-tick attack delay (§5). */

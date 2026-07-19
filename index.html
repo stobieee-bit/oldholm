@@ -195,6 +195,45 @@
   .style-btn small { display: block; color: #a8a184; font-size: 11px; }
   .style-btn.active { border-color: #c9a232; color: #ffe17d; background: rgba(201,162,50,0.14); }
 
+  /* equipment tab */
+  .equip-row {
+    display: flex; justify-content: space-between; padding: 4px 6px;
+    font-size: 13px; color: #a8a184; border-bottom: 1px solid rgba(85,80,60,0.35);
+  }
+  .equip-row.filled { color: #e8dfc0; cursor: pointer; }
+  .equip-row.filled:hover { background: rgba(201,162,50,0.12); }
+  .equip-row .equip-item { color: #ffe17d; }
+  .equip-row:not(.filled) .equip-item { color: #6a6350; }
+
+  /* the anvil interface */
+  #anvil-panel {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 340px; max-height: 72vh; display: flex; flex-direction: column;
+    background: rgba(28, 26, 20, 0.97); border: 2px solid #6a6248; border-radius: 5px;
+    z-index: 21; pointer-events: auto; user-select: none;
+  }
+  #anvil-panel.hidden { display: none; }
+  #anvil-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; border-bottom: 1px solid #55503c;
+    color: #c9a232; letter-spacing: 2px; font-size: 13px;
+  }
+  #anvil-close { cursor: pointer; color: #a8a184; font-size: 16px; padding: 0 4px; }
+  #anvil-close:hover { color: #ffe17d; }
+  #anvil-body { overflow-y: auto; padding: 6px 0; scrollbar-width: thin; }
+  .anvil-metal {
+    padding: 5px 12px; color: #c9a232; font-size: 12px; letter-spacing: 1px;
+    border-bottom: 1px solid rgba(85,80,60,0.4);
+  }
+  .anvil-row {
+    display: flex; justify-content: space-between; padding: 5px 14px;
+    font-size: 13.5px; color: #e8dfc0; cursor: pointer;
+  }
+  .anvil-row:hover { background: rgba(201,162,50,0.16); color: #ffe17d; }
+  .anvil-row.locked { color: #6a6350; }
+  .anvil-row.locked:hover { background: rgba(120,60,50,0.15); color: #a8756a; }
+  .anvil-meta { color: #a8a184; font-size: 12px; }
+
   /* level-up + death overlays */
   #level-flash {
     position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 6;
@@ -275,6 +314,7 @@
         <div id="tab-combat" class="tab-page hidden"></div>
         <div id="tab-skills" class="tab-page hidden"></div>
         <div id="tab-inventory" class="tab-page hidden"></div>
+        <div id="tab-equipment" class="tab-page hidden"></div>
       </div>
     </div>
 
@@ -285,6 +325,11 @@
   </div>
 
   <div id="fx-layer"></div>
+
+  <div id="anvil-panel" class="hidden">
+    <div id="anvil-head"><span>SMITHING</span><span id="anvil-close">✕</span></div>
+    <div id="anvil-body"></div>
+  </div>
 
   <div id="lock-overlay">
     <h1>Oldholm</h1>

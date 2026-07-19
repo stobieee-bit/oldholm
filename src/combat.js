@@ -65,10 +65,10 @@ export class Combat {
 
   playerStats() {
     const s = (n) => this.player.skillByName(n).level;
-    // unarmed: all bonuses 0, speed 4 (equipment arrives in Phase 6)
+    const eq = this.player.equipBonuses();
     return {
       att: s('Attack'), str: s('Strength'), def: s('Defence'),
-      attBonus: 0, strBonus: 0, defBonus: 0,
+      attBonus: eq.att, strBonus: eq.str, defBonus: eq.def,
     };
   }
 

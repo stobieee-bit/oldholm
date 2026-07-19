@@ -105,6 +105,8 @@ export class World {
     this._buildGoblinCamp();
     this._buildMine();
     this._buildFishingSpots();
+    this._buildSmithy();
+    this._buildTanningRack();
     this._spawnGroundItems();
     this._rebuildPickPool();
   }
@@ -751,6 +753,26 @@ export class World {
       }],
     });
 
+    // ---- spinning wheel (upper floor, per the atlas) ----
+    const wheelX = k.x0 + 8.5, wheelZ = k.z0 + 2.2;
+    const wheelMeshes = [
+      this._addBox(0.8, 0.1, 0.5, wheelX, floorY + 0.32, wheelZ, wood),
+      this._addBox(0.1, 0.32, 0.1, wheelX - 0.25, floorY + 0.16, wheelZ, wood),
+      this._addBox(0.1, 0.32, 0.1, wheelX + 0.25, floorY + 0.16, wheelZ, wood),
+    ];
+    const wheelDisc = new THREE.Mesh(
+      new THREE.TorusGeometry(0.34, 0.05, 5, 10),
+      new THREE.MeshLambertMaterial({ color: 0x8a6a42, flatShading: true }));
+    wheelDisc.position.set(wheelX + 0.1, floorY + 0.75, wheelZ);
+    this.group.add(wheelDisc);
+    wheelMeshes.push(wheelDisc);
+    this.setPlaneTile(pFloor, Math.floor(wheelX), Math.floor(wheelZ), floorY, true);
+    this.addInteractable({
+      kind: 'scenery', name: 'Spinning wheel', meshes: wheelMeshes,
+      examine: 'Turns fluff into thread and patience into progress.',
+      actions: [{ label: 'Spin', fn: (ctx) => ctx.actions.startSpin() }],
+    });
+
     // ---- the castle range (ground floor, against the south wall) ----
     const rangeStone = new THREE.MeshLambertMaterial({ color: 0x6f6a62, flatShading: true });
     const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
@@ -1197,6 +1219,73 @@ export class World {
         actions: [{ label: def.verb, fn: (ctx) => ctx.actions.startFish({ type: s.type }) }],
       });
     }
+  }
+
+  // ---- smithy & tanning rack -----------------------------------------------------
+
+  _buildSmithy() {
+    const s = this.def.smithy;
+    if (!s) return;
+    const stone = new THREE.MeshLambertMaterial({ color: 0x77716a, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
+    const iron = new THREE.MeshLambertMaterial({ color: 0x5a5a60, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+
+    // furnace: squat stone stack with a glowing mouth
+    const f = s.furnace;
+    const fy = this.getGroundHeight(f.x, f.z);
+    const furnaceMeshes = [
+      this._addBox(1.5, 1.7, 1.5, f.x, fy + 0.85, f.z, stone),
+      this._addBox(1.0, 0.9, 1.0, f.x, fy + 2.1, f.z, stone),
+      this._addBox(0.8, 0.65, 0.12, f.x, fy + 0.5, f.z + 0.72, dark),
+      this._addBox(0.6, 0.45, 0.1, f.x, fy + 0.45, f.z + 0.74, ember),
+    ];
+    this.setTileBlocked(Math.floor(f.x), Math.floor(f.z), true);
+    let furnaceEntry;
+    furnaceEntry = this.addInteractable({
+      kind: 'furnace', name: 'Furnace', meshes: furnaceMeshes,
+      examine: 'Hot enough to convince most rocks.',
+      actions: [
+        { label: 'Smelt', fn: (ctx) => ctx.ui.openSmeltMenu(furnaceEntry) },
+        { label: 'Craft-jewellery', fn: (ctx) => ctx.ui.openJewelryMenu(furnaceEntry) },
+      ],
+    });
+
+    // anvil on a stump
+    const a = s.anvil;
+    const ay = this.getGroundHeight(a.x, a.z);
+    const anvilMeshes = [
+      this._addBox(0.55, 0.4, 0.55, a.x, ay + 0.2, a.z, wood),
+      this._addBox(0.85, 0.3, 0.4, a.x, ay + 0.55, a.z, iron),
+      this._addBox(0.3, 0.16, 0.24, a.x - 0.5, ay + 0.62, a.z, iron),
+    ];
+    this.setTileBlocked(Math.floor(a.x), Math.floor(a.z), true);
+    this.addInteractable({
+      kind: 'anvil', name: 'Anvil', meshes: anvilMeshes,
+      examine: 'It has heard every swear word the realm knows.',
+      actions: [{ label: 'Smith', fn: (ctx) => ctx.ui.openAnvil() }],
+    });
+  }
+
+  _buildTanningRack() {
+    const t = this.def.tanningRack;
+    if (!t) return;
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const hide = new THREE.MeshLambertMaterial({ color: 0xc9a877, flatShading: true });
+    const y = this.getGroundHeight(t.x, t.z);
+    const meshes = [
+      this._addBox(0.1, 1.5, 0.1, t.x - 0.6, y + 0.75, t.z, wood),
+      this._addBox(0.1, 1.5, 0.1, t.x + 0.6, y + 0.75, t.z, wood),
+      this._addBox(1.3, 0.08, 0.08, t.x, y + 1.42, t.z, wood),
+      this._addBox(1.0, 1.0, 0.05, t.x, y + 0.85, t.z, hide),
+    ];
+    this.setTileBlocked(Math.floor(t.x), Math.floor(t.z), true);
+    this.addInteractable({
+      kind: 'scenery', name: 'Tanning rack', meshes,
+      examine: 'Where hides go to become useful.',
+      actions: [{ label: 'Tan-hides', fn: (ctx) => ctx.actions.startTan() }],
+    });
   }
 
   // ---- fires ----------------------------------------------------------------------

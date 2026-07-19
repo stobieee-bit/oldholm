@@ -5,6 +5,12 @@
 
 import { ITEMS } from '../data/items.js';
 import { TREES, ROCKS, FISHING, FIREMAKING, COOKING, burnChance } from '../data/resources.js';
+import {
+  SMELTING, SMITHABLES, SMITH_TICKS_PER_ITEM, TANNING, LEATHER_RECIPES,
+  LEATHER_TICKS_PER_ITEM, SPINNING, GEMS, GEM_CHANCE, GEM_WEIGHTS,
+  JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING,
+} from '../data/crafting.js';
+import { METAL_SMITHING } from '../data/items.js';
 
 const MAX_LEVEL = 99;
 
@@ -156,6 +162,15 @@ export class Actions {
         if (Math.random() >= gatherChance(this.player.skillByName('Mining').level, def.req)) return;
         if (!this._give(def.ore, 'You manage to mine some ' + ITEMS[def.ore].name.toLowerCase() + '.')) return;
         this._grant('Mining', def.xp);
+        if (Math.random() < 1 / GEM_CHANCE) { // a glitter in the rubble
+          const total = GEM_WEIGHTS.reduce((a, [, w]) => a + w, 0);
+          let pick = Math.random() * total;
+          const gem = GEM_WEIGHTS.find(([, w]) => (pick -= w) <= 0)?.[0] ?? GEM_WEIGHTS[0][0];
+          if (this.player.inventory.add(gem, 1)) {
+            this.ui.chat.add('You strike something glittering in the rock.');
+            this.ui.refreshInventory();
+          }
+        }
         this.world.depleteRock(rock, tickNo);
         this.cancel();
       },
@@ -244,6 +259,228 @@ export class Actions {
         this.cancel();
       },
     });
+  }
+
+  // ---- smithing: smelting & the anvil -------------------------------------------
+
+  _countItem(id) {
+    return this.player.inventory.slots.reduce(
+      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+  }
+
+  _takeItems(id, n) {
+    const inv = this.player.inventory;
+    for (let i = 0; i < inv.slots.length && n > 0; i++) {
+      const s = inv.slots[i];
+      if (!s || s.id !== id) continue;
+      const take = Math.min(n, s.count ?? 1);
+      if ((s.count ?? 1) > take) s.count -= take;
+      else inv.slots[i] = null;
+      n -= take;
+    }
+    this.ui.refreshInventory();
+  }
+
+  startSmelt(furnaceEntry, barId) {
+    const def = SMELTING[barId];
+    const level = this.player.skillByName('Smithing').level;
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Smithing level of ${def.req} to smelt this.`);
+      return;
+    }
+    const haveInputs = () =>
+      Object.entries(def.inputs).every(([id, n]) => this._countItem(id) >= n);
+    if (!haveInputs()) { this.ui.chat.add('You lack the ores for that.'); return; }
+    let cadence = 0;
+    this._start({
+      kind: 'smelt',
+      startMsg: 'You feed the furnace.',
+      validate: haveInputs,
+      onTick: () => {
+        if (++cadence % SMELTING.TICKS_PER_BAR !== 0) return;
+        for (const [id, n] of Object.entries(def.inputs)) this._takeItems(id, n);
+        if (Math.random() >= def.successChance) {
+          this.ui.chat.add(def.failMsg);
+        } else if (this._give(barId, 'You retrieve a ' + ITEMS[barId].name.toLowerCase() + ' from the furnace.')) {
+          this._grant('Smithing', def.xp);
+        } else return;
+        if (!haveInputs()) { this.ui.chat.add('You are out of ores.'); this.cancel(); }
+      },
+    });
+  }
+
+  startSmith(metal, shapeId) {
+    const shape = SMITHABLES[shapeId];
+    const params = METAL_SMITHING[metal];
+    const itemId = `${metal}_${shapeId}`;
+    const req = params.reqBase + shape.off;
+    const level = this.player.skillByName('Smithing').level;
+    if (!this.findTool('hammer')) { this.ui.chat.add('You need a hammer to work the anvil.'); return; }
+    if (level < req) {
+      this.ui.chat.add(`You need a Smithing level of ${req} to make a ${ITEMS[itemId].name.toLowerCase()}.`);
+      return;
+    }
+    const haveBars = () => this._countItem(params.bar) >= shape.bars;
+    if (!haveBars()) {
+      this.ui.chat.add(`You need ${shape.bars} ${ITEMS[params.bar].name.toLowerCase()}${shape.bars > 1 ? 's' : ''} for that.`);
+      return;
+    }
+    let cadence = 0;
+    this._start({
+      kind: 'smith',
+      startMsg: 'You set to work at the anvil.',
+      validate: haveBars,
+      onTick: () => {
+        if (++cadence % SMITH_TICKS_PER_ITEM !== 0) return;
+        this._takeItems(params.bar, shape.bars);
+        if (!this._give(itemId, 'You hammer out a ' + ITEMS[itemId].name.toLowerCase() + '.')) return;
+        this._grant('Smithing', params.barXp * shape.bars);
+        if (!haveBars()) { this.ui.chat.add('You are out of bars.'); this.cancel(); }
+      },
+    });
+  }
+
+  // ---- crafting: tanning, spinning, leather, gems, jewellery ---------------------
+
+  startTan() {
+    const haveHide = () => this._countItem(TANNING.input) >= 1 && this._countItem('coins') >= TANNING.coinCost;
+    if (this._countItem(TANNING.input) < 1) { this.ui.chat.add('You have no cowhides to tan.'); return; }
+    if (this._countItem('coins') < TANNING.coinCost) {
+      this.ui.chat.add("The rack's absent owner expects a coin per hide. You are short.");
+      return;
+    }
+    let cadence = 0;
+    this._start({
+      kind: 'tan',
+      startMsg: 'You work a hide over the rack.',
+      validate: haveHide,
+      onTick: () => {
+        if (++cadence % 2 !== 0) return;
+        this._takeItems(TANNING.input, 1);
+        this._takeItems('coins', TANNING.coinCost);
+        if (!this._give(TANNING.output, 'You tan the hide into leather.')) return;
+        if (!haveHide()) { this.cancel(); }
+      },
+    });
+  }
+
+  startSpin() {
+    if (this._countItem(SPINNING.input) < 1) { this.ui.chat.add('You have no wool to spin.'); return; }
+    let cadence = 0;
+    this._start({
+      kind: 'spin',
+      startMsg: 'The wheel begins to turn.',
+      validate: () => this._countItem(SPINNING.input) >= 1,
+      onTick: () => {
+        if (++cadence % SPINNING.ticksPer !== 0) return;
+        this._takeItems(SPINNING.input, 1);
+        if (!this._give(SPINNING.output, 'You spin the wool into a neat ball.')) return;
+        this._grant('Crafting', SPINNING.xp);
+        if (this._countItem(SPINNING.input) < 1) this.cancel();
+      },
+    });
+  }
+
+  startCraftLeather(recipeId) {
+    const def = LEATHER_RECIPES[recipeId];
+    const level = this.player.skillByName('Crafting').level;
+    if (!this.findTool('needle')) { this.ui.chat.add('You need a needle for leatherwork.'); return; }
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Crafting level of ${def.req} to make ${ITEMS[recipeId].name.toLowerCase()}.`);
+      return;
+    }
+    const have = () => this._countItem('leather') >= 1 && this._countItem('thread') >= 1;
+    if (!have()) { this.ui.chat.add('You need leather and thread for that.'); return; }
+    let cadence = 0;
+    this._start({
+      kind: 'leather',
+      startMsg: 'You begin stitching.',
+      validate: have,
+      onTick: () => {
+        if (++cadence % LEATHER_TICKS_PER_ITEM !== 0) return;
+        this._takeItems('leather', 1);
+        this._takeItems('thread', 1);
+        if (!this._give(recipeId, 'You make ' + ITEMS[recipeId].name.toLowerCase() + '.')) return;
+        this._grant('Crafting', def.xp);
+        if (!have()) this.cancel();
+      },
+    });
+  }
+
+  startJewelry(recipeId) {
+    const def = JEWELRY[recipeId];
+    const level = this.player.skillByName('Crafting').level;
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Crafting level of ${def.req} to craft that.`);
+      return;
+    }
+    const have = () => this._countItem(def.bar) >= 1 && this._countItem(def.mould) >= 1 &&
+      (!def.gem || this._countItem(def.gem) >= 1);
+    if (!have()) { this.ui.chat.add('You lack the makings for that.'); return; }
+    let cadence = 0;
+    this._start({
+      kind: 'jewelry',
+      startMsg: 'You pour the gold into the mould.',
+      validate: have,
+      onTick: () => {
+        if (++cadence % JEWELRY_TICKS !== 0) return;
+        this._takeItems(def.bar, 1);
+        if (def.gem) this._takeItems(def.gem, 1);
+        if (!this._give(recipeId, 'You craft a ' + ITEMS[recipeId].name.toLowerCase() + '.')) return;
+        this._grant('Crafting', def.xp);
+        this.cancel(); // one casting at a time; the mould survives
+      },
+    });
+  }
+
+  /** Instant: cut a gem with a chisel. */
+  cutGem(slotIndex) {
+    const slot = this.player.inventory.slots[slotIndex];
+    if (!slot || !GEMS[slot.id]) return;
+    const def = GEMS[slot.id];
+    if (!this.findTool('chisel')) { this.ui.chat.add('You need a chisel to cut gems.'); return; }
+    const level = this.player.skillByName('Crafting').level;
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Crafting level of ${def.req} to cut this.`);
+      return;
+    }
+    this.player.inventory.slots[slotIndex] = { id: def.cut, count: 1 };
+    this._grant('Crafting', def.xp);
+    this.ui.chat.add('You cut the ' + ITEMS[def.cut].name.toLowerCase() + ' to a fine sparkle.');
+    this.ui.refreshInventory();
+  }
+
+  /** Instant: string an unstrung amulet with a ball of wool. */
+  stringAmulet(slotIndex) {
+    const slot = this.player.inventory.slots[slotIndex];
+    if (!slot || slot.id !== STRINGING.input) return;
+    if (this._countItem(STRINGING.wool) < 1) {
+      this.ui.chat.add('You need a ball of wool to string it.');
+      return;
+    }
+    this._takeItems(STRINGING.wool, 1);
+    this.player.inventory.slots[slotIndex] = { id: STRINGING.output, count: 1 };
+    this._grant('Crafting', STRINGING.xp);
+    this.ui.chat.add('You string the amulet. Very dignified.');
+    this.ui.refreshInventory();
+  }
+
+  /** Instant: shear a sheep (shears required, dignity optional). */
+  shearSheep(mob) {
+    if (!this.findTool('shears')) { this.ui.chat.add('You need shears to shear a sheep.'); return; }
+    if (mob.dead) return;
+    if (mob.shearedUntil) {
+      this.ui.chat.add('The sheep is still regrowing its dignity.');
+      return;
+    }
+    if (!this.player.inventory.add(SHEARING.product, 1)) {
+      this.ui.chat.add('Your pack is too full for wool.');
+      return;
+    }
+    mob.shearedUntil = this.world._tick + SHEARING.regrowTicks;
+    mob.mesh.scale.setScalar(0.86);
+    this.ui.chat.add('You get some wool. The sheep looks relieved.');
+    this.ui.refreshInventory();
   }
 
   // ---- cooking ----------------------------------------------------------------

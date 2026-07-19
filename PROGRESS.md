@@ -1,6 +1,60 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 4 — Gathering Loop — COMPLETE
+## Current status: Phase 5 — Smithing & Crafting — COMPLETE
+
+## What was built (Phase 5)
+
+- **data/crafting.js**: smelting (bronze/iron/steel/gold; iron 50% with "The iron ore
+  stubbornly refuses to become a bar. You suspect it is doing this on purpose."),
+  the 13-shape smithable table with level offsets, tanning (1 coin/hide), 6 leather
+  recipes, spinning, gem cutting (chisel), 1/40 gem strikes while mining, jewellery
+  (ring/amulet moulds; moulds survive casting), amulet stringing, sheep shearing.
+- **Generated gear** (`items.js`): METALS × 13 shapes = 39 bronze/iron/steel items with
+  full §8-style bonus blocks (atk/def arrays, str), §5 weapon speeds, §8 equip
+  requirements (bronze/iron 1, steel 5), tier-colored icons and values — plus bars,
+  gold ore, 6 gems, 4 jewellery pieces, 6 leather wearables, wool/leather/thread/
+  needle/chisel/moulds/hammer/shears. ~65 new items, all with examine lines.
+- **Sites**: courtyard smithy (furnace with Smelt + Craft-jewellery, anvil with the
+  Smithing panel — bar sections, 13 rows, level/bar locks, exits pointer lock for
+  clicking), tanning rack by the pasture, spinning wheel on the keep's upper floor
+  (per the atlas), a gold rock (Mining 40) in the mine, 3 shearable sheep (attackable:
+  false — civilized realms do not battle sheep; wool regrows in ~36s, dignity slower).
+- **Minimal equipment** (ahead of Phase 6's depth): 9 slots live (weapon/shield/head/
+  body/legs/gloves/boots/neck/ring), Wield/Wear via item menus with the spec's rude
+  refusals, Gear tab (F5) with Remove menus + bonus totals, aggregate bonuses flowing
+  into the §5 combat formulas, weapon speeds applied, 2h↔shield mutual displacement
+  (works even with a full pack — the swapped item reuses the freed slot).
+
+## Phase 5 — tested (live browser, real pipelines, simulated ticks)
+
+- **DoD**: mined 379+ copper/tin from the outcrop (Mining 23, xp exact ×17.5), smelted
+  ~200 bronze bars, hammered daggers to Smithing 18 (xp exact: 6.25/smelt +
+  12.5×bars/smith), then smithed the FULL BRONZE KIT — sword, full helm, sq shield,
+  kiteshield, platelegs, platebody — **and wore it**: 5 slots filled, combat stats
+  0/0/0 → attB 5 / strB 4 / defB 32, speed 4, Gear tab listing every piece.
+- Anvil interface: 13 rows with correct locks at Smithing 15 (12 locked), real DOM
+  click smiths an iron dagger and closes the panel.
+- Iron smelting: 22/48 bars (~46%, within binomial of 50%), fail message verbatim,
+  xp only on success (exact). Steel gates refuse at Smithing < 30; steel gear refuses
+  below Attack/Defence 5 with the full rude sentence.
+- Crafting chain: tanned hides until the coins ran out; crafted + wore leather gloves;
+  boots refused at Crafting < 7; sheared a sheep ("The sheep looks relieved."), shear
+  again → "still regrowing its dignity", spun wool (2.5 xp exact); cut-gem refusal
+  below 20 then a clean cut; cast gold ring, sapphire ring (gem consumed), amulet →
+  strung with the ball of wool → wore both (neck/ring slots). Crafting xp audited
+  exact to the decimal (4609).
+- Fixed during testing: equip availability math refused legal 2h↔shield swaps with a
+  full pack (the incoming item's freed slot wasn't counted).
+- Regressions green; furnace/anvil tiles block; 1.64 ms/frame with all Phase 5 props.
+
+## Definition of Done — Phase 5
+
+- [x] Smith a full bronze kit from raw ore
+- [x] Wear it
+
+---
+
+## Phase 4 — Gathering Loop — COMPLETE
 
 ## What was built (Phase 4)
 
@@ -292,11 +346,12 @@
 
 ## Exact next step
 
-**Phase 5 — Smithing & Crafting**: furnace smelting (ore → bars, including the 50%
-iron success rate with a suitably hilarious message), anvil interface (bar → the full
-weapon/armor list with level gates), Crafting: leather (cowhide → tanner stand-in in
-Holmbridge for now), spinning wheel (castle top floor per the atlas), gem cutting,
-jewelry molds. DoD: smith a full bronze kit from raw ore and wear it. NOTE: "wear it"
-requires at least minimal equip support (weapon/armor slots) ahead of Phase 6's full
-equipment depth — plan a minimal wield/wear path that Phase 6 deepens. Copper+tin ore
-and a furnace site will drive bronze bars; the mine already yields all needed ores.
+**Phase 6 — Equipment Depth**: all 11 slots live (cape + ammo remain), full bonus math
+flowing into combat — per-style attack bonuses (the §5 tri-style tables replace the
+current max-of-array aggregate), attack style picker driven by the wielded weapon's
+styles (training the right skills), weapon speeds (already applied) verified end-to-end,
+two-hand vs shield exclusivity (already enforced), tier requirements with rude messages
+(already worded). DoD: measurable accuracy/max-hit differences swapping bronze → steel.
+Items already carry full atk/def arrays and str; the main work is per-style combat
+aggregation, defender-style-aware defence, weapon-specific style sets in the Combat
+tab, and the cape/ammo slots.

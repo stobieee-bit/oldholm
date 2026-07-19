@@ -185,6 +185,10 @@ class Mob {
       if (tickNo >= this.respawnAt) this.respawn();
       return;
     }
+    if (this.shearedUntil && tickNo >= this.shearedUntil) {
+      this.shearedUntil = 0;
+      this.mesh.scale.setScalar(1); // the wool grows back
+    }
     if (this.cooldown > 0) this.cooldown--;
 
     const player = combat.player;
@@ -270,13 +274,19 @@ export class NPCManager {
     for (const s of this.world.def.spawns ?? []) {
       const def = MOBS[s.mob];
       const mob = new Mob(s.mob, def, { x: Math.floor(s.x), z: Math.floor(s.z) }, this.world);
+      const actions = [];
+      if (def.shear) actions.push({
+        label: 'Shear',
+        fn: (ctx) => ctx.actions.shearSheep(mob),
+      });
+      if (def.attackable !== false) actions.push({
+        label: 'Attack',
+        fn: (ctx) => ctx.combat.playerEngage(mob),
+      });
       mob.entry = this.world.addInteractable({
         kind: 'mob', name: def.name, mob,
         meshes: [mob.mesh], examine: def.examine,
-        actions: [{
-          label: 'Attack',
-          fn: (ctx) => ctx.combat.playerEngage(mob),
-        }],
+        actions,
       });
       this.mobs.push(mob);
     }

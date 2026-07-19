@@ -146,6 +146,31 @@ export const MOBS = {
     },
   },
 
+  sheep: {
+    name: 'Sheep',
+    examine: 'A walking jumper.',
+    attackable: false, // civilized realms do not battle sheep
+    shear: true,       // Shear with shears -> wool (see crafting SHEARING)
+    stats: { att: 1, str: 1, def: 1, hp: 5 },
+    bonuses: { att: 0, str: 0, def: 0 },
+    speed: 4, aggroRadius: 0, wanderRadius: 4, respawnTicks: 40,
+    drops: [],
+    alwaysDrops: 0,
+    model: {
+      height: 0.75,
+      parts: [
+        { kind: 'box', size: [0.52, 0.46, 0.72], at: [0, 0.5, 0], color: 0xece8de },
+        { kind: 'ball', r: 0.2, at: [0.2, 0.72, 0.2], color: 0xf2efe6 },
+        { kind: 'ball', r: 0.2, at: [-0.2, 0.7, -0.15], color: 0xe4e0d4 },
+        { kind: 'box', size: [0.2, 0.2, 0.26], at: [0, 0.62, -0.48], color: 0x3a3632 },
+        { kind: 'box', size: [0.07, 0.28, 0.07], at: [-0.16, 0.14, 0.24], color: 0x3a3632 },
+        { kind: 'box', size: [0.07, 0.28, 0.07], at: [0.16, 0.14, 0.24], color: 0x3a3632 },
+        { kind: 'box', size: [0.07, 0.28, 0.07], at: [-0.16, 0.14, -0.28], color: 0x3a3632 },
+        { kind: 'box', size: [0.07, 0.28, 0.07], at: [0.16, 0.14, -0.28], color: 0x3a3632 },
+      ],
+    },
+  },
+
   spider: {
     name: 'Spider',
     examine: 'Eight legs, zero manners.',

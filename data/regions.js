@@ -68,8 +68,15 @@ export const REGIONS = {
         ['tin', 2, -1], ['tin', 3, 1], ['tin', -2, 2],
         ['iron', -3, 0], ['iron', 4, 0],
         ['coal', 1, -2],
+        ['gold', 5, 2],
       ],
     },
+
+    // Smithy in the north courtyard: furnace + anvil.
+    smithy: { furnace: { x: 45.5, z: 78.5 }, anvil: { x: 48.5, z: 78.5 } },
+
+    // Tanning rack by the pasture (the tanner themselves remains a rumor).
+    tanningRack: { x: 128.5, z: 88.8 },
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
     fishingSpots: [
@@ -107,6 +114,8 @@ export const REGIONS = {
       { mob: 'giant_rat', x: 80.5, z: 138.5 },
       { mob: 'spider', x: 128.5, z: 96.5 }, { mob: 'spider', x: 133.5, z: 99.5 },
       { mob: 'spider', x: 137.5, z: 94.5 },
+      { mob: 'sheep', x: 120.5, z: 76.5 }, { mob: 'sheep', x: 123.5, z: 75.5 },
+      { mob: 'sheep', x: 126.5, z: 77.5 },
     ],
 
     // Items lying about the region at boot. plane: 0 ground, 1 keep floor 2, 2 keep roof.
@@ -128,6 +137,14 @@ export const REGIONS = {
       { item: 'fishing_rod', x: 98.5, z: 76.5, respawn: 150 },       // bank by the bait spot
       { item: 'fly_rod', x: 98.5, z: 72.5, respawn: 150 },           // bank by the lure spot
       { item: 'fishing_bait', count: 30, x: 98.0, z: 75.5, respawn: 200 },
+      // smithing & crafting supplies
+      { item: 'hammer', x: 49.5, z: 79.5, respawn: 150 },            // at the anvil
+      { item: 'chisel', x: 46.5, z: 79.8, respawn: 150 },            // by the furnace
+      { item: 'ring_mould', x: 45.0, z: 79.8, respawn: 150 },
+      { item: 'amulet_mould', x: 44.5, z: 78.9, respawn: 150 },
+      { item: 'shears', x: 130.5, z: 77.8, respawn: 150 },           // at the coop
+      { item: 'needle', x: 127.6, z: 89.5, respawn: 150 },           // by the tanning rack
+      { item: 'thread', count: 40, x: 128.2, z: 89.8, respawn: 200 },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate
