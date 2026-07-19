@@ -200,6 +200,44 @@ function updateClouds(dt) {
   }
 }
 
+// --- distant mountains -------------------------------------------------------
+// Layered low-poly ridgelines just past the fog, following the camera, tinted
+// from the live fog colour so they melt up out of the haze and read warm at
+// dawn / cool at night. Gives the valley a horizon and a sense of scale.
+function buildRidge(radius, amp, seed, segs) {
+  const pos = [];
+  const h = (i) => {
+    const a = (i / segs) * Math.PI * 2;
+    const v = Math.sin(a * 3 + seed) * 0.5 + Math.sin(a * 7 + seed * 2) * 0.3 +
+      Math.sin(a * 13 + seed * 3) * 0.2 + Math.sin(a * 23 + seed) * 0.12;
+    return amp * (0.42 + 0.42 * v) + amp * 0.16 * Math.abs(Math.sin(a * 31 + seed));
+  };
+  for (let i = 0; i < segs; i++) {
+    const a0 = (i / segs) * Math.PI * 2, a1 = ((i + 1) / segs) * Math.PI * 2;
+    const x0 = Math.cos(a0) * radius, z0 = Math.sin(a0) * radius, y0 = h(i);
+    const x1 = Math.cos(a1) * radius, z1 = Math.sin(a1) * radius, y1 = h(i + 1);
+    pos.push(x0, -4, z0, x0, y0, z0, x1, y1, z1, x0, -4, z0, x1, y1, z1, x1, -4, z1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.computeVertexNormals();
+  return g;
+}
+const RIDGE_SLATE = new THREE.Color(0x5a6478);
+const farRidge = new THREE.Mesh(buildRidge(69, 26, 1.3, 64),
+  new THREE.MeshBasicMaterial({ fog: false, side: THREE.DoubleSide }));
+const nearRidge = new THREE.Mesh(buildRidge(61, 15, 4.7, 80),
+  new THREE.MeshBasicMaterial({ fog: false, side: THREE.DoubleSide }));
+farRidge.renderOrder = -960; nearRidge.renderOrder = -955;
+scene.add(farRidge); scene.add(nearRidge);
+const _ridgeF = new THREE.Color(), _ridgeN = new THREE.Color();
+function updateRidges() {
+  farRidge.position.set(camera.position.x, 0, camera.position.z);
+  nearRidge.position.set(camera.position.x, 0, camera.position.z);
+  farRidge.material.color.copy(_ridgeF.copy(_fogNow).lerp(RIDGE_SLATE, 0.5));
+  nearRidge.material.color.copy(_ridgeN.copy(_fogNow).lerp(RIDGE_SLATE, 0.28));
+}
+
 // --- world / player / hud ----------------------------------------------------
 
 const world = new World(scene, def);
@@ -436,6 +474,7 @@ function frame(now) {
   ui.fx.update(camera);
   minimap.update();
   updateClouds(dt);
+  updateRidges();
   audio.setTheme(world.regionAt(player.pos.x, player.pos.z, player.plane).theme);
 
   // autosave every 30s once the player is actually in the world
@@ -478,6 +517,7 @@ window.__OLDHOLM = {
     ui.fx.update(camera);
     minimap.update();
     updateClouds(dt);
+    updateRidges();
     renderer.render(scene, camera);
   },
   audio, minimap, save, titleCastle,
