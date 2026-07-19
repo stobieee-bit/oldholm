@@ -20,6 +20,18 @@ const CHUNK = 16;
 // boundary and the collision boundary always coincide.
 const WATER_EPS = 0.12;
 
+// Region display names + music themes (spec §13 — a theme per region).
+const TOWN_NAMES = {
+  corvath: 'Corvath', whitehold: 'Whitehold', skalvik: 'Skalvik',
+  brinkton: 'Brinkton', murkwell: 'Murkwell', sunmarch: 'Sunmarch',
+  gullwick: 'Port Gullwick', ashkara: 'Ashkara Isle',
+};
+const TOWN_THEMES = {
+  corvath: 'capital', whitehold: 'white', skalvik: 'barbarian',
+  brinkton: 'frontier', murkwell: 'murk', sunmarch: 'desert',
+  gullwick: 'harbor', ashkara: 'ashkara',
+};
+
 // ---------------------------------------------------------------------------
 // deterministic helpers
 
@@ -264,6 +276,64 @@ export class World {
   isWater(tx, tz) {
     if (tx < 0 || tz < 0 || tx >= this.size || tz >= this.size) return false;
     return (this.flags[tz * this.size + tx] & FLAG_WATER) !== 0;
+  }
+
+  /** Which named region (and its music theme) is this world position in? */
+  regionAt(x, z, plane = 0) {
+    const d = this.def;
+    if (plane > 0) {
+      // dungeon planes read from their defining coordinates
+      if (plane === this.sewersPlane || plane === this.tombPlane) return { id: 'dungeon', name: 'Corvath Depths', theme: 'dungeon' };
+      if (plane === this.manorCryptPlane || plane === this.towerBasementPlane) return { id: 'crypt', name: 'The Deep Dark', theme: 'dungeon' };
+      if (plane === this.iceCavePlane) return { id: 'icecave', name: 'The Ice Cave', theme: 'dungeon' };
+      if (plane === this.calderaPlane) return { id: 'caldera', name: 'Ashkara Caldera', theme: 'blight' };
+      if (plane === this.guildPlane) return { id: 'guild', name: 'Mining Guild', theme: 'dungeon' };
+      return { id: 'indoors', name: '', theme: 'plains' };
+    }
+    for (const t of d.towns ?? []) {
+      const b = t.bounds;
+      if (b && x >= b.x0 && x < b.x1 && z >= b.z0 && z < b.z1)
+        return { id: t.id, name: TOWN_NAMES[t.id] ?? t.id, theme: TOWN_THEMES[t.id] ?? 'plains' };
+    }
+    const bl = d.blight;
+    if (bl && x >= bl.x0 && x < bl.x1 && z >= bl.z0 && z < bl.z1) return { id: 'blight', name: 'The Blight', theme: 'blight' };
+    for (const isl of d.islands ?? [])
+      if (Math.hypot(x - isl.x, z - isl.z) < isl.r) return { id: 'ashkara', name: 'Ashkara Isle', theme: 'ashkara' };
+    const de = d.desert;
+    if (de && x >= de.x0 && x < de.x1 && z >= de.z0 && z < de.z1) return { id: 'desert', name: 'The Sunmarch Wastes', theme: 'desert' };
+    if (d.sea && z >= d.sea.zStart) return { id: 'sea', name: 'The Southern Sea', theme: 'harbor' };
+    return { id: 'holmbridge', name: 'Holmbridge', theme: 'plains' };
+  }
+
+  /** On save-load, restore quest-gated doors and quest-NPC visibility. */
+  reconcile(quests, npcs, gates = {}) {
+    if (gates.toll && this.tollGate && !this.tollGate.open) {
+      this.tollGate.open = true;
+      for (const [bx, bz] of this.tollGate.tiles) this.setTileBlocked(bx, bz, false);
+      if (this.tollGate.bar) this.group.remove(this.tollGate.bar);
+    }
+    if (this.championsGate && !this.championsGate.open && (gates.champions || quests.championsGuildOpen())) {
+      this.championsGate.open = true;
+      this.setTileBlocked(this.championsGate.tile.x, this.championsGate.tile.z, false);
+      if (this.championsGate.bars) this.group.remove(this.championsGate.bars);
+      if (this.championsGate.entry) this.removeInteractable(this.championsGate.entry);
+    }
+    if (quests.complete('poultrified_professor') && this._openManorStudy) this._openManorStudy();
+    if (quests.stage('matter_of_colors') >= 3) npcs.unhide('grubfoot');
+    if (quests.complete('poultrified_professor')) npcs.unhide('professor');
+    // bosses: present only while their quest is at the fight stage
+    const bossState = (defId, questId, fightStage) => {
+      const m = npcs.mobs.find((x) => x.defId === defId);
+      if (!m) return;
+      const s = quests.stage(questId), active = s >= fightStage && s < 100;
+      m.hiddenNpc = !active;
+      if (active) { m.dead = false; m.hp = m.maxHp; }
+      m.mesh.visible = active && !m.dead;
+      if (m.entry) m.entry.hidden = !active;
+    };
+    bossState('ravenmoor', 'lord_of_murkwell', 1);
+    bossState('zarkhul', 'shadow_over_corvath', 3);
+    bossState('cindermaw', 'wyrm_of_ashkara', 3);
   }
 
   /** Remove up to n coins from a player's pack (tolls, fares). */
@@ -1982,12 +2052,17 @@ export class World {
     // the puzzle state — the odd levers (1,3,5) open the study door
     const puzzle = { levers: [false, false, false, false, false, false], oiled: false, piranhaClear: false, open: false };
     this.manorPuzzle = puzzle;
+    // reusable opener (used by the puzzle and by save-load reconciliation)
+    this._openManorStudy = () => {
+      if (puzzle.open) return;
+      puzzle.open = true;
+      doorHinge.rotation.y = -Math.PI / 2;
+      this.setTileBlocked(studyDoorTile.x, studyDoorTile.z, false);
+    };
     const checkSolved = (ctx) => {
       const solved = puzzle.levers[0] && puzzle.levers[2] && puzzle.levers[4];
       if (solved && !puzzle.open) {
-        puzzle.open = true;
-        doorHinge.rotation.y = -Math.PI / 2;
-        this.setTileBlocked(studyDoorTile.x, studyDoorTile.z, false);
+        this._openManorStudy();
         ctx.npcs?.unhide('professor');
         ctx.ui.chat.add('Deep in the manor, a warded door grinds open. A muffled cluck of relief follows.', 'system');
       }

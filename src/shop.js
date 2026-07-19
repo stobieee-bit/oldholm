@@ -90,6 +90,7 @@ export class Shops {
       bought++;
     }
     if (bought > 0) {
+      this.audio?.sfx('coins');
       this.ui.chat.add(`You buy ${bought > 1 ? bought + ' ' : ''}${ITEMS[itemId].name.toLowerCase()}${bought > 1 ? 's' : ''}.`);
       this.ui.refreshInventory();
       this.ui.refreshShop();
@@ -125,6 +126,7 @@ export class Shops {
       shop.stock.push(entry);
     }
     entry.qty = Math.min(SOLD_STOCK_CAP, entry.qty + sold);
+    if (price > 0) this.audio?.sfx('coins');
     this.ui.chat.add(`You sell ${sold > 1 ? sold + ' ' : ''}${ITEMS[itemId].name.toLowerCase()}${sold > 1 ? 's' : ''} for ${price * sold} coins.`);
     this.ui.refreshInventory();
     this.ui.refreshShop();

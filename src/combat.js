@@ -67,6 +67,8 @@ export class Combat {
     this.prayers = null; // wired by main.js
     this.magic = null;
     this.quests = null;  // wired by main.js (boss deaths advance quests)
+    this.audio = null;
+    this.kills = {};     // defId -> count (saved)
     this._regen = 0;
     this._ray = new THREE.Raycaster();
   }
@@ -198,6 +200,8 @@ export class Combat {
     if (dmg > 0) dmg = Math.round(dmg * this.smiteMultiplier(mob));
     const dealt = Math.min(dmg, mob.hp); // xp only for damage that lands on real hp
     mob.takeDamage(dmg, tickNo, this);
+    this.audio?.sfx(dmg > 0 ? 'thud' : 'whiff');
+    this._deathSfx(mob);
     this.ui.fx.hitsplat(() => mob.splatAnchor(), dmg);
     if (dealt > 0) {
       const gains = styleXp(this.player.currentStyle().kind, dealt);
@@ -205,6 +209,12 @@ export class Combat {
       for (const [name, xp] of gains) this.player.addXp(name, xp, this.ui);
       this.ui.fx.xpDrop(gains);
     }
+  }
+
+  /** A tiny flourish when a mob falls — chickens get the last cluck. */
+  _deathSfx(mob) {
+    if (!mob.dead) return;
+    this.audio?.sfx(/chicken/i.test(mob.defId) ? 'chicken' : 'thud');
   }
 
   /** Ranged: needs a bow and arrows; ~80% of spent arrows land by the target. */
@@ -232,6 +242,8 @@ export class Combat {
       new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, 0x8a6a42, 0.03);
     const dealt = Math.min(dmg, mob.hp);
     mob.takeDamage(dmg, tickNo, this);
+    this.audio?.sfx('bow');
+    this._deathSfx(mob);
     this.ui.fx.hitsplat(() => mob.splatAnchor() ?? anchor, dmg);
     if (dealt > 0) {
       const gains = [['Ranged', 4 * dealt], ['Hitpoints', XP_PER_DAMAGE_HP * dealt]];
@@ -265,6 +277,8 @@ export class Combat {
       new THREE.Vector3(p.pos.x, this.camera_yApprox(), p.pos.z), anchor, spell.color, 0.028);
     const dealt = Math.min(dmg, mob.hp);
     mob.takeDamage(dmg, tickNo, this);
+    this.audio?.sfx('spell');
+    this._deathSfx(mob);
     this.ui.fx.hitsplat(() => mob.splatAnchor() ?? anchor, dmg);
     const gains = [['Magic', spell.baseXp + 4 * dealt]];
     if (dealt > 0) gains.push(['Hitpoints', XP_PER_DAMAGE_HP * dealt]);

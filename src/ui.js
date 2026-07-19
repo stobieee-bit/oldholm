@@ -243,6 +243,7 @@ const TABS = [
   { id: 'equipment', label: 'Gear', key: 'F5' },
   { id: 'prayer', label: 'Pray', key: 'F6' },
   { id: 'spellbook', label: 'Magic', key: 'F7' },
+  { id: 'settings', label: 'System', key: 'F8' },
 ];
 
 const EQUIP_SLOTS = [
@@ -273,6 +274,7 @@ export class TabPanel {
       equipment: document.getElementById('tab-equipment'),
       prayer: document.getElementById('tab-prayer'),
       spellbook: document.getElementById('tab-spellbook'),
+      settings: document.getElementById('tab-settings'),
     };
     this.selectedQuest = QUEST_ORDER[0];
     for (const t of TABS) {
@@ -295,7 +297,65 @@ export class TabPanel {
     this.renderPrayers();
     this.renderSpellbook();
     this.renderJournal();
+    this.renderSettings();
     this.show(this.active);
+  }
+
+  /** The System tab: audio controls + the save/load hub (spec §14). */
+  renderSettings() {
+    const el = this.pages.settings;
+    if (!el) return;
+    el.innerHTML = '';
+    const audio = this.ui.audio, save = this.ui.save;
+
+    const head = document.createElement('div');
+    head.className = 'combat-head';
+    head.innerHTML = '<div class="combat-lvl">SYSTEM</div>';
+    el.appendChild(head);
+
+    const persist = () => save && audio && save.saveSettings(
+      { volume: audio.volume, music: audio.musicEnabled, sound: audio.enabled });
+
+    // sound on/off
+    const soundRow = document.createElement('button');
+    soundRow.className = 'sys-toggle';
+    const drawSound = () => { soundRow.textContent = 'Sound: ' + (audio?.enabled ? 'On' : 'Off');
+      soundRow.classList.toggle('off', !audio?.enabled); };
+    drawSound();
+    soundRow.addEventListener('click', () => { audio?.toggle(!audio.enabled); drawSound(); persist(); });
+    el.appendChild(soundRow);
+
+    // music on/off
+    const musicRow = document.createElement('button');
+    musicRow.className = 'sys-toggle';
+    const drawMusic = () => { musicRow.textContent = 'Music: ' + (audio?.musicEnabled ? 'On' : 'Off');
+      musicRow.classList.toggle('off', !audio?.musicEnabled); };
+    drawMusic();
+    musicRow.addEventListener('click', () => { audio?.toggleMusic(!audio.musicEnabled); drawMusic(); persist(); });
+    el.appendChild(musicRow);
+
+    // volume slider
+    const volWrap = document.createElement('div');
+    volWrap.className = 'sys-slider';
+    volWrap.innerHTML = '<span>Volume</span>';
+    const slider = document.createElement('input');
+    slider.type = 'range'; slider.min = '0'; slider.max = '100';
+    slider.value = String(Math.round((audio?.volume ?? 0.6) * 100));
+    slider.addEventListener('input', () => audio?.setVolume(slider.value / 100));
+    slider.addEventListener('change', persist);
+    volWrap.appendChild(slider);
+    el.appendChild(volWrap);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'sys-btn';
+    saveBtn.textContent = 'Save & Load…';
+    saveBtn.addEventListener('click', () => this.ui.openSavePanel());
+    el.appendChild(saveBtn);
+
+    const note = document.createElement('div');
+    note.className = 'sys-note';
+    note.textContent = 'The realm autosaves every half-minute and when you leave.';
+    el.appendChild(note);
   }
 
   renderJournal() {
@@ -526,6 +586,94 @@ export class UI {
     document.getElementById('market-search').addEventListener('input', () => this.refreshMarket());
   }
 
+  /** Wire the save system + audio into the System tab (spec §14). */
+  bindSaveSystem(save, audio) {
+    this.save = save;
+    this.audio = audio;
+    this.panel.renderSettings();
+    document.getElementById('save-close').addEventListener('click', () => this.closeSavePanel());
+    // a reusable hidden file input for import
+    this._importInput = document.createElement('input');
+    this._importInput.type = 'file';
+    this._importInput.accept = 'application/json,.json';
+    this._importInput.style.display = 'none';
+    this._importInput.addEventListener('change', () => {
+      const file = this._importInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (this.save.importJson(reader.result)) {
+          this.chat.add('A saved journey is restored from file.', 'system');
+          this.closeSavePanel();
+        } else this.chat.add('That file could not be read as an Oldholm save.', 'system');
+      };
+      reader.readAsText(file);
+      this._importInput.value = '';
+    });
+    document.body.appendChild(this._importInput);
+  }
+
+  openSavePanel() {
+    document.getElementById('save-panel').classList.remove('hidden');
+    this.renderSavePanel();
+  }
+  closeSavePanel() { document.getElementById('save-panel').classList.add('hidden'); }
+
+  renderSavePanel() {
+    const body = document.getElementById('save-body');
+    body.innerHTML = '';
+    const save = this.save;
+    const row = (title, meta, actions) => {
+      const r = document.createElement('div');
+      r.className = 'save-row';
+      const info = document.createElement('div');
+      info.className = 'save-info';
+      info.innerHTML = `<div class="save-title">${title}</div><div class="save-meta">${meta}</div>`;
+      r.appendChild(info);
+      const btns = document.createElement('div');
+      btns.className = 'save-actions';
+      for (const [label, fn, cls] of actions) {
+        const b = document.createElement('button');
+        b.className = 'save-btn' + (cls ? ' ' + cls : '');
+        b.textContent = label;
+        b.addEventListener('click', fn);
+        btns.appendChild(b);
+      }
+      r.appendChild(btns);
+      body.appendChild(r);
+    };
+
+    const metaText = (m) => m ? `Total level ${m.totalLevel} · ${m.quests} quests done` : 'empty';
+    for (let n = 0; n < 3; n++) {
+      const m = save.slotMeta(n);
+      row(`Slot ${n + 1}`, metaText(m), [
+        ['Save', () => { save.saveSlot(n); this.chat.add(`Saved to slot ${n + 1}.`, 'system'); this.renderSavePanel(); }],
+        ...(m ? [['Load', () => { if (save.loadSlot(n)) { this.chat.add(`Slot ${n + 1} restored.`, 'system'); this.closeSavePanel(); } }]] : []),
+      ]);
+    }
+    const auto = save.hasAuto() ? save.meta('oldholm_auto') : null;
+    row('Autosave', auto ? metaText(auto) : 'none yet', auto ? [
+      ['Load', () => { if (save.loadAuto()) { this.chat.add('Autosave restored.', 'system'); this.closeSavePanel(); } }],
+    ] : []);
+
+    // export / import / reset
+    const tools = document.createElement('div');
+    tools.className = 'save-tools';
+    const mk = (label, fn, cls) => {
+      const b = document.createElement('button');
+      b.className = 'save-btn' + (cls ? ' ' + cls : '');
+      b.textContent = label; b.addEventListener('click', fn);
+      return b;
+    };
+    tools.appendChild(mk('Export to file', () => save.exportJson()));
+    tools.appendChild(mk('Import from file', () => this._importInput.click()));
+    tools.appendChild(mk('Wipe all saves', () => {
+      if (this._confirmWipe) { save.clearAll(); this._confirmWipe = false; this.chat.add('All saves wiped.', 'system'); this.renderSavePanel(); }
+      else { this._confirmWipe = true; this.chat.add('Click "Wipe all saves" again to confirm.', 'system'); }
+    }, 'danger'));
+    body.appendChild(tools);
+  }
+
   refreshJournal() { this.panel.renderJournal(); }
 
   /** The completion fanfare screen (spec §11). */
@@ -540,6 +688,7 @@ export class UI {
       list.appendChild(li);
     }
     document.getElementById('qf-points').textContent = `Quest points: ${qp} / ${totalQp}`;
+    this.audio?.sfx('quest');
     el.classList.remove('hidden');
     for (const f of [this.levelFlash]) { f.classList.remove('show'); void f.offsetWidth; f.classList.add('show'); }
     const dismiss = () => { el.classList.add('hidden'); el.removeEventListener('mousedown', dismiss); };
@@ -763,6 +912,7 @@ export class UI {
   }
 
   levelUp(name, level) {
+    this.audio?.sfx('levelup');
     const an = /^[AEIOU]/.test(name) ? 'an' : 'a';
     this.chat.add(
       `Congratulations, you've advanced ${an} ${name} level! ` +
@@ -822,6 +972,20 @@ export class UI {
   refreshEquipment() {
     this.panel.renderEquipment();
     this.panel.renderCombat(); // the weapon name lives there
+  }
+
+  /** Redraw every panel after a bulk state change (e.g. save-load).
+   *  The three orbs are driven every frame by the render loop, so they
+   *  self-correct on the next tick — only the panels need a manual redraw. */
+  refreshAll() {
+    this.panel.renderInventory();
+    this.panel.renderEquipment();
+    this.panel.renderCombat();
+    this.panel.renderSkills();
+    this.panel.renderJournal();
+    this.panel.renderPrayers();
+    this.panel.renderSpellbook();
+    this.setHp(this.player.hp, this.player.maxHp);
   }
 
   /** Furnace: choose a bar to smelt. */

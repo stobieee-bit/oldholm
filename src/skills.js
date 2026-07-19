@@ -50,6 +50,8 @@ export function gatherChance(level, reqLevel) {
 // interrupts it. Actions roll per tick on the game clock.
 
 const TOOL_SKILL = { axe: 'Woodcutting', pickaxe: 'Mining' };
+// rhythmic work sounds, one per 600ms swing while an action runs
+const SWING_SFX = { chop: 'chop', mine: 'mine', smith: 'mine', smelt: 'mine' };
 
 export class Actions {
   constructor(player, world, ui) {
@@ -114,6 +116,8 @@ export class Actions {
       this.cancel(); return;
     }
     if (a.validate && !a.validate()) { this.cancel(); return; }
+    const swing = SWING_SFX[a.kind];
+    if (swing) this.audio?.sfx(swing);
     a.onTick(tickNo);
   }
 

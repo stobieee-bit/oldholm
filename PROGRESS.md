@@ -1,6 +1,78 @@
 # OLDHOLM — PROGRESS
 
-## Current status: Phase 11 — World Expansion II + Quests 6–10 — COMPLETE
+## Current status: Phase 12 — Polish & Soul — COMPLETE ✦ THE GAME IS DONE
+
+## What was built (Phase 12)
+
+The final phase: sound, the map, persistence, a proper front door, and the passes
+that turn twelve phases of systems into a game you can sit down and play.
+
+- **Procedural audio** (`src/audio.js`, no audio files): a looping music theme per
+  region — eleven distinct beds (plains, capital, white, harbor, barbarian, frontier,
+  murk, desert, ashkara, blight, dungeon), each its own scale/root/tempo/oscillator
+  with a root+fifth drone and a lookahead motif scheduler — crossfaded as you cross
+  region borders. Plus a full one-shot SFX bank (melee thud/whiff, block, bow, spell,
+  teleport, coins, door, chicken cluck, eat, chop, mine, level-up + quest fanfares,
+  error), all synthesised from oscillators and filtered noise. Context is created lazily
+  on the first click (autoplay policy) and respects a saved "sound off".
+- **Minimap** (`src/minimap.js`, spec §12): the whole surface baked once into a
+  1px/tile image, drawn as a round player-centred window each frame with live blips —
+  a yellow facing wedge for you, white NPCs, red mobs fighting you, faint red idle
+  mobs, gold `$` banks — a compass **N**, and a region label that updates on entry.
+  Dungeon planes go dark with mob blips only.
+- **The save system** (`src/save.js`, spec §14): the biggest unbuilt system, now whole.
+  Serializes the entire game — skills (xp only, levels recomputed), inventory/equipment/
+  ammo, hp/energy/style/auto-retaliate, position+plane+yaw, bank vault, quest stages,
+  prayer points + actives, magic autocast, the Grand Market order book + collection +
+  price drift, world gate states, and a kill tally. **Autosaves every 30s and on tab
+  close**, three manual slots, an autosave slot, JSON **export/import to file**, and a
+  double-confirm **wipe**. On load, `world.reconcile()` restores quest-gated doors (toll,
+  champions' guild, manor study) and quest-NPC visibility (Grubfoot, the Professor, and
+  the three bosses — present only while their quest sits at its fight stage) from quest
+  progress, so a reload can never strand you behind your own history.
+- **Title screen** (`src/title.js`, spec §16): a slowly rotating, gently bobbing
+  low-poly castle — octagonal rock base, crenellated curtain walls, four red-roofed
+  corner towers, a central keep with a spire and a fluttering banner — rendered in its
+  own alpha scene behind the words, with a **Continue** button that appears only when
+  an autosave exists.
+- **System tab** (F8): sound on/off, music on/off, a volume slider (all persisted to
+  localStorage on change), and a **Save & Load** hub listing the three slots + autosave
+  with per-row Save/Load, plus Export / Import / Wipe.
+- **Passes**: balance formulas already exact per §4/§5; **performance measured at
+  0.908 ms/frame (~1100 fps-equiv) in Corvath square** — 91 draw calls, 77k triangles,
+  ~6% of the 60fps budget, the new per-frame minimap included; **examine audit: 100%
+  coverage** — all 190 items, 26 mobs, 47 NPCs carry examine text (323 examine lines
+  across the data, past the 200+ bar).
+
+## Phase 12 — tested (live browser, driven via `window.__OLDHOLM`)
+
+- Boot clean, zero console errors, all new subsystems present on the debug handle.
+- **Save/load roundtrip**: mutated skills, inventory, hp/energy/style, quests, bank,
+  prayer, kills, and position; snapshot → perturb live state → apply → every field
+  restored exactly (Woodcutting 5000xp→L20, coins 1234, hp 7, energy 42, style 1,
+  cooks quest 100, bank logs 99, prayer 12, kills 4, pos 120,130).
+- **localStorage slots + settings** persist across reload (settings re-applied at boot
+  proven: music-off + volume survived a page reload).
+- **world.reconcile**: Grubfoot revealed at colours-stage 3; Ravenmoor present at
+  Murkwell fight-stage, hidden once the quest completes.
+- **The fresh-save DoD loop, end to end**: fresh boot hides Continue → play + autosave →
+  reload shows Continue → clicking it restores Mining L13 / 500g / position. No errors.
+- **Minimap** verified visually in Corvath (round map, `$` banks, NPC blips, player
+  wedge). **Title castle** verified visually (full castle silhouette, red roofs, spire).
+- Audio-init "sound off respected" bug found in self-review and fixed before commit.
+
+## Definition of Done — Phase 12
+
+- [x] Fresh-save playtest script executes flawlessly (save/load/continue proven end-to-end)
+- [x] 60 fps in Corvath square (0.908 ms/frame — ~18× headroom)
+
+## Exact next step
+
+**None — OLDHOLM is complete.** All twelve phases are built and verified: engine, the
+full skill set, tick combat with the exact §5 formulas, eight towns across a 384×384
+world, ten quests to the quest cape, banking/shops/the Grand Market, magic/ranged/
+prayer, every dungeon and boss, and now sound, map, and persistence. A new player clicks
+into Aldera, and the realm remembers them.
 
 ## What was built (Phase 11)
 

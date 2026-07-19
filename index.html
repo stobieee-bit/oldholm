@@ -410,6 +410,81 @@
   #lock-overlay .sub { font-size: 16px; color: #cbbf98; font-style: italic; }
   #lock-overlay .controls { margin-top: 18px; font-size: 14px; color: #a8a184; line-height: 1.8; }
   #lock-overlay .enter { margin-top: 12px; font-size: 18px; color: #ffe9a0; }
+
+  /* title-screen castle behind the words */
+  #title-castle {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 0; opacity: 0.9;
+  }
+  #title-content {
+    position: relative; z-index: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 14px; text-align: center;
+    background: radial-gradient(ellipse at center, rgba(20,24,18,0.55) 40%, transparent 78%);
+    padding: 40px 80px;
+  }
+  #title-continue {
+    margin-top: 4px; padding: 8px 22px; font-family: inherit; font-size: 16px;
+    color: #201c12; background: linear-gradient(#f0d67a, #c9a232); cursor: pointer;
+    border: 2px solid #ffe9a0; border-radius: 4px; letter-spacing: 1px;
+  }
+  #title-continue:hover { background: linear-gradient(#ffe9a0, #e0be52); }
+  #title-continue.hidden { display: none; }
+
+  /* minimap, classic round, top-left below the fps counter */
+  #minimap-wrap { position: absolute; top: 26px; left: 10px; width: 148px; height: 148px; }
+  #minimap {
+    width: 148px; height: 148px; border-radius: 50%;
+    border: 3px solid #55503c; background: #1a1712;
+    box-shadow: 0 0 8px rgba(0,0,0,0.6);
+  }
+  #minimap-n {
+    position: absolute; top: -3px; left: 50%; transform: translateX(-50%);
+    color: #ffe17d; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 0 #000;
+    background: rgba(28,26,20,0.85); border: 1px solid #55503c; border-radius: 3px;
+    padding: 0 4px; z-index: 1;
+  }
+  #minimap-label {
+    position: absolute; top: 152px; left: 0; width: 148px; text-align: center;
+    color: #f4e6b8; font-size: 13px; font-variant: small-caps; letter-spacing: 1px;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  /* System tab controls */
+  .sys-toggle, .sys-btn {
+    display: block; width: 100%; margin: 5px 0; padding: 7px 6px;
+    background: rgba(20, 18, 14, 0.7); border: 1px solid #454031; border-radius: 3px;
+    color: #e8dfc0; font-family: inherit; font-size: 13.5px; cursor: pointer; text-align: center;
+  }
+  .sys-toggle:hover, .sys-btn:hover { border-color: #8a7f57; color: #ffe17d; }
+  .sys-toggle.off { color: #8a7f57; }
+  .sys-btn { color: #ffe17d; border-color: #6a6248; margin-top: 10px; }
+  .sys-slider { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-size: 12.5px; color: #a8a184; }
+  .sys-slider input { flex: 1; accent-color: #c9a232; }
+  .sys-note { margin-top: 10px; font-size: 11px; color: #a8a184; line-height: 1.5; text-align: center; }
+
+  /* Save & Load modal */
+  #save-panel {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 380px; max-height: 76vh; display: flex; flex-direction: column;
+    background: rgba(28, 26, 20, 0.97); border: 2px solid #6a6248; border-radius: 5px;
+    z-index: 21; pointer-events: auto; user-select: none;
+  }
+  #save-panel.hidden { display: none; }
+  .save-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; border-bottom: 1px solid rgba(85,80,60,0.4);
+  }
+  .save-title { color: #ffe17d; font-size: 14px; }
+  .save-meta { color: #a8a184; font-size: 11.5px; margin-top: 2px; }
+  .save-actions { display: flex; gap: 6px; }
+  .save-btn {
+    padding: 5px 12px; background: rgba(20, 18, 14, 0.8); border: 1px solid #55503c;
+    border-radius: 3px; color: #e8dfc0; font-family: inherit; font-size: 12.5px; cursor: pointer;
+  }
+  .save-btn:hover { border-color: #c9a232; color: #ffe17d; }
+  .save-btn.danger { color: #d88; }
+  .save-btn.danger:hover { border-color: #c05a4a; color: #ff8f7a; }
+  .save-tools { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; }
 </style>
 <script type="importmap">
 {
@@ -426,6 +501,11 @@
   <div id="hud">
     <div id="crosshair"></div>
     <div id="fps"></div>
+    <div id="minimap-wrap">
+      <div id="minimap-n">N</div>
+      <canvas id="minimap" width="148" height="148"></canvas>
+      <div id="minimap-label"></div>
+    </div>
     <div id="action-text" class="hidden"></div>
     <div id="cursor-hint" class="hidden">cursor mode — TAB for mouse-look</div>
     <div id="run-label">RUN</div>
@@ -451,6 +531,7 @@
         <div id="tab-equipment" class="tab-page hidden"></div>
         <div id="tab-prayer" class="tab-page hidden"></div>
         <div id="tab-spellbook" class="tab-page hidden"></div>
+        <div id="tab-settings" class="tab-page hidden"></div>
       </div>
     </div>
 
@@ -491,6 +572,12 @@
     <div class="panel-hint">Click your pack to post a sell offer · click an offer to cancel it</div>
   </div>
 
+  <div id="save-panel" class="hidden">
+    <div id="anvil-head"><span>SAVE &amp; LOAD</span><span id="save-close" class="panel-close">✕</span></div>
+    <div id="save-body" class="panel-body"></div>
+    <div class="panel-hint">Three slots, an autosave, and portable files. Aldera keeps your place.</div>
+  </div>
+
   <div id="dialogue-box" class="hidden">
     <div id="dlg-name"></div>
     <div id="dlg-text"></div>
@@ -506,14 +593,18 @@
   </div>
 
   <div id="lock-overlay">
-    <h1>Oldholm</h1>
-    <div class="sub">The Realm of Aldera awaits. It is in no hurry.</div>
-    <div class="controls">
-      WASD — walk &nbsp;·&nbsp; Mouse — look &nbsp;·&nbsp; Shift — toggle run<br>
-      Left click — act &nbsp;·&nbsp; Right click / E — options &nbsp;·&nbsp; TAB — cursor mode<br>
-      F2 — skills &nbsp;·&nbsp; F4 — pack &nbsp;·&nbsp; Space — ignored. This is a civilized game.
+    <canvas id="title-castle"></canvas>
+    <div id="title-content">
+      <h1>Oldholm</h1>
+      <div class="sub">The Realm of Aldera awaits. It is in no hurry.</div>
+      <div class="controls">
+        WASD — walk &nbsp;·&nbsp; Mouse — look &nbsp;·&nbsp; Shift — toggle run<br>
+        Left click — act &nbsp;·&nbsp; Right click / E — options &nbsp;·&nbsp; TAB — cursor mode<br>
+        F2 — skills &nbsp;·&nbsp; F4 — pack &nbsp;·&nbsp; Space — ignored. This is a civilized game.
+      </div>
+      <div class="enter">Click to begin a new journey</div>
+      <button id="title-continue" class="hidden">Continue your last journey</button>
     </div>
-    <div class="enter">Click to enter Aldera</div>
   </div>
 
   <script type="module" src="./src/main.js"></script>

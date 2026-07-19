@@ -77,6 +77,7 @@ export class Magic {
       return;
     }
     this.consume(spell);
+    this.audio?.sfx('teleport');
     p.target = null;
     p.setPosition(spell.dest.x, spell.dest.z, undefined, 0);
     p.attackCooldown = Math.max(p.attackCooldown, 5); // arrival daze

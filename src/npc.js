@@ -120,6 +120,7 @@ class Mob {
     this.entry.hidden = true;
     this.respawnAt = tickNo + this.def.respawnTicks;
     if (combat.player.target === this) combat.player.target = null;
+    if (combat.kills) combat.kills[this.defId] = (combat.kills[this.defId] ?? 0) + 1;
     this.rollDrops(tickNo);
     const oq = this.def.onDeathQuest; // [questId, fromStage, toStage]
     if (oq && combat.quests && combat.quests.stage(oq[0]) >= oq[1])

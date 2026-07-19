@@ -17,6 +17,10 @@ import { Shops } from './shop.js';
 import { Bank } from './bank.js';
 import { Quests } from './quests.js';
 import { Market } from './market.js';
+import { Audio } from './audio.js';
+import { Minimap } from './minimap.js';
+import { SaveManager } from './save.js';
+import { TitleCastle } from './title.js';
 
 export const TICK_MS = 600;
 
@@ -90,6 +94,30 @@ ui.bind({
 });
 ui.bindMarket(market);
 npcs.spawnAll();
+
+// --- audio / minimap / persistence ------------------------------------------
+
+const audio = new Audio();
+combat.audio = audio;
+actions.audio = audio;
+magic.audio = audio;
+shops.audio = audio;
+ui.audio = audio;
+interactions.audio = audio;
+
+const minimap = new Minimap(world, player, npcs);
+
+// The SaveManager reaches into every subsystem through this handle.
+const game = { player, world, clock, bank, quests, prayers, magic, market, combat, npcs, ui };
+const save = new SaveManager(game);
+ui.bindSaveSystem(save, audio);
+
+// Restore persisted settings (volume, music toggle) up front.
+const settings = save.loadSettings();
+if (settings.volume !== undefined) audio.volume = settings.volume;
+if (settings.music === false) audio.musicEnabled = false;
+if (settings.sound === false) audio.enabled = false;
+
 ui.showBanner(def.name.toUpperCase());
 ui.chat.add('Welcome to OLDHOLM.', 'system');
 ui.chat.add('Left click acts. Right click (or E) offers options. TAB frees the cursor.');
@@ -112,11 +140,32 @@ clock.on((tick) => {
 
 const overlay = document.getElementById('lock-overlay');
 let entered = false;
-overlay.addEventListener('click', () => {
+
+// A slowly rotating low-poly castle behind the title (spec §16).
+const titleCastle = new TitleCastle(document.getElementById('title-castle'));
+titleCastle.start();
+
+// Offer "Continue" only when there's an autosave to resume.
+const continueBtn = document.getElementById('title-continue');
+if (continueBtn && save.hasAuto()) continueBtn.classList.remove('hidden');
+
+function enterWorld(loadAuto) {
   entered = true;
   overlay.classList.add('hidden');
+  titleCastle.stop();
+  audio.init();
+  audio.setTheme(world.regionAt(player.pos.x, player.pos.z, player.plane).theme);
   player.inputEnabled = true;
+  if (loadAuto) {
+    if (save.loadAuto()) ui.chat.add('Your journey resumes where you left it.', 'system');
+  }
   player.requestLock();
+}
+
+overlay.addEventListener('click', (e) => {
+  if (entered) return;
+  // clicks on the Continue button resume; anywhere else starts fresh
+  enterWorld(e.target && e.target.id === 'title-continue');
 });
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === canvas;
@@ -177,6 +226,7 @@ function applyDayTint() {
 let last = performance.now();
 let tickAcc = 0;
 let fpsFrames = 0, fpsLast = performance.now();
+let autosaveAcc = 0;
 
 function frame(now) {
   requestAnimationFrame(frame);
@@ -201,6 +251,12 @@ function frame(now) {
   ui.setHp(player.hp, player.maxHp);
   ui.setPrayerOrb(prayers.points, prayers.maxPoints());
   ui.fx.update(camera);
+  minimap.update();
+  audio.setTheme(world.regionAt(player.pos.x, player.pos.z, player.plane).theme);
+
+  // autosave every 30s once the player is actually in the world
+  autosaveAcc += dt;
+  if (entered && autosaveAcc >= 30) { autosaveAcc = 0; save.autosave(); }
 
   fpsFrames++;
   if (now - fpsLast >= 500) {
@@ -234,6 +290,11 @@ window.__OLDHOLM = {
     ui.setHp(player.hp, player.maxHp);
     ui.setPrayerOrb(prayers.points, prayers.maxPoints());
     ui.fx.update(camera);
+    minimap.update();
     renderer.render(scene, camera);
   },
+  audio, minimap, save, titleCastle,
 };
+
+// Best-effort autosave when the tab closes.
+window.addEventListener('beforeunload', () => { if (entered) save.autosave(); });

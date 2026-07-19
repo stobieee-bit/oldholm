@@ -359,6 +359,7 @@ export class Player {
     this.inventory.removeSlot(slotIndex);
     this.hp = Math.min(this.maxHp, this.hp + def.heals);
     this.attackCooldown = Math.max(this.attackCooldown, 3); // eating delays your next swing
+    ui.audio?.sfx('eat');
     ui.chat.add('You eat the ' + def.name.toLowerCase() + '. It heals a little.');
     ui.refreshInventory();
   }
