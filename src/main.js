@@ -100,6 +100,28 @@ const skyDome = new THREE.Mesh(
 skyDome.renderOrder = -1000;
 scene.add(skyDome);
 
+// --- sun glow ----------------------------------------------------------------
+// A soft additive disc in the sun's direction: gives the sky a focal light and
+// something for the water to answer. Follows the camera; tinted by the hour.
+const sunTex = (() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const g = cv.getContext('2d');
+  const rg = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  rg.addColorStop(0.0, 'rgba(255,255,255,1)');
+  rg.addColorStop(0.16, 'rgba(255,248,224,0.95)');
+  rg.addColorStop(0.5, 'rgba(255,226,150,0.32)');
+  rg.addColorStop(1.0, 'rgba(255,210,120,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(cv);
+})();
+const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: sunTex, transparent: true, depthWrite: false, fog: false,
+  blending: THREE.AdditiveBlending, opacity: 0.85,
+}));
+sunGlow.renderOrder = -950;
+scene.add(sunGlow);
+const SUN_DIR = new THREE.Vector3(44, 58, 28).normalize();
+
 // --- drifting clouds ---------------------------------------------------------
 // Soft billboard puffs high in the sky, in a group that follows the player so
 // they stay far; they drift slowly and tint with the hour.
@@ -287,12 +309,12 @@ window.addEventListener('resize', () => {
 // old-school worlds do not do bedtime.
 
 const TINTS = [ // [dayFraction, fogTint, sunColor, sunIntensity, hemiIntensity]
-  [0.00, 0x8fa3b8, 0xcdd6e8, 0.60, 0.70], // deep night: cool and dim(ish)
-  [0.23, 0xe6d0ac, 0xffd9a0, 0.85, 0.88], // dawn
-  [0.35, 0xffffff, 0xfff3da, 1.00, 1.00], // morning
-  [0.62, 0xffffff, 0xfff3da, 1.00, 1.00], // afternoon
-  [0.80, 0xe2bd97, 0xffc890, 0.85, 0.88], // dusk
-  [0.92, 0x8fa3b8, 0xcdd6e8, 0.60, 0.70], // nightfall
+  [0.00, 0x8090c4, 0xbcc8ee, 0.55, 0.66], // deep night: cool + moody
+  [0.22, 0xf0c088, 0xffc678, 0.90, 0.88], // dawn: golden
+  [0.34, 0xfff6e6, 0xfff2d6, 1.00, 1.00], // morning
+  [0.60, 0xffffff, 0xfff3da, 1.00, 1.00], // afternoon
+  [0.80, 0xf2ac6e, 0xff9c50, 0.88, 0.86], // dusk: warm orange
+  [0.92, 0x8090c4, 0xbcc8ee, 0.55, 0.66], // nightfall
 ].map(([t, f, s, si, hi]) => ({ t, fog: new THREE.Color(f), sun: new THREE.Color(s), si, hi }));
 
 const _tintFog = new THREE.Color(), _tintSun = new THREE.Color(), _fogNow = new THREE.Color();
@@ -331,6 +353,13 @@ function applyDayTint() {
   _skyTop.copy(DEEP_SKY).multiply(_tintFog);
   skyUniforms.uTop.value.copy(_skyTop);
   skyDome.position.copy(camera.position);
+  // sun glow rides in the sun's direction, tinted + sized by the hour
+  sunGlow.position.copy(camera.position).addScaledVector(SUN_DIR, 62);
+  sunGlow.material.color.copy(_tintSun);
+  sunGlow.scale.setScalar(20 + (1 - si) * 26); // low, dim sun blooms wider
+  sunGlow.material.opacity = 0.55 + si * 0.35;
+  // the water reflects a lightened version of the current sky
+  if (world._waterUniforms) world._waterUniforms.uSky.value.copy(_fogNow).lerp(WHITE, 0.34);
 }
 
 // --- main loop -------------------------------------------------------------------

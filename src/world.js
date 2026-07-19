@@ -654,30 +654,53 @@ export class World {
 
   _buildWater() {
     const d = this.def, size = this.size;
-    const geo = new THREE.PlaneGeometry(size, size);
+    // subdivided so the vertex shader can raise real, rolling waves
+    const seg = Math.round(size / 6);
+    const geo = new THREE.PlaneGeometry(size, size, seg, seg);
     geo.rotateX(-Math.PI / 2);
-    // Phong for a sun glint; a shader injection wobbles the normal over time so
-    // the highlight shimmers like ripples — no geometry, no per-frame CPU cost.
+    // Phong for the sun glint; the shader raises gentle waves, tilts the normal
+    // for a live shimmer, and adds a fresnel sky-reflection at grazing angles.
     const mat = new THREE.MeshPhongMaterial({
-      color: 0x2f5a52, transparent: true, opacity: 0.86,
-      specular: 0x9fd8c8, shininess: 90,
+      color: 0x275049, transparent: true, opacity: 0.9,
+      specular: 0xbfeadf, shininess: 130,
     });
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = { value: 0 };
+      shader.uniforms.uSky = { value: new THREE.Color(0x9fc6c2) };
       this._waterUniforms = shader.uniforms;
-      shader.vertexShader = 'varying vec3 vWorldW;\n' + shader.vertexShader.replace(
-        '#include <begin_vertex>',
-        '#include <begin_vertex>\n vWorldW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-      shader.fragmentShader = 'uniform float uTime;\nvarying vec3 vWorldW;\n' + shader.fragmentShader.replace(
-        '#include <normal_fragment_begin>',
-        `#include <normal_fragment_begin>
-         {
-           float t = uTime;
-           vec2 g = vec2(
-             0.50 * cos(vWorldW.x * 0.50 + t * 1.2) + 0.30 * cos(vWorldW.x * 0.19 - t * 0.6),
-             0.42 * cos(vWorldW.z * 0.42 - t * 1.0) + 0.30 * cos(vWorldW.z * 0.25 + t * 0.7));
-           normal = normalize(normal - vec3(g.x, 0.0, g.y) * 0.32);
-         }`);
+      const WAVE = `
+        float waveH(vec2 p, float t){
+          return sin(p.x * 0.32 + t * 1.05) * 0.11
+               + sin(p.y * 0.27 - t * 0.9) * 0.09
+               + sin((p.x + p.y) * 0.5 + t * 1.7) * 0.05;
+        }`;
+      shader.vertexShader = 'uniform float uTime;\nvarying vec3 vWorldW;\nvarying float vWaveH;\n' + WAVE + '\n' +
+        shader.vertexShader
+          .replace('#include <beginnormal_vertex>', `
+            vec3 _wp = (modelMatrix * vec4(position, 1.0)).xyz;
+            float _e = 0.6;
+            vec3 objectNormal = normalize(vec3(
+              waveH(_wp.xz - vec2(_e, 0.0), uTime) - waveH(_wp.xz + vec2(_e, 0.0), uTime),
+              2.0 * _e,
+              waveH(_wp.xz - vec2(0.0, _e), uTime) - waveH(_wp.xz + vec2(0.0, _e), uTime)));`)
+          .replace('#include <begin_vertex>', `
+            #include <begin_vertex>
+            vWaveH = waveH(_wp.xz, uTime);
+            transformed.y += vWaveH;
+            vWorldW = _wp;`);
+      shader.fragmentShader = 'uniform float uTime;\nuniform vec3 uSky;\nvarying vec3 vWorldW;\nvarying float vWaveH;\n' +
+        shader.fragmentShader.replace('#include <normal_fragment_begin>',
+          `#include <normal_fragment_begin>
+           {
+             float t = uTime;
+             vec2 g = vec2(
+               0.50 * cos(vWorldW.x * 0.50 + t * 1.2) + 0.30 * cos(vWorldW.x * 0.19 - t * 0.6),
+               0.42 * cos(vWorldW.z * 0.42 - t * 1.0) + 0.30 * cos(vWorldW.z * 0.25 + t * 0.7));
+             normal = normalize(normal - vec3(g.x, 0.0, g.y) * 0.30);
+             float fres = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.0);
+             diffuseColor.rgb = mix(diffuseColor.rgb, uSky, fres * 0.55);
+             diffuseColor.rgb += vec3(0.05) * clamp(vWaveH * 4.0, 0.0, 1.0);
+           }`);
     };
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(size / 2, d.waterLevel, size / 2);
