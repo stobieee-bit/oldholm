@@ -10,7 +10,7 @@ import { ITEMS } from '../data/items.js';
 const AUTO_KEY = 'oldholm_auto';
 const SLOT_KEY = (n) => 'oldholm_slot_' + n;
 const SETTINGS_KEY = 'oldholm_settings';
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export class SaveManager {
   constructor(game) { this.g = game; }
@@ -44,6 +44,12 @@ export class SaveManager {
         toll: g.world.tollGate ? g.world.tollGate.open : false,
         champions: g.world.championsGate ? g.world.championsGate.open : false,
       },
+      // the actual revealed/dead state of every quest-hidden NPC + boss, so a
+      // reload restores exactly what the player earned (no re-derivation from
+      // quest stages, which can strand you between "revealed" and "complete").
+      hidden: g.npcs.mobs.filter((m) => m.def.hidden)
+        .map((m) => ({ id: m.defId, hid: !!m.hiddenNpc, dead: !!m.dead })),
+      manor: g.world.manorPuzzle ? { ...g.world.manorPuzzle, levers: [...g.world.manorPuzzle.levers] } : null,
       kills: g.combat.kills ?? {},
     };
   }
@@ -88,7 +94,9 @@ export class SaveManager {
     g.combat.kills = data.kills ?? {};
     g.clock.tick = data.when ?? 0;
     g.clock.gameMinutes = data.gameMinutes ?? 600;
-    g.world.reconcile(g.quests, g.npcs, data.gates ?? {});
+    g.world.reconcile(g.quests, g.npcs, {
+      gates: data.gates ?? {}, hidden: data.hidden, manor: data.manor,
+    });
     // teleport the player into place (setPosition recomputes the eye height)
     p.setPosition(data.player.pos.x, data.player.pos.z, data.player.yaw, data.player.plane ?? 0);
     // refresh every panel + orbs

@@ -305,35 +305,47 @@ export class World {
     return { id: 'holmbridge', name: 'Holmbridge', theme: 'plains' };
   }
 
-  /** On save-load, restore quest-gated doors and quest-NPC visibility. */
-  reconcile(quests, npcs, gates = {}) {
+  /** On save-load, restore world-mutable state that isn't derivable from the
+   *  player/quest snapshot: toll + champions gates, the manor lever puzzle
+   *  (door open), and the exact revealed/dead state of every quest-hidden NPC
+   *  and boss. Driven by the saved truth, never re-derived from quest stages —
+   *  so a save taken *between* "revealed" and "quest complete" reloads intact. */
+  reconcile(quests, npcs, { gates = {}, hidden, manor } = {}) {
     if (gates.toll && this.tollGate && !this.tollGate.open) {
       this.tollGate.open = true;
       for (const [bx, bz] of this.tollGate.tiles) this.setTileBlocked(bx, bz, false);
       if (this.tollGate.bar) this.group.remove(this.tollGate.bar);
     }
-    if (this.championsGate && !this.championsGate.open && (gates.champions || quests.championsGuildOpen())) {
+    if (this.championsGate && !this.championsGate.open && gates.champions) {
       this.championsGate.open = true;
       this.setTileBlocked(this.championsGate.tile.x, this.championsGate.tile.z, false);
       if (this.championsGate.bars) this.group.remove(this.championsGate.bars);
       if (this.championsGate.entry) this.removeInteractable(this.championsGate.entry);
     }
-    if (quests.complete('poultrified_professor') && this._openManorStudy) this._openManorStudy();
-    if (quests.stage('matter_of_colors') >= 3) npcs.unhide('grubfoot');
-    if (quests.complete('poultrified_professor')) npcs.unhide('professor');
-    // bosses: present only while their quest is at the fight stage
-    const bossState = (defId, questId, fightStage) => {
-      const m = npcs.mobs.find((x) => x.defId === defId);
-      if (!m) return;
-      const s = quests.stage(questId), active = s >= fightStage && s < 100;
-      m.hiddenNpc = !active;
-      if (active) { m.dead = false; m.hp = m.maxHp; }
-      m.mesh.visible = active && !m.dead;
-      if (m.entry) m.entry.hidden = !active;
-    };
-    bossState('ravenmoor', 'lord_of_murkwell', 1);
-    bossState('zarkhul', 'shadow_over_corvath', 3);
-    bossState('cindermaw', 'wyrm_of_ashkara', 3);
+
+    // manor lever puzzle: restore the recorded state, and open the study door
+    // exactly if it was open (professor becomes reachable again).
+    if (manor && this.manorPuzzle) {
+      this.manorPuzzle.oiled = !!manor.oiled;
+      this.manorPuzzle.piranhaClear = !!manor.piranhaClear;
+      if (Array.isArray(manor.levers))
+        for (let i = 0; i < this.manorPuzzle.levers.length; i++) this.manorPuzzle.levers[i] = !!manor.levers[i];
+      if (manor.open && this._openManorStudy) this._openManorStudy();
+    }
+
+    // quest-hidden NPCs + bosses: apply the saved reveal/dead state verbatim.
+    if (Array.isArray(hidden)) {
+      for (const s of hidden) {
+        const m = npcs.mobs.find((x) => x.defId === s.id);
+        if (!m) continue;
+        m.hiddenNpc = s.hid;
+        m.dead = s.dead;
+        m.mesh.visible = !s.hid && !s.dead;
+        if (m.entry) m.entry.hidden = s.hid;
+        // a boss restored to the field starts the fight at full health
+        if (!s.hid && !s.dead && m.def.attackable !== false) { m.hp = m.maxHp; m.target = null; }
+      }
+    }
   }
 
   /** Remove up to n coins from a player's pack (tolls, fares). */
