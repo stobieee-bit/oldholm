@@ -340,8 +340,8 @@ export const REGIONS = {
     // The other elemental altars, rediscovered after the Severed Circle. Each
     // imbues blank slates into its own glyph (world.js _buildGlyphAltars).
     glyphAltars: [
-      { element: 'tide', x: 109.5, z: 66.5, name: 'Tide altar',
-        examine: 'Stones slick with river-spray, ringed and waiting.' },
+      { element: 'tide', x: 115.5, z: 66.5, name: 'Tide altar',
+        examine: 'River-bank stones in a broken ring, humming with the tide.' },
       { element: 'stone', x: 46.5, z: 128.5, name: 'Stone altar',
         examine: 'A ring of the mountain’s own bones, near the old mine.' },
       { element: 'spirit', x: 38.5, z: 104.5, name: 'Spirit altar',
@@ -424,7 +424,7 @@ export const REGIONS = {
       { npc: 'whitehold_banker', x: 280.5, z: 50.5 },
       { npc: 'skalvik_banker', x: 50.5, z: 45.5 },
       { npc: 'gullwick_banker', x: 170.5, z: 318.5 },
-      { npc: 'ashkara_banker', x: 307.5, z: 352.5 },
+      { npc: 'ashkara_banker', x: 300.5, z: 350.5 },
       // Wave 5: Skalvik & Brinkton get residents with something to say
       { npc: 'skalvik_jarl', x: 53.5, z: 42.5 },   // by the Skalvik firepit
       { npc: 'skalvik_skald', x: 57.5, z: 41.5 },
@@ -439,9 +439,11 @@ export const REGIONS = {
       { type: 'lure', z: 71 },
       { type: 'lure', z: 30 },   // Skalvik's fly water
       { type: 'net', z: 218 },   // Murkwell's murky shallows
-      // Wave 7: Gullwick's sea fishing, flanking the charter pier (explicit x)
-      { type: 'cage', x: 180.5, z: 322.5 },
-      { type: 'harpoon', x: 184.5, z: 324.5 },
+      // Wave 7: Gullwick's sea fishing at the shoreline past the pier end. The
+      // spot tile is walkable shore (y~0.5); its ring renders one tile out over
+      // the water (z+0.5), so it's both reachable and visible on the surface.
+      { type: 'cage', x: 181.5, z: 331.5 },
+      { type: 'harpoon', x: 183.5, z: 331.5 },
     ],
 
     // Furniture props (interior dressing; blocks its tiles).
