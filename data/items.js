@@ -840,6 +840,13 @@ const ARMOR_SHAPES = {
     examine: 'Shaped like a kite. Flies like a brick.', icon: (c) => `<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6Z" fill="${c}"/><path d="M12 3v18M5 9h14" stroke="#00000040" stroke-width="1.1"/>` },
   sq_shield:  { label: 'sq shield', slot: 'shield', def: [5, 6, 5, -1, 5], value: 48,
     examine: 'Square deal, square shield.', icon: (c) => `<rect x="6" y="4" width="12" height="14" rx="2" fill="${c}"/><path d="M12 4v14M6 11h12" stroke="#00000040" stroke-width="1.1"/>` },
+  // Wave 9: metal gloves/boots/med-helm across every tier (were leather-only).
+  med_helm:   { label: 'med helm', slot: 'head', def: [3, 4, 3, -1, 3], value: 30,
+    examine: 'Half a full helm, all the peripheral vision.', icon: (c) => `<path d="M6 15c0-5 2.5-8 6-8s6 3 6 8v2H6Z" fill="${c}"/><rect x="10.7" y="10" width="2.6" height="4" fill="#3a3632"/>` },
+  gauntlets:  { label: 'gauntlets', slot: 'gloves', def: [2, 2, 2, 0, 2], value: 26,
+    examine: 'Knuckles, reinforced for emphasis.', icon: (c) => `<path d="M8 5h6l1 6-1 8H8l-1-8Z" fill="${c}"/><path d="M8.5 8h5" stroke="#00000033" stroke-width="1"/>` },
+  plateboots: { label: 'plateboots', slot: 'boots', def: [3, 3, 2, -1, 3], value: 34,
+    examine: 'Kick with authority.', icon: (c) => `<path d="M9 5h3v9l5 2v3H8V5Z" fill="${c}"/><path d="M8 17h9" stroke="#00000033" stroke-width="1"/>` },
 };
 
 // Anvil parameters per smithable metal (higher metals arrive in later phases).

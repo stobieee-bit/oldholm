@@ -47,6 +47,10 @@ export const SMITHABLES = {
   platelegs:  { off: 16, bars: 3, kind: 'armor' },
   platebody:  { off: 18, bars: 5, kind: 'armor' },
   arrowtips:  { off: 3,  bars: 1, kind: 'ammo', count: 15 },
+  // Wave 9: gloves/boots/med-helm smithables (rune tops out at 81+15=96 <= 99)
+  med_helm:   { off: 6,  bars: 1, kind: 'armor' },
+  gauntlets:  { off: 13, bars: 2, kind: 'armor' },
+  plateboots: { off: 15, bars: 2, kind: 'armor' },
 };
 export const SMITH_TICKS_PER_ITEM = 4;
 
