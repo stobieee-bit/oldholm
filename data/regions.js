@@ -337,6 +337,20 @@ export const REGIONS = {
     windmill: { x: 94.5, z: 40.5 },
     wizardTower: { x: 46.5, z: 112.5 },
     galeAltar: { x: 136.5, z: 42.5 },       // NE, among the pines
+    // The other elemental altars, rediscovered after the Severed Circle. Each
+    // imbues blank slates into its own glyph (world.js _buildGlyphAltars).
+    glyphAltars: [
+      { element: 'tide', x: 109.5, z: 66.5, name: 'Tide altar',
+        examine: 'Stones slick with river-spray, ringed and waiting.' },
+      { element: 'stone', x: 46.5, z: 128.5, name: 'Stone altar',
+        examine: 'A ring of the mountain’s own bones, near the old mine.' },
+      { element: 'spirit', x: 38.5, z: 104.5, name: 'Spirit altar',
+        examine: 'Pale stones that hum with the thoughts that stayed. West of the tower.' },
+      { element: 'ember', x: 338.5, z: 282.5, name: 'Ember altar',
+        examine: 'Scorched stones in the deep desert, warm to the palm.' },
+      { element: 'sigil', x: 256.5, z: 128.5, name: 'Sigil altar',
+        examine: 'Old-word stones at Corvath’s western verge, edged in red.' },
+    ],
     dyeCart: { x: 125.5, z: 91.5 },
     pickables: [
       { kind: 'wheat', item: 'wheat', x: 90.5, z: 43.5 }, { kind: 'wheat', item: 'wheat', x: 91.5, z: 45.0 },

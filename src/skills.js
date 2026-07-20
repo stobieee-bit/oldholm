@@ -613,8 +613,9 @@ export class Actions {
     this.ui.refreshInventory();
   }
 
-  /** Glyphcraft: imbue blank slates at an elemental altar (quest-gated). */
-  imbueSlates(altarEntry) {
+  /** Glyphcraft: imbue blank slates at an elemental altar (quest-gated). Each
+   *  altar passes its own element; the gale altar omits it and defaults. */
+  imbueSlates(altarEntry, element = GLYPHCRAFT.altarElement) {
     if (!this.quests?.glyphcraftUnlocked()) {
       this.ui.chat.add('The stones are silent. Their circle is severed — someone cut this knowledge, long ago.');
       return;
@@ -623,23 +624,25 @@ export class Actions {
       this.ui.chat.add('You have no blank slates. A pale vein at the mine yields them.');
       return;
     }
+    const glyphId = element + '_glyph';
+    const glyphName = (ITEMS[glyphId]?.name ?? 'glyph').toLowerCase();
     let cadence = 0;
     this._start({
       kind: 'imbue',
-      startMsg: 'You lay a slate on the altar. The wind leans in.',
+      startMsg: 'You lay a slate on the altar. The bound element leans in.',
       validate: () => this._countItem('blank_slate') >= 1,
       onTick: () => {
         if (++cadence % 2 !== 0) return;
         const level = this.player.skillByName('Glyphcraft').level;
         const stones = GLYPHCRAFT.stonesPerSlate(level);
         this._takeItems('blank_slate', 1);
-        if (!this.player.inventory.add(GLYPHCRAFT.altarElement + '_glyph', stones)) {
+        if (!this.player.inventory.add(glyphId, stones)) {
           this.ui.chat.add('Your pack is too full for the glyphs.');
           this.cancel();
           return;
         }
         this.ui.refreshInventory();
-        this.ui.chat.add(`The wind writes itself into the stone. ${stones} gale glyph${stones > 1 ? 's' : ''}.`);
+        this.ui.chat.add(`The charge writes itself into the stone. ${stones} ${glyphName}${stones > 1 ? 's' : ''}.`);
         this._grant('Glyphcraft', GLYPHCRAFT.xpPerSlate);
         if (this._countItem('blank_slate') < 1) { this.ui.chat.add('Your slates are spent.'); this.cancel(); }
       },

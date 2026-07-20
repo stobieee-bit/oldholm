@@ -130,6 +130,7 @@ export class World {
     this._buildWizardTower();
     this._buildChurchyard();
     this._buildGaleAltar();
+    this._buildGlyphAltars();
     this._buildPickables();
     this._buildDyeCart();
     this._buildTowns();
@@ -2792,6 +2793,34 @@ export class World {
         fn: (ctx) => ctx.actions.imbueSlates(entry),
       }],
     });
+  }
+
+  // The other elemental altars, rediscovered after the Severed Circle. Same
+  // broken-ring form as the gale altar; each imbues its own glyph.
+  _buildGlyphAltars() {
+    const ALTAR_COLOR = {
+      gale: 0x9aa8a2, tide: 0x4a90c2, stone: 0x8a7a5a, ember: 0xe07a2a,
+      spirit: 0xd8d0f0, sigil: 0xc23a5a, void: 0x6a4a8a,
+    };
+    for (const a of this.def.glyphAltars ?? []) {
+      const stone = new THREE.MeshLambertMaterial({ color: a.color ?? ALTAR_COLOR[a.element] ?? 0x9aa8a2, flatShading: true });
+      const y = this.getGroundHeight(a.x, a.z);
+      const meshes = [];
+      for (let i = 0; i < 5; i++) {
+        const ang = (i / 5) * Math.PI * 2;
+        meshes.push(this._addBox(0.4, 1.1 + (i % 2) * 0.35, 0.4, a.x + Math.cos(ang) * 1.4, y + 0.55, a.z + Math.sin(ang) * 1.4, stone));
+      }
+      meshes.push(this._addBox(1.0, 0.5, 1.0, a.x, y + 0.25, a.z, stone));
+      this.markBlockedCircle(a.x, a.z, 0.8);
+      const element = a.element;
+      const name = a.name ?? element[0].toUpperCase() + element.slice(1) + ' altar';
+      let entry;
+      entry = this.addInteractable({
+        kind: 'altar-glyph', name, meshes,
+        examine: a.examine ?? 'Weathered stones in a broken ring, humming with a bound element.',
+        actions: [{ label: 'Imbue-slates', fn: (ctx) => ctx.actions.imbueSlates(entry, element) }],
+      });
+    }
   }
 
   _buildPickables() {
