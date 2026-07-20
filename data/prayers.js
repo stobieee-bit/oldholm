@@ -26,4 +26,4 @@ export const PRAYERS = [
 export const prayerById = (id) => PRAYERS.find((p) => p.id === id);
 
 /** Bones and their burial xp (spec §10). */
-export const BONES = { bones: 4.5, big_bones: 15, wyrm_bones: 72 };
+export const BONES = { bones: 4.5, big_bones: 15, dragon_bones: 48, wyrm_bones: 72 };

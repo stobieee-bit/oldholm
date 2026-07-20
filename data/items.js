@@ -586,6 +586,11 @@ ITEMS.big_bones = {
   icon: '<path d="M6 18 18 6" stroke="#e8e2d0" stroke-width="4" stroke-linecap="round"/><circle cx="5" cy="19" r="2.6" fill="#e8e2d0"/><circle cx="19" cy="5" r="2.6" fill="#e8e2d0"/>',
   model: { kind: 'bones', color: 0xe8e2d0 },
 };
+ITEMS.dragon_bones = {
+  name: 'Dragon bones', examine: 'Heavy, and humming with old fire. The prayerful covet them.', value: 40, stackable: false,
+  icon: '<path d="M5 19 19 5" stroke="#e8e0c8" stroke-width="4.5" stroke-linecap="round"/><circle cx="4.5" cy="19.5" r="3" fill="#e8e0c8"/><circle cx="19.5" cy="4.5" r="3" fill="#e8e0c8"/><path d="M10 14l4-4" stroke="#c9b98a" stroke-width="1"/>',
+  model: { kind: 'bones', color: 0xe8e0c8 },
+};
 
 const WIZARD_WEAR = [
   ['wizard_hat', 'Wizard hat', 'head', [0, 0, 0, 3, -1], 'Pointy. Non-negotiable.'],

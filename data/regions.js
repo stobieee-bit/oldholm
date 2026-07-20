@@ -512,6 +512,15 @@ export const REGIONS = {
       { mob: 'troll', x: 110.5, z: 238.5 }, { mob: 'troll', x: 64.5, z: 186.5 },
       { mob: 'elder_moss_giant', x: 100.5, z: 236.5 },
       { mob: 'lesser_demon', x: 338.5, z: 78.5 }, { mob: 'lesser_demon', x: 340.5, z: 110.5 },
+      // ---- Wave 8: farmable dragons + repeatable mini-bosses (lv 63-92) ----
+      { mob: 'green_dragon', x: 40.5, z: 175.5 },      // SW wilds, past the hill giants
+      { mob: 'blue_dragon', x: 130.5, z: 252.5 },      // southern marsh-edge
+      { mob: 'red_dragon', x: 330.5, z: 238.5 },       // deep SE desert
+      { mob: 'black_dragon', x: 362.5, z: 190.5 },     // deep Blight
+      { mob: 'kalphar_bonelord', x: 300.5, z: 130.5, plane: 'corvathSewers' },
+      { mob: 'sunmarch_broodmother', x: 236.5, z: 272.5 }, // among the desert nests
+      { mob: 'abyssal_warden', x: 370.5, z: 150.5 },   // deepest Blight
+      { mob: 'frost_monarch', x: 252.5, z: 14.5 },     // the far northern ice cliffs
       // The ice cave (quest 8) — coldiron guarded by ice fiends.
       { mob: 'ice_fiend', x: 244.5, z: 16.5, plane: 'iceCave' },
       { mob: 'ice_fiend', x: 247.5, z: 20.5, plane: 'iceCave' },

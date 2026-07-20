@@ -18,6 +18,36 @@
 
 import { figure } from './figure.js';
 
+// A compact chromatic dragon (Wave 8): barrel body, serpentine neck + head,
+// membranous wings, spiked tail, four legs. Faces -z like all mob models.
+const dragon = (body, belly, wing) => ({
+  height: 1.95,
+  parts: [
+    { kind: 'cyl', rt: 0.4, rb: 0.26, h: 1.3, seg: 10, rotX: 1.5708, at: [0, 0.85, 0.1], color: body },
+    { kind: 'cyl', rt: 0.3, rb: 0.18, h: 1.15, seg: 8, scale: [1, 0.5, 1], rotX: 1.5708, at: [0, 0.62, 0.1], color: belly },
+    { kind: 'cyl', rt: 0.22, rb: 0.17, h: 0.75, seg: 8, rotX: 0.85, at: [0, 1.32, -0.62], color: body }, // neck
+    { kind: 'sphere', r: 0.26, scale: [1, 0.9, 1.35], at: [0, 1.72, -1.02], color: body }, // head
+    { kind: 'box', size: [0.22, 0.13, 0.32], at: [0, 1.64, -1.32], color: belly }, // snout
+    { kind: 'box', size: [0.16, 0.09, 0.22], at: [0, 1.62, -1.3], color: 0xffa32a }, // glowing maw
+    { kind: 'cone', r: 0.07, h: 0.4, seg: 5, rotX: -1.1, at: [-0.13, 1.92, -0.9], color: 0x241a12 }, // horns
+    { kind: 'cone', r: 0.07, h: 0.4, seg: 5, rotX: -1.1, at: [0.13, 1.92, -0.9], color: 0x241a12 },
+    { kind: 'sphere', r: 0.04, detail: 0, at: [-0.12, 1.74, -1.18], color: 0xffd23a }, // eyes
+    { kind: 'sphere', r: 0.04, detail: 0, at: [0.12, 1.74, -1.18], color: 0xffd23a },
+    { kind: 'cyl', rt: 0.04, rb: 0.02, h: 1.4, seg: 5, rotZ: -0.8, at: [-0.5, 1.4, 0.2], color: 0x241a12 }, // wing spars
+    { kind: 'cone', r: 0.8, h: 1.5, seg: 3, scale: [1, 1, 0.06], rotZ: 0.72, rotY: 0.3, at: [-0.78, 1.35, 0.22], color: wing },
+    { kind: 'cyl', rt: 0.04, rb: 0.02, h: 1.4, seg: 5, rotZ: 0.8, at: [0.5, 1.4, 0.2], color: 0x241a12 },
+    { kind: 'cone', r: 0.8, h: 1.5, seg: 3, scale: [1, 1, 0.06], rotZ: -0.72, rotY: -0.3, at: [0.78, 1.35, 0.22], color: wing },
+    { kind: 'cone', r: 0.22, h: 1.5, seg: 8, rotX: -1.5708, at: [0, 0.72, 1.15], color: body }, // tail
+    { kind: 'cone', r: 0.1, h: 0.3, seg: 5, rotX: 1.4, at: [0, 0.78, 1.95], color: 0x241a12 }, // tail spade
+    { kind: 'cyl', rt: 0.12, rb: 0.09, h: 0.5, at: [-0.3, 0.25, -0.35], color: body },
+    { kind: 'cyl', rt: 0.12, rb: 0.09, h: 0.5, at: [0.3, 0.25, -0.35], color: body },
+    { kind: 'cyl', rt: 0.13, rb: 0.1, h: 0.5, at: [-0.32, 0.25, 0.5], color: body },
+    { kind: 'cyl', rt: 0.13, rb: 0.1, h: 0.5, at: [0.32, 0.25, 0.5], color: body },
+    { kind: 'cone', r: 0.08, h: 0.24, at: [0, 1.3, 0.2], color: 0x241a12 }, // back ridge
+    { kind: 'cone', r: 0.07, h: 0.2, at: [0, 1.2, 0.62], color: 0x241a12 },
+  ],
+});
+
 export const MOBS = {
   chicken: {
     name: 'Chicken',
@@ -811,6 +841,189 @@ export const MOBS = {
         // small folded wings
         { kind: 'cone', r: 0.5, h: 0.9, seg: 3, scale: [1, 1, 0.08], rotZ: 0.7, rotY: 0.4, at: [-0.5, 1.3, -0.18], color: 0x5a1e14 },
         { kind: 'cone', r: 0.5, h: 0.9, seg: 3, scale: [1, 1, 0.08], rotZ: -0.7, rotY: -0.4, at: [0.5, 1.3, -0.18], color: 0x5a1e14 },
+      ],
+    },
+  },
+
+  // ---- Wave 8: farmable chromatic dragons (dragonfire => bring the anti-flame
+  // kiteshield) and repeatable mini-bosses, filling combat levels 63-92. ----
+  green_dragon: {
+    name: 'Green dragon',
+    examine: 'Bad breath, worse temper. The anti-flame kiteshield is not optional.',
+    stats: { att: 49, str: 51, def: 46, hp: 76 }, // lv 63
+    bonuses: { att: 14, str: 14, def: 12 },
+    attackType: 'slash', dragonfire: true,
+    speed: 5, aggroRadius: 6, wanderRadius: 4, respawnTicks: 90,
+    drops: [
+      { item: 'dragon_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [80, 220], weight: 3 },
+      { item: 'adamantite_ore', count: [1, 2], weight: 2 },
+      { item: 'uncut_emerald', count: 1, weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: dragon(0x3a6a34, 0x5a8a44, 0x2e5228),
+  },
+  blue_dragon: {
+    name: 'Blue dragon',
+    examine: 'Colder fire, same result. Still 40 regrets without a shield.',
+    stats: { att: 55, str: 57, def: 52, hp: 86 }, // lv 70
+    bonuses: { att: 16, str: 16, def: 14 },
+    attackType: 'slash', dragonfire: true,
+    speed: 5, aggroRadius: 6, wanderRadius: 4, respawnTicks: 100,
+    drops: [
+      { item: 'dragon_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [110, 300], weight: 3 },
+      { item: 'runite_ore', count: 1, weight: 1 },
+      { item: 'uncut_ruby', count: 1, weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: dragon(0x2a5a8a, 0x3a72a8, 0x224a72),
+  },
+  red_dragon: {
+    name: 'Red dragon',
+    examine: 'The classic. Hoards, scorches, and resents visitors.',
+    stats: { att: 58, str: 62, def: 56, hp: 92 }, // lv 76
+    bonuses: { att: 18, str: 18, def: 16 },
+    attackType: 'slash', dragonfire: true,
+    speed: 5, aggroRadius: 7, wanderRadius: 4, respawnTicks: 110,
+    drops: [
+      { item: 'dragon_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [150, 400], weight: 3 },
+      { item: 'runite_ore', count: [1, 2], weight: 1 },
+      { item: 'rune_bar', count: 1, weight: 1 },
+      { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: dragon(0x8a2a24, 0xb0402e, 0x5a1a16),
+  },
+  black_dragon: {
+    name: 'Black dragon',
+    examine: 'The apex wyrmling. Its fire is a rumour you survive once.',
+    stats: { att: 64, str: 68, def: 62, hp: 104 }, // lv 84
+    bonuses: { att: 20, str: 20, def: 18 },
+    attackType: 'slash', dragonfire: true,
+    speed: 5, aggroRadius: 7, wanderRadius: 4, respawnTicks: 130,
+    drops: [
+      { item: 'dragon_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [220, 550], weight: 3 },
+      { item: 'runite_ore', count: [1, 3], weight: 2 },
+      { item: 'rune_platelegs', count: 1, weight: 1 },
+      { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: dragon(0x1e1a1e, 0x3a2e34, 0x120e12),
+  },
+  kalphar_bonelord: {
+    name: 'Kalphar the Bonelord',
+    examine: 'A skeleton with delusions of monarchy, and the reach to enforce them.',
+    stats: { att: 60, str: 62, def: 58, hp: 96 }, // lv 78
+    bonuses: { att: 18, str: 18, def: 16 },
+    attackType: 'crush',
+    speed: 5, aggroRadius: 7, wanderRadius: 3, respawnTicks: 150,
+    drops: [
+      { item: 'big_bones', count: [1, 3], weight: 1 },
+      { item: 'coins', count: [150, 420], weight: 3 },
+      { item: 'rune_bar', count: 1, weight: 1 },
+      { item: 'rune_full_helm', count: 1, weight: 1 },
+      { item: 'uncut_ruby', count: 1, weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.2,
+      parts: [
+        ...figure({ scale: 1.32, build: 1.2, skin: 0xe8e2d0, shirt: 0xdcd4c0, sleeve: 0xd0c8b4, pants: 0xd0c8b4, boot: 0xc4bca8, bald: true }),
+        { kind: 'cone', r: 0.24, h: 0.4, seg: 6, scale: [1, 1, 0.6], at: [0, 2.06, 0], color: 0x8a8272 }, // bone crown
+        { kind: 'cone', r: 0.05, h: 0.18, at: [-0.16, 2.24, 0], color: 0x8a8272 },
+        { kind: 'cone', r: 0.05, h: 0.18, at: [0.16, 2.24, 0], color: 0x8a8272 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.1, 1.86, 0.16], color: 0x8f3fbf }, // soul-lit eyes
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.1, 1.86, 0.16], color: 0x8f3fbf },
+      ],
+    },
+  },
+  sunmarch_broodmother: {
+    name: 'Broodmother',
+    examine: 'The desert nests answer to her. Bring a big boot.',
+    stats: { att: 62, str: 66, def: 60, hp: 104 }, // lv 82
+    bonuses: { att: 18, str: 20, def: 16 },
+    attackType: 'stab',
+    speed: 4, aggroRadius: 7, wanderRadius: 5, respawnTicks: 150,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [160, 440], weight: 3 },
+      { item: 'runite_ore', count: [1, 2], weight: 1 },
+      { item: 'rune_scimitar', count: 1, weight: 1 },
+      { item: 'uncut_emerald', count: [1, 2], weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 1.2,
+      parts: [
+        { kind: 'ball', r: 0.6, at: [0, 0.66, 0.16], color: 0x4a2a1a },
+        { kind: 'ball', r: 0.34, at: [0, 0.6, -0.6], color: 0x5a3624 },
+        { kind: 'sphere', r: 0.06, detail: 0, at: [-0.12, 0.72, -0.82], color: 0xc23a3a }, // eyes
+        { kind: 'sphere', r: 0.06, detail: 0, at: [0.12, 0.72, -0.82], color: 0xc23a3a },
+        { kind: 'box', size: [1.7, 0.08, 0.08], at: [0, 0.5, 0.3], rotY: 0.5, color: 0x2a180e },
+        { kind: 'box', size: [1.7, 0.08, 0.08], at: [0, 0.5, 0.08], rotY: -0.5, color: 0x2a180e },
+        { kind: 'box', size: [1.7, 0.08, 0.08], at: [0, 0.5, -0.14], rotY: 0.4, color: 0x2a180e },
+        { kind: 'box', size: [1.7, 0.08, 0.08], at: [0, 0.5, -0.36], rotY: -0.4, color: 0x2a180e },
+      ],
+    },
+  },
+  abyssal_warden: {
+    name: 'Abyssal warden',
+    examine: 'It guards a door that should stay shut. Blessed steel still stings it.',
+    stats: { att: 68, str: 70, def: 64, hp: 112 }, // lv 88
+    bonuses: { att: 22, str: 22, def: 18 },
+    attackType: 'crush', demon: true,
+    speed: 5, aggroRadius: 7, wanderRadius: 3, respawnTicks: 170,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [220, 600], weight: 3 },
+      { item: 'ashes', count: [2, 4], weight: 2 },
+      { item: 'rune_bar', count: [1, 2], weight: 1 },
+      { item: 'rune_platebody', count: 1, weight: 1 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.5,
+      parts: [
+        ...figure({ scale: 1.55, build: 1.44, headScale: 1.12, skin: 0x6a1a1a, shirt: 0x4a1010, sleeve: 0x4a1010, pants: 0x300a0a, boot: 0x1a0606, bald: true }),
+        { kind: 'cone', r: 0.13, h: 0.6, seg: 5, rotZ: 0.5, rotX: -0.2, at: [-0.24, 2.4, -0.04], color: 0x160808 }, // great horns
+        { kind: 'cone', r: 0.13, h: 0.6, seg: 5, rotZ: -0.5, rotX: -0.2, at: [0.24, 2.4, -0.04], color: 0x160808 },
+        { kind: 'sphere', r: 0.06, detail: 0, at: [-0.12, 2.14, 0.2], color: 0xff7a2a }, // eyes
+        { kind: 'sphere', r: 0.06, detail: 0, at: [0.12, 2.14, 0.2], color: 0xff7a2a },
+        { kind: 'box', size: [0.1, 0.7, 0.05], at: [0, 1.4, 0.36], color: 0xff6a1a }, // ember chest crack
+        { kind: 'cone', r: 0.6, h: 1.0, seg: 3, scale: [1, 1, 0.07], rotZ: 0.7, rotY: 0.4, at: [-0.6, 1.6, -0.2], color: 0x3a0e0e }, // wings
+        { kind: 'cone', r: 0.6, h: 1.0, seg: 3, scale: [1, 1, 0.07], rotZ: -0.7, rotY: -0.4, at: [0.6, 1.6, -0.2], color: 0x3a0e0e },
+      ],
+    },
+  },
+  frost_monarch: {
+    name: 'Frost monarch',
+    examine: 'Rules the deep ice. The realm’s coldest, hardest kill.',
+    stats: { att: 70, str: 72, def: 66, hp: 118 }, // lv 92
+    bonuses: { att: 22, str: 24, def: 20 },
+    attackType: 'crush',
+    speed: 5, aggroRadius: 8, wanderRadius: 3, respawnTicks: 190,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [260, 700], weight: 3 },
+      { item: 'coldiron_ore', count: [2, 4], weight: 2 },
+      { item: 'rune_bar', count: [1, 2], weight: 1 },
+      { item: 'rune_kiteshield', count: 1, weight: 1 },
+      { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.4,
+      parts: [
+        ...figure({ scale: 1.48, build: 1.4, headScale: 1.1, skin: 0xbfe0ec, shirt: 0x9ac8dc, sleeve: 0x88b8d0, pants: 0x6ea0bc, boot: 0x5a8ca8, bald: true }),
+        { kind: 'cone', r: 0.1, h: 0.5, at: [-0.18, 2.28, 0], color: 0xe8f8ff }, // ice crown
+        { kind: 'cone', r: 0.12, h: 0.62, at: [0, 2.36, 0], color: 0xe8f8ff },
+        { kind: 'cone', r: 0.1, h: 0.5, at: [0.18, 2.28, 0], color: 0xe8f8ff },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.11, 2.02, 0.18], color: 0x3aa8e0 }, // eyes
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.11, 2.02, 0.18], color: 0x3aa8e0 },
+        { kind: 'cone', r: 0.14, h: 0.9, rotX: 0.4, rotZ: 0.3, at: [0.6, 1.5, 0.2], color: 0xcfeefb }, // ice staff
       ],
     },
   },
