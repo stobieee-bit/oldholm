@@ -406,6 +406,11 @@ export const REGIONS = {
       // Wave 3 bounty givers
       { npc: 'crossroads_sergeant', x: 248.5, z: 90.5 }, // the crossroads
       { npc: 'blight_warden', x: 204.5, z: 25.5 },       // Brinkton, facing the ash road
+      // Wave 4: bankers for the four bankless towns (open-square placements)
+      { npc: 'whitehold_banker', x: 280.5, z: 50.5 },
+      { npc: 'skalvik_banker', x: 50.5, z: 45.5 },
+      { npc: 'gullwick_banker', x: 170.5, z: 318.5 },
+      { npc: 'ashkara_banker', x: 307.5, z: 352.5 },
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).

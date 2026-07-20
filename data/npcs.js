@@ -251,7 +251,7 @@ export const NPCS = {
   },
   sunmarch_tanner: {
     ...base, name: 'Tanner', examine: 'Turns yesterday’s cows into tomorrow’s fashion.',
-    talk: 'tanner', wanderRadius: 0,
+    talk: 'tanner', shop: 'sunmarch_leather', wanderRadius: 0,
     model: human(0xb08050, 0x8a6a42, 0x5a4a33, 0x3a3028),
   },
   gem_seller: {
@@ -413,5 +413,27 @@ export const NPCS = {
       ],
     },
     chatter: ['The Blight leaks. Someone has to bleed it back.', 'Echoes at the verge. Ashfiends past them. Mind both.'],
+  },
+
+  // ---- Wave 4: bankers for the four bankless towns (bank:true adds Bank) ----
+  whitehold_banker: {
+    ...base, name: 'Banker', examine: 'Keeps the knights’ coin as polished as their shields.',
+    talk: 'banker', bank: true, wanderRadius: 0,
+    model: human(0xd8b090, 0x2e3a55, 0x2a2a30, 0x8a8078, 0xd8d8d2),
+  },
+  skalvik_banker: {
+    ...base, name: 'Banker', examine: 'Vault’s a longhouse cellar. Nobody’s brave enough to test it.',
+    talk: 'banker', bank: true, wanderRadius: 0,
+    model: human(0xd8b090, 0x3a4a5a, 0x2a3040, 0xb5542a),
+  },
+  gullwick_banker: {
+    ...base, name: 'Banker', examine: 'Salt in the ledger, iron in the strongbox.',
+    talk: 'banker', bank: true, wanderRadius: 0,
+    model: human(0xc9a27a, 0x2a5a6a, 0x1a3a4a, 0x5a4a33),
+  },
+  ashkara_banker: {
+    ...base, name: 'Banker', examine: 'Banks bananas and bullion alike. Mostly bananas.',
+    talk: 'banker', bank: true, wanderRadius: 0,
+    model: human(0x9a6a4a, 0x5a7a3a, 0x3a5a2a, 0x2a2624),
   },
 };

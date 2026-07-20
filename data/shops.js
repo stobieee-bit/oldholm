@@ -39,13 +39,18 @@ export const SHOPS = {
   corvath_swords: {
     name: 'The Honed Edge',
     buyMult: 1.2, sellMult: 0.6,
-    buysMatcher: (id) => /^(bronze|iron|steel)_/.test(id),
+    // the capital's forge-market: buys every crafted metal, stocks up to adamant
+    // (rune stays smith-or-slay only) — high prices act as an endgame gold sink.
+    buysMatcher: (id) => /^(bronze|iron|steel|coldiron|mithril|adamant|rune)_/.test(id),
     restockTicks: 30,
     stock: [
       ['iron_scimitar', 4], ['iron_longsword', 3], ['iron_battleaxe', 2], ['iron_two_handed', 2],
       ['steel_dagger', 3], ['steel_sword', 3], ['steel_scimitar', 3], ['steel_longsword', 2],
       ['steel_warhammer', 2], ['steel_battleaxe', 2], ['steel_two_handed', 1],
       ['steel_platebody', 1], ['steel_platelegs', 2], ['steel_kiteshield', 2], ['steel_full_helm', 2],
+      ['coldiron_scimitar', 2], ['coldiron_longsword', 2],
+      ['mithril_scimitar', 2], ['mithril_longsword', 2], ['mithril_battleaxe', 1],
+      ['adamant_scimitar', 1], ['adamant_longsword', 1],
     ],
   },
 
@@ -101,8 +106,10 @@ export const SHOPS = {
     name: "Hilda's Arms",
     buyMult: 1.2, sellMult: 0.55,
     buysOnly: null, // set below: metal gear, bars, ores
-    buysMatcher: (id) => /^(bronze|iron|steel)_/.test(id) ||
-      ['copper_ore', 'tin_ore', 'iron_ore', 'coal', 'gold_ore', 'gold_bar'].includes(id),
+    buysMatcher: (id) => /^(bronze|iron|steel|coldiron|mithril|adamant|rune)_/.test(id) ||
+      /^(mithril|adamantite|runite|coldiron)_ore$/.test(id) ||
+      ['copper_ore', 'tin_ore', 'iron_ore', 'coal', 'gold_ore', 'gold_bar',
+       'mithril_bar', 'adamant_bar', 'rune_bar', 'coldiron_bar'].includes(id),
     restockTicks: 30,
     stock: [
       ['bronze_dagger', 5], ['bronze_sword', 4], ['bronze_scimitar', 3],
@@ -171,6 +178,21 @@ export const SHOPS = {
     stock: [
       ['steel_kiteshield', 3], ['steel_platebody', 2], ['steel_platelegs', 2],
       ['steel_full_helm', 3], ['anti_flame_kiteshield', 2],
+      ['coldiron_platebody', 1], ['coldiron_kiteshield', 2],
+      ['mithril_platebody', 1], ['mithril_platelegs', 1], ['mithril_kiteshield', 2], ['mithril_full_helm', 2],
+      ['adamant_platebody', 1], ['adamant_kiteshield', 1],
+    ],
+  },
+
+  // ---- Wave 4: the Sunmarch Tannery, opened at last (a crafting-supply shop) ----
+  sunmarch_leather: {
+    name: 'The Sunmarch Tannery',
+    buyMult: 1.2, sellMult: 0.5,
+    buysMatcher: (id) => /^leather/.test(id) || ['cowhide', 'leather', 'thread', 'needle'].includes(id),
+    restockTicks: 30,
+    stock: [
+      ['needle', 5], ['thread', 250], ['leather', 30], ['shears', 3],
+      ['ring_mould', 3], ['amulet_mould', 3],
     ],
   },
 };
