@@ -104,7 +104,7 @@ export class Combat {
   /** Offensive stats for the player's current style (typed attack bonus). */
   playerStats() {
     const p = this.player;
-    const s = (n) => p.skillByName(n).level;
+    const s = (n) => p.effLevel(n); // potion boosts apply to your attacks
     const style = p.currentStyle();
     const pr = this.prayers;
     return {
@@ -120,7 +120,7 @@ export class Combat {
   /** Defensive stats against a specific incoming attack type. */
   playerDefence(vsType) {
     return {
-      def: this.player.skillByName('Defence').level,
+      def: this.player.effLevel('Defence'),
       defBonus: this.player.defenceBonus(vsType),
       defMult: this.prayers ? this.prayers.defMult() : 1,
     };
@@ -237,7 +237,7 @@ export class Combat {
     if (p.ammoCount <= 0) { p.equipment.ammo = null; this.ui.chat.add('That was your last arrow.'); }
     this.ui.refreshEquipment();
 
-    const s = (n) => p.skillByName(n).level;
+    const s = (n) => p.effLevel(n);
     const atk = {
       att: s('Ranged'), attBonus: p.attackBonus('ranged'),
       str: s('Ranged'), strBonus: arrow.rangedStr ?? 0,
@@ -279,7 +279,7 @@ export class Combat {
       return;
     }
     this.magic.consume(spell);
-    const s = (n) => p.skillByName(n).level;
+    const s = (n) => p.effLevel(n);
     const chance = hitChance(
       s('Magic'), p.attackBonus('magic'), mob.stats().def, mob.stats().defBonus,
       this.prayers ? this.prayers.magicMult() : 1, 1);

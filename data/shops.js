@@ -15,6 +15,8 @@ export const SHOPS = {
       ['thread', 200], ['needle', 4], ['bronze_axe', 4], ['bronze_pickaxe', 4],
       ['shears', 3], ['chisel', 3], ['cabbage', 8], ['shortbow', 3], ['longbow', 2],
       ['bronze_arrow', 200],
+      ['attack_potion', 3], ['strength_potion', 3], ['defence_potion', 3],
+      ['ranged_potion', 2], ['magic_potion', 2], ['prayer_potion', 3],
     ],
   },
 

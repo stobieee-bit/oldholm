@@ -935,3 +935,39 @@ for (const [skill, hex] of Object.entries(CAPE_HUE)) {
     model: { kind: 'box', color: hex, w: 0.34, h: 0.05, d: 0.3 },
   };
 }
+
+// ---- Herblore-lite: potions (Drink to boost a skill for a while, or restore
+// prayer). Handled in player.drink(); boosts feed player.effLevel(). ----
+const POTIONS = [
+  ['attack_potion', 'Attack potion', 'Attack', 3, 200, '#c23a3a', 'A red brew that sharpens your swing.'],
+  ['strength_potion', 'Strength potion', 'Strength', 3, 200, '#d8862a', 'An amber brew that lends your arm weight.'],
+  ['defence_potion', 'Defence potion', 'Defence', 3, 200, '#3a72c8', 'A blue brew that thickens your guard.'],
+  ['ranged_potion', 'Ranged potion', 'Ranged', 4, 200, '#4a9a3a', 'A green brew that steadies your aim.'],
+  ['magic_potion', 'Magic potion', 'Magic', 4, 200, '#7a4a9a', 'A violet brew that quickens the mind.'],
+];
+for (const [id, name, skill, amount, ticks, css, examine] of POTIONS) {
+  ITEMS[id] = {
+    name, examine, value: 45, stackable: false,
+    boost: { skill, amount, ticks },
+    icon: `<path d="M9.5 3h5v3l1.8 4v8a1 1 0 0 1-1 1H8.7a1 1 0 0 1-1-1v-8L9.5 6Z" fill="${css}"/><rect x="9.2" y="2" width="5.6" height="2" rx="1" fill="#8a7a5a"/><ellipse cx="12" cy="15" rx="2.6" ry="2" fill="#ffffff33"/>`,
+    model: { kind: 'cylinder', color: parseInt(css.slice(1), 16), rTop: 0.06, rBot: 0.08, h: 0.18 },
+  };
+}
+ITEMS.prayer_potion = {
+  name: 'Prayer potion', examine: 'A gold brew that rekindles faith. Tastes faintly of incense.',
+  value: 65, stackable: false, restore: 'prayer', restoreAmount: 31,
+  icon: '<path d="M9.5 3h5v3l1.8 4v8a1 1 0 0 1-1 1H8.7a1 1 0 0 1-1-1v-8L9.5 6Z" fill="#e0b83a"/><rect x="9.2" y="2" width="5.6" height="2" rx="1" fill="#8a7a5a"/><path d="M12 11v6M9.5 14h5" stroke="#ffffff55" stroke-width="1"/>',
+  model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.06, rBot: 0.08, h: 0.18 },
+};
+
+// ---- Baking: the wheat -> flour -> bread chain finally bakes something ----
+ITEMS.bread = {
+  name: 'Bread', examine: 'Baked from your own-milled flour. Humble and hearty.', value: 12, stackable: false, heals: 5,
+  icon: '<path d="M4 14c0-5 4-7 8-7s8 2 8 7v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="#c9a35a"/><path d="M8 9l1 3M12 8l0 4M16 9l-1 3" stroke="#8a6a3a" stroke-width="0.9"/>',
+  model: { kind: 'box', color: 0xc9a35a, w: 0.26, h: 0.14, d: 0.18 },
+};
+ITEMS.burnt_bread = {
+  name: 'Burnt bread', examine: 'Charcoal, formerly bread. A learning experience.', value: 1, stackable: false,
+  icon: '<path d="M4 14c0-5 4-7 8-7s8 2 8 7v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="#3a3230"/>',
+  model: { kind: 'box', color: 0x3a3230, w: 0.26, h: 0.14, d: 0.18 },
+};

@@ -107,6 +107,7 @@ export const COOKING = {
   raw_shark: { cooked: 'shark', burnt: 'burnt_fish', req: 76, xp: 210, burnStop: 94 },
   raw_beef: { cooked: 'cooked_beef', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   raw_chicken: { cooked: 'cooked_chicken', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
+  flour: { cooked: 'bread', burnt: 'burnt_bread', req: 1, xp: 40, burnStop: 34 }, // bake your milled flour
   RANGE_BONUS: 4,           // the range stops burning 4 levels earlier
   TICKS_PER_ITEM: 3,
 };

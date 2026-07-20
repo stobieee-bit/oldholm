@@ -56,6 +56,12 @@ export class Prayers {
     this.ui.refreshPrayers();
   }
 
+  /** Prayer potion: restore up to n points (capped at max). */
+  restoreSome(n) {
+    this.points = Math.min(this.maxPoints(), this.points + n);
+    this.ui.refreshPrayers();
+  }
+
   _mult(field) {
     let m = 1;
     for (const id of this.active) {

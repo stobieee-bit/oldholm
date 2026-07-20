@@ -62,6 +62,7 @@ export class Player {
       const level = name === 'Hitpoints' ? 10 : 1;
       return { name, level, xp: XP_TABLE[level] };
     });
+    this.boosts = {}; // skill -> { amount, ticksLeft } temporary potion boosts
     // combat state
     this.hp = 10;
     this.maxHp = 10;
@@ -376,6 +377,44 @@ export class Player {
     this.attackCooldown = Math.max(this.attackCooldown, 3); // eating delays your next swing
     ui.audio?.sfx('eat');
     ui.chat.add('You eat the ' + def.name.toLowerCase() + '. It heals a little.');
+    ui.refreshInventory();
+  }
+
+  /** Effective (temporarily boosted) skill level, used by the combat math. */
+  effLevel(name) {
+    const b = this.boosts[name];
+    return this.skillByName(name).level + (b ? b.amount : 0);
+  }
+
+  /** Count down active potion boosts each tick; expire and notify. */
+  tickBoosts(ui) {
+    for (const name of Object.keys(this.boosts)) {
+      if (--this.boosts[name].ticksLeft <= 0) {
+        delete this.boosts[name];
+        ui?.chat.add(`Your ${name} boost wears off.`);
+        ui?.refreshSkills?.();
+      }
+    }
+  }
+
+  /** Drink a potion: apply a temporary skill boost or restore prayer. */
+  drink(slotIndex, ui) {
+    const slot = this.inventory.slots[slotIndex];
+    const def = slot && ITEMS[slot.id];
+    if (!def || (!def.boost && !def.restore)) return;
+    this.inventory.removeSlot(slotIndex);
+    this.attackCooldown = Math.max(this.attackCooldown, 3);
+    ui.audio?.sfx('eat');
+    if (def.boost) {
+      const { skill, amount, ticks } = def.boost;
+      this.boosts[skill] = { amount, ticksLeft: ticks }; // re-drinking refreshes, not stacks
+      ui.chat.add(`You drink the ${def.name.toLowerCase()}. Your ${skill} surges by ${amount}.`);
+      ui.refreshSkills?.();
+    }
+    if (def.restore === 'prayer') {
+      ui.prayers?.restoreSome(def.restoreAmount ?? 25);
+      ui.chat.add(`You drink the ${def.name.toLowerCase()}. Your faith rekindles.`);
+    }
     ui.refreshInventory();
   }
 

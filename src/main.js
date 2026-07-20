@@ -356,6 +356,7 @@ clock.on((tick) => {
   clock.gameMinutes = (clock.gameMinutes + 1) % (24 * 60); // one game minute per tick
   world.onTick(tick);
   prayers.tick();          // faith drains by the tick
+  player.tickBoosts(ui);   // potion boosts count down and expire
   shops.tick();            // stock creeps back toward its maximums
   market.tick();           // the order book murmurs
   combat.tick(tick);       // the player swings first…

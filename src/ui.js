@@ -1155,6 +1155,10 @@ export class UI {
       label: 'Eat ' + def.name,
       run: () => this.player.eat(slotIndex, this),
     });
+    if (def.boost || def.restore) entries.push({
+      label: 'Drink ' + def.name,
+      run: () => this.player.drink(slotIndex, this),
+    });
     if (FIREMAKING[slot.id]) entries.push({
       label: 'Light fire',
       run: () => this.actions.startLight(slotIndex),
