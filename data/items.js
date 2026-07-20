@@ -914,3 +914,24 @@ for (const [lid, l] of Object.entries(LEATHER_WEAR)) {
     model: { kind: 'box', color: 0xa8794e, w: 0.3, h: 0.08, d: 0.26 },
   };
 }
+
+// ---- Wave 9: level-99 skill capes (cape slot). One per skill; granted by
+// player.addXp on hitting 99 and gated to wearers who actually earned it.
+// Keys must match SKILL_NAMES (player.js), lower-cased + "_cape".
+const CAPE_HUE = {
+  Attack: 0xb03030, Strength: 0xc8862a, Defence: 0x3a72c8, Hitpoints: 0xc83a5a,
+  Ranged: 0x4a8f3a, Magic: 0x6a4a8a, Prayer: 0xe8e0c0, Cooking: 0x8a5a3a,
+  Fishing: 0x2a7a9a, Mining: 0x6a6a72, Smithing: 0x8a8a92, Woodcutting: 0x5a7a3a,
+  Firemaking: 0xe07a2a, Crafting: 0xb5854b, Glyphcraft: 0x9aa8c2,
+};
+for (const [skill, hex] of Object.entries(CAPE_HUE)) {
+  const css = '#' + hex.toString(16).padStart(6, '0');
+  ITEMS[skill.toLowerCase() + '_cape'] = {
+    name: skill + ' cape', examine: 'Proof of mastery. Worn with unbearable poise.',
+    value: 990, stackable: false,
+    slot: 'cape', reqs: { [skill]: 99 },
+    atk: [0, 0, 0, 0, 0], str: 0, def: [4, 4, 4, 4, 4],
+    icon: `<path d="M8 4h8l3 15-7 2-7-2Z" fill="${css}"/><path d="M8 4c1.5 2 6.5 2 8 0" stroke="#ffffff55" stroke-width="1.4" fill="none"/><path d="M12 8v9" stroke="#ffffff30" stroke-width="1"/><circle cx="12" cy="12" r="2" fill="#ffffff66"/>`,
+    model: { kind: 'box', color: hex, w: 0.34, h: 0.05, d: 0.3 },
+  };
+}

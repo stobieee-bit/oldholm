@@ -216,17 +216,32 @@ export class Player {
    */
   addXp(name, amount, ui) {
     const s = this.skillByName(name);
-    if (s.level >= 99) { s.xp += amount; return 0; }
+    if (s.level >= 99) { s.xp += amount; this._awardCape(name, ui); return 0; }
     s.xp += amount;
     const newLevel = levelForXp(s.xp);
     const gained = newLevel - s.level;
     if (gained > 0) {
       s.level = newLevel;
       if (name === 'Hitpoints') this.maxHp = newLevel;
+      if (newLevel === 99) this._awardCape(name, ui);
       ui.levelUp(name, newLevel);
     }
     ui.refreshSkills();
     return gained;
+  }
+
+  /** Grant the level-99 skill cape once. Idempotent (checks pack + cape slot),
+   *  and retried on later xp ticks if the pack was full — so it can't be lost,
+   *  and existing 99s pick theirs up on their next xp gain. */
+  _awardCape(name, ui) {
+    const capeId = name.toLowerCase() + '_cape';
+    const owned = this.equipment.cape === capeId
+      || this.inventory.slots.some((sl) => sl && sl.id === capeId);
+    if (owned) return;
+    if (this.inventory.add(capeId, 1)) {
+      ui.chat.add(`Mastery! Level 99 ${name} — you are handed a ${name} cape.`, 'system');
+      ui.refreshInventory?.();
+    }
   }
 
   /**
