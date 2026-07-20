@@ -58,7 +58,7 @@ export const SHOPS = {
     name: 'The Third Eye Emporium',
     buyMult: 1.0, sellMult: 0.6,
     buysOnly: [
-      'gale_staff', 'tide_staff', 'stone_staff', 'ember_staff',
+      'gale_staff', 'tide_staff', 'stone_staff', 'ember_staff', 'void_staff',
       'gale_glyph', 'tide_glyph', 'stone_glyph', 'ember_glyph',
       'spirit_glyph', 'sigil_glyph', 'void_glyph',
       'wizard_hat', 'wizard_robe_top', 'wizard_robe_bottom',
@@ -66,6 +66,7 @@ export const SHOPS = {
     restockTicks: 20,
     stock: [
       ['gale_staff', 3], ['tide_staff', 3], ['stone_staff', 3], ['ember_staff', 3],
+      ['void_staff', 1], // the endgame focus
       ['gale_glyph', 800], ['tide_glyph', 500], ['stone_glyph', 500], ['ember_glyph', 500],
       ['spirit_glyph', 600], ['sigil_glyph', 400], ['void_glyph', 200],
       ['wizard_hat', 3], ['wizard_robe_top', 3], ['wizard_robe_bottom', 3],

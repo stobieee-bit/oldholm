@@ -492,6 +492,16 @@ for (const [id, name, hex] of STAVES) {
     model: { kind: 'rod', color: hex },
   };
 }
+// The void staff — endgame focus that supplies void glyphs endlessly and hits
+// harder than the elemental staves (redeems the orphaned void glyph line).
+ITEMS.void_staff = {
+  name: 'Void staff', examine: 'It drinks the light around it, and never runs dry.',
+  value: 1500, stackable: false,
+  slot: 'weapon', speed: 5, styleSet: 'crusher', reqs: { Attack: 1 },
+  atk: [1, 0, 3, 18, 0], str: 2, def: [1, 1, 1, 4, 1],
+  icon: '<rect x="11" y="6" width="2" height="15" rx="1" fill="#3a2e4a"/><circle cx="12" cy="5" r="3.2" fill="#6a4a8a"/><circle cx="12" cy="5" r="1.3" fill="#160f1e"/>',
+  model: { kind: 'rod', color: 0x6a4a8a },
+};
 
 ITEMS.shortbow = {
   name: 'Shortbow', examine: 'Bent wood with strong opinions about distance.', value: 40, stackable: false,
