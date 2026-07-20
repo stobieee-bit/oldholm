@@ -481,6 +481,22 @@ export const REGIONS = {
       // Desert giant-spider nests around Sunmarch.
       { mob: 'giant_spider', x: 236.5, z: 262.5 }, { mob: 'giant_spider', x: 240.5, z: 288.5 },
       { mob: 'giant_spider', x: 332.5, z: 270.5 },
+      // ---- Wave 2: difficulty-curve fillers, placed by theme + level band ----
+      { mob: 'giant_frog', x: 82.5, z: 158.5 }, { mob: 'giant_frog', x: 88.5, z: 172.5 },
+      { mob: 'giant_frog', x: 78.5, z: 190.5 },
+      { mob: 'mugger', x: 210.5, z: 88.5 }, { mob: 'mugger', x: 180.5, z: 95.5 },
+      { mob: 'rat_king', x: 290.5, z: 128.5, plane: 'corvathSewers' },
+      { mob: 'rat_king', x: 76.5, z: 130.5 },
+      { mob: 'hobgoblin', x: 132.5, z: 52.5 }, { mob: 'hobgoblin', x: 138.5, z: 58.5 },
+      { mob: 'wild_dog', x: 156.5, z: 110.5 }, { mob: 'wild_dog', x: 172.5, z: 70.5 },
+      { mob: 'wild_dog', x: 148.5, z: 130.5 },
+      { mob: 'goblin_champion', x: 121.5, z: 53.5 }, { mob: 'goblin_champion', x: 124.5, z: 59.5 },
+      { mob: 'dire_bear', x: 188.5, z: 44.5 }, { mob: 'dire_bear', x: 162.5, z: 50.5 },
+      { mob: 'frost_skeleton', x: 258.5, z: 18.5 }, { mob: 'frost_skeleton', x: 250.5, z: 12.5 },
+      { mob: 'ogre', x: 36.5, z: 158.5 }, { mob: 'ogre', x: 144.5, z: 168.5 },
+      { mob: 'troll', x: 110.5, z: 238.5 }, { mob: 'troll', x: 64.5, z: 186.5 },
+      { mob: 'elder_moss_giant', x: 100.5, z: 236.5 },
+      { mob: 'lesser_demon', x: 338.5, z: 78.5 }, { mob: 'lesser_demon', x: 340.5, z: 110.5 },
       // The ice cave (quest 8) — coldiron guarded by ice fiends.
       { mob: 'ice_fiend', x: 244.5, z: 16.5, plane: 'iceCave' },
       { mob: 'ice_fiend', x: 247.5, z: 20.5, plane: 'iceCave' },

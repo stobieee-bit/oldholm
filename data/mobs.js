@@ -559,6 +559,260 @@ export const MOBS = {
     },
   },
 
+  // ---- Wave 2: difficulty-curve fillers (combat levels 7-50). Stats tuned to
+  // cl = floor(0.25*(def+hp) + 0.325*(att+str)); models reuse figure()/parts. ----
+  giant_frog: {
+    name: 'Giant frog',
+    examine: 'All mouth, and a startling amount of it.',
+    stats: { att: 5, str: 5, def: 5, hp: 10 }, // lv 7
+    bonuses: { att: 0, str: 0, def: 0 },
+    attackType: 'crush', // a full-body flop
+    speed: 5, aggroRadius: 4, wanderRadius: 4, respawnTicks: 32,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'raw_beef', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 0.72,
+      parts: [
+        { kind: 'sphere', r: 0.34, scale: [1.25, 0.85, 1], at: [0, 0.34, 0], color: 0x5a8a3a },
+        { kind: 'box', size: [0.52, 0.14, 0.28], at: [0, 0.2, -0.3], color: 0x6a9a4a }, // wide mouth
+        { kind: 'sphere', r: 0.11, at: [-0.17, 0.54, -0.26], color: 0xe8e4c0 }, // eyes
+        { kind: 'sphere', r: 0.11, at: [0.17, 0.54, -0.26], color: 0xe8e4c0 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.17, 0.56, -0.34], color: 0x1a1a1a },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.17, 0.56, -0.34], color: 0x1a1a1a },
+        { kind: 'box', size: [0.13, 0.13, 0.34], rotX: 0.45, at: [-0.3, 0.13, 0.3], color: 0x4a7a2a }, // hind legs
+        { kind: 'box', size: [0.13, 0.13, 0.34], rotX: 0.45, at: [0.3, 0.13, 0.3], color: 0x4a7a2a },
+      ],
+    },
+  },
+  mugger: {
+    name: 'Mugger',
+    examine: 'Wants your coins and your patience.',
+    stats: { att: 6, str: 6, def: 5, hp: 12 }, // lv 8
+    bonuses: { att: 2, str: 2, def: 0 },
+    attackType: 'crush', // a cosh
+    speed: 4, aggroRadius: 5, wanderRadius: 5, respawnTicks: 40,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [3, 18], weight: 5 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.55,
+      parts: [
+        ...figure({ scale: 0.96, skin: 0xc9a27a, shirt: 0x5a5040, sleeve: 0x4a4636, pants: 0x3a352c, boot: 0x2a2620, hair: 0x2a221c }),
+        { kind: 'cone', r: 0.2, h: 0.32, seg: 8, at: [0, 1.46, 0], color: 0x3a352c }, // grubby hood
+      ],
+    },
+  },
+  rat_king: {
+    name: 'Rat king',
+    examine: 'Rules the sewers by sheer, whiskered persistence.',
+    stats: { att: 10, str: 9, def: 8, hp: 18 }, // lv 12
+    bonuses: { att: 2, str: 2, def: 2 },
+    attackType: 'stab', // the royal bite
+    speed: 4, aggroRadius: 5, wanderRadius: 4, respawnTicks: 55,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [4, 16], weight: 4 }, { item: 'cheese', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 0.72,
+      parts: [
+        { kind: 'box', size: [0.5, 0.44, 0.96], at: [0, 0.3, 0], color: 0x5a4e44 },
+        { kind: 'box', size: [0.3, 0.28, 0.42], at: [0, 0.42, -0.62], color: 0x5a4e44 },
+        { kind: 'cone', r: 0.06, h: 0.56, at: [0, 0.28, 0.72], rotX: 1.57, color: 0x9a8577 }, // tail
+        { kind: 'box', size: [0.1, 0.13, 0.04], at: [-0.12, 0.6, -0.66], color: 0x9a8577 }, // ears
+        { kind: 'box', size: [0.1, 0.13, 0.04], at: [0.12, 0.6, -0.66], color: 0x9a8577 },
+        { kind: 'cone', r: 0.11, h: 0.2, seg: 4, at: [0, 0.74, -0.6], color: 0xd8b13a }, // crown
+      ],
+    },
+  },
+  hobgoblin: {
+    name: 'Hobgoblin',
+    examine: 'A goblin that went to finishing school for hitting.',
+    stats: { att: 10, str: 11, def: 10, hp: 20 }, // lv 14
+    bonuses: { att: 4, str: 4, def: 4 },
+    attackType: 'crush',
+    speed: 4, aggroRadius: 5, wanderRadius: 3, respawnTicks: 45,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [5, 22], weight: 4 }, { item: 'iron_ore', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.42,
+      parts: [
+        ...figure({ scale: 0.88, headScale: 1.3, build: 1.22, skin: 0x5f7f3a, shirt: 0x6a4a5a, sleeve: 0x5f7f3a, pants: 0x4a3a2a, boot: 0x3a2e22, bald: true }),
+        { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: -1.5, at: [0.2, 1.18, -0.02], color: 0x5f7f3a },
+        { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: 1.5, at: [-0.2, 1.18, -0.02], color: 0x5f7f3a },
+      ],
+    },
+  },
+  wild_dog: {
+    name: 'Wild dog',
+    examine: 'Not looking for a home. Looking for a leg.',
+    stats: { att: 12, str: 12, def: 11, hp: 20 }, // lv 15
+    bonuses: { att: 2, str: 3, def: 2 },
+    attackType: 'stab', // fangs
+    speed: 3, aggroRadius: 6, wanderRadius: 6, respawnTicks: 40,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'raw_beef', count: 1, weight: 2 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 0.9,
+      parts: [
+        { kind: 'cyl', rt: 0.22, rb: 0.2, h: 0.8, seg: 10, rotX: 1.5708, at: [0, 0.52, 0.06], color: 0x6a5a48 },
+        { kind: 'box', size: [0.24, 0.24, 0.3], at: [0, 0.6, -0.5], color: 0x6a5a48 }, // head
+        { kind: 'box', size: [0.16, 0.12, 0.18], at: [0, 0.52, -0.68], color: 0x554636 }, // snout
+        { kind: 'cone', r: 0.06, h: 0.14, seg: 4, at: [-0.1, 0.76, -0.48], color: 0x554636 }, // ears
+        { kind: 'cone', r: 0.06, h: 0.14, seg: 4, at: [0.1, 0.76, -0.48], color: 0x554636 },
+        { kind: 'cone', r: 0.05, h: 0.34, rotX: -1.2, at: [0, 0.56, 0.5], color: 0x554636 }, // tail
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [-0.15, 0.17, 0.32], color: 0x554636 },
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [0.15, 0.17, 0.32], color: 0x554636 },
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [-0.15, 0.17, -0.32], color: 0x554636 },
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [0.15, 0.17, -0.32], color: 0x554636 },
+      ],
+    },
+  },
+  goblin_champion: {
+    name: 'Goblin champion',
+    examine: 'Won the camp’s tournament. The prize was the helmet. And the grudges.',
+    stats: { att: 13, str: 14, def: 13, hp: 26 }, // lv 18
+    bonuses: { att: 6, str: 6, def: 6 },
+    attackType: 'slash',
+    speed: 4, aggroRadius: 5, wanderRadius: 3, respawnTicks: 55,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [8, 30], weight: 4 }, { item: 'steel_bar', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.5,
+      parts: [
+        ...figure({ scale: 0.94, headScale: 1.35, build: 1.28, skin: 0x5f7f3a, shirt: 0x8f3f34, sleeve: 0x6a6a72, pants: 0x4a3a2a, boot: 0x3a2e22, bald: true }),
+        { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: -1.5, at: [0.21, 1.24, -0.02], color: 0x5f7f3a },
+        { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: 1.5, at: [-0.21, 1.24, -0.02], color: 0x5f7f3a },
+        { kind: 'sphere', r: 0.19, scale: [1.05, 0.78, 1.05], at: [0, 1.32, 0], color: 0x8a8a92 }, // helm
+        { kind: 'box', size: [0.05, 0.18, 0.04], at: [0, 1.5, -0.02], color: 0xc23a3a }, // plume
+      ],
+    },
+  },
+  dire_bear: {
+    name: 'Dire bear',
+    examine: 'A bear with a personal vendetta and the mass to pursue it.',
+    stats: { att: 22, str: 24, def: 22, hp: 42 }, // lv 30
+    bonuses: { att: 6, str: 8, def: 6 },
+    attackType: 'slash',
+    speed: 5, aggroRadius: 5, wanderRadius: 5, respawnTicks: 70,
+    drops: [{ item: 'big_bones', count: 1, weight: 1 }, { item: 'raw_beef', count: [1, 2], weight: 2 }, { item: 'coins', count: [6, 24], weight: 2 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.5,
+      parts: [
+        { kind: 'cyl', rt: 0.48, rb: 0.44, h: 1.35, seg: 12, rotX: 1.5708, at: [0, 0.92, 0.08], color: 0x3a2a1e },
+        { kind: 'sphere', r: 0.34, scale: [1, 0.95, 0.95], at: [0, 1.2, -0.78], color: 0x3a2a1e },
+        { kind: 'box', size: [0.26, 0.18, 0.18], at: [0, 1.1, -1.06], color: 0x2a1e14 },
+        { kind: 'sphere', r: 0.09, at: [-0.18, 1.48, -0.78], color: 0x2a1e14 },
+        { kind: 'sphere', r: 0.09, at: [0.18, 1.48, -0.78], color: 0x2a1e14 },
+        { kind: 'cone', r: 0.06, h: 0.2, at: [-0.24, 1.3, -0.7], color: 0xcfc8b8 }, // scar tusks
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [-0.3, 0.3, 0.5], color: 0x2a1e14 },
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [0.3, 0.3, 0.5], color: 0x2a1e14 },
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [-0.3, 0.3, -0.46], color: 0x2a1e14 },
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [0.3, 0.3, -0.46], color: 0x2a1e14 },
+      ],
+    },
+  },
+  frost_skeleton: {
+    name: 'Frost skeleton',
+    examine: 'Died cold. Stayed cold. Holds a grudge, cold.',
+    stats: { att: 27, str: 27, def: 25, hp: 42 }, // lv 34
+    bonuses: { att: 8, str: 8, def: 8 },
+    attackType: 'slash',
+    speed: 5, aggroRadius: 5, wanderRadius: 3, respawnTicks: 50,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [8, 30], weight: 3 }, { item: 'coldiron_ore', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.58,
+      parts: [
+        ...figure({ skin: 0xcfe4ec, shirt: 0xbcd4dc, sleeve: 0xb0c8d4, pants: 0xb0c8d4, boot: 0xa4bcc8, bald: true, build: 0.82 }),
+        { kind: 'cone', r: 0.06, h: 0.22, at: [-0.14, 1.5, -0.02], color: 0xe8f8ff }, // frost horns
+        { kind: 'cone', r: 0.06, h: 0.22, at: [0.14, 1.5, -0.02], color: 0xe8f8ff },
+      ],
+    },
+  },
+  ogre: {
+    name: 'Ogre',
+    examine: 'Two moods: hungry, and hungrier.',
+    stats: { att: 28, str: 30, def: 26, hp: 46 }, // lv 36
+    bonuses: { att: 8, str: 10, def: 6 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 5, wanderRadius: 4, respawnTicks: 70,
+    drops: [{ item: 'big_bones', count: 1, weight: 1 }, { item: 'coins', count: [12, 40], weight: 3 }, { item: 'iron_ore', count: [1, 2], weight: 2 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 2.1,
+      parts: [
+        ...figure({ scale: 1.3, build: 1.4, headScale: 1.1, skin: 0xa8955a, shirt: 0x7a6a4a, sleeve: 0x7a6a4a, pants: 0x5a4a33, hair: 0x4a3a28, boot: 0x3a2e20, bald: true }),
+        { kind: 'box', size: [0.4, 0.14, 0.18], at: [0, 1.62, 0.1], color: 0x8a7a4a }, // heavy brow
+        { kind: 'cone', r: 0.05, h: 0.14, rotX: 3.14, at: [-0.1, 1.5, 0.14], color: 0xe8e0d0 }, // tusks
+        { kind: 'cone', r: 0.05, h: 0.14, rotX: 3.14, at: [0.1, 1.5, 0.14], color: 0xe8e0d0 },
+        { kind: 'cyl', rt: 0.16, rb: 0.1, h: 0.95, rotX: 0.5, rotZ: 0.3, at: [0.6, 1.3, 0.26], color: 0x6e4f33 }, // club
+      ],
+    },
+  },
+  troll: {
+    name: 'Mountain troll',
+    examine: 'Slow, stony, and profoundly disappointed in you.',
+    stats: { att: 35, str: 37, def: 33, hp: 56 }, // lv 45
+    bonuses: { att: 10, str: 12, def: 10 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 5, wanderRadius: 4, respawnTicks: 85,
+    drops: [{ item: 'big_bones', count: 1, weight: 1 }, { item: 'coins', count: [16, 50], weight: 3 }, { item: 'coal', count: [1, 3], weight: 2 }, { item: 'uncut_sapphire', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 2.3,
+      parts: [
+        ...figure({ scale: 1.42, build: 1.5, headScale: 1.15, skin: 0x8a8a86, shirt: 0x6a6a64, sleeve: 0x6a6a64, pants: 0x55554e, hair: 0x4a4a44, boot: 0x3a3a34, bald: true }),
+        { kind: 'sphere', r: 0.16, scale: [1, 0.7, 1], at: [-0.34, 1.9, -0.05], color: 0x9a9a92 }, // stony shoulder lumps
+        { kind: 'sphere', r: 0.16, scale: [1, 0.7, 1], at: [0.36, 1.86, -0.05], color: 0x9a9a92 },
+        { kind: 'cone', r: 0.06, h: 0.18, rotX: 3.14, at: [-0.11, 1.62, 0.16], color: 0xe8e0d0 }, // underbite
+        { kind: 'cyl', rt: 0.2, rb: 0.12, h: 1.1, rotX: 0.4, rotZ: 0.32, at: [0.68, 1.4, 0.3], color: 0x5a4a3a }, // tree-trunk club
+      ],
+    },
+  },
+  elder_moss_giant: {
+    name: 'Elder moss giant',
+    examine: 'Old enough to be a landmark. Cross enough to move.',
+    stats: { att: 36, str: 37, def: 34, hp: 64 }, // lv 48
+    bonuses: { att: 12, str: 14, def: 12 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 5, wanderRadius: 4, respawnTicks: 95,
+    drops: [{ item: 'big_bones', count: 1, weight: 1 }, { item: 'coins', count: [20, 60], weight: 3 }, { item: 'marsh_greens', count: [1, 3], weight: 2 }, { item: 'mithril_ore', count: 1, weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 2.7,
+      parts: [
+        ...figure({ scale: 1.7, build: 1.5, skin: 0x4a6a38, shirt: 0x3a5a2e, sleeve: 0x3a5a2e, pants: 0x2e4525, hair: 0x2e4020, boot: 0x243818, bald: true }),
+        { kind: 'sphere', r: 0.24, scale: [1.2, 0.7, 1], at: [-0.55, 1.82, -0.05], color: 0x6a8a4a }, // moss
+        { kind: 'sphere', r: 0.22, scale: [1.2, 0.7, 1], at: [0.56, 1.74, -0.05], color: 0x6a8a4a },
+        { kind: 'sphere', r: 0.16, scale: [1.1, 0.6, 1], at: [0, 2.42, 0], color: 0x7a9a52 }, // mossy crown
+        { kind: 'sphere', r: 0.06, detail: 0, at: [-0.2, 1.8, 0.3], color: 0xd8b13a }, // flowers
+        { kind: 'sphere', r: 0.06, detail: 0, at: [0.3, 1.5, 0.34], color: 0xc23a5a },
+      ],
+    },
+  },
+  lesser_demon: {
+    name: 'Lesser demon',
+    examine: 'Junior infernal. Blessed steel still ruins its day.',
+    stats: { att: 40, str: 41, def: 37, hp: 60 }, // lv 50
+    bonuses: { att: 14, str: 14, def: 12 },
+    attackType: 'crush', demon: true,
+    speed: 5, aggroRadius: 6, wanderRadius: 4, respawnTicks: 80,
+    drops: [{ item: 'big_bones', count: 1, weight: 1 }, { item: 'coins', count: [24, 70], weight: 3 }, { item: 'ashes', count: [1, 2], weight: 2 }, { item: 'coldiron_ore', count: [1, 2], weight: 1 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 2.0,
+      parts: [
+        ...figure({ scale: 1.24, build: 1.34, headScale: 1.1, skin: 0xa83a2a, shirt: 0x8a2e1e, sleeve: 0x8a2e1e, pants: 0x6a2216, boot: 0x4a180f, bald: true }),
+        { kind: 'cone', r: 0.09, h: 0.34, seg: 5, rotZ: 0.4, at: [-0.18, 2.02, -0.03], color: 0x2a1010 }, // horns
+        { kind: 'cone', r: 0.09, h: 0.34, seg: 5, rotZ: -0.4, at: [0.18, 2.02, -0.03], color: 0x2a1010 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.1, 1.78, 0.16], color: 0xffd23a }, // eyes
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.1, 1.78, 0.16], color: 0xffd23a },
+        // small folded wings
+        { kind: 'cone', r: 0.5, h: 0.9, seg: 3, scale: [1, 1, 0.08], rotZ: 0.7, rotY: 0.4, at: [-0.5, 1.3, -0.18], color: 0x5a1e14 },
+        { kind: 'cone', r: 0.5, h: 0.9, seg: 3, scale: [1, 1, 0.08], rotZ: -0.7, rotY: -0.4, at: [0.5, 1.3, -0.18], color: 0x5a1e14 },
+      ],
+    },
+  },
+
   // ---- Phase 11: quest bosses ----
   ravenmoor: {
     name: 'Lord Ravenmoor',

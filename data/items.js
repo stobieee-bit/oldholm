@@ -52,6 +52,13 @@ export const ITEMS = {
     icon: '<circle cx="12" cy="13" r="7.2" fill="#7da75a"/><path d="M12 5.8a7.2 7.2 0 0 1 6.2 3.6M12 5.8a7.2 7.2 0 0 0-6.2 3.6M12 5.8v7" stroke="#5d8742" stroke-width="1.5" fill="none"/>',
     model: { kind: 'sphere', color: 0x7da75a, r: 0.16 },
   },
+  cheese: {
+    name: 'Cheese',
+    examine: 'A wedge of the good stuff. The rat king’s ransom.',
+    value: 4, stackable: false, heals: 4,
+    icon: '<path d="M4 15l14-6 2 6Z" fill="#e6c33a"/><circle cx="10" cy="13" r="1" fill="#c9a422"/><circle cx="14" cy="12.4" r="0.8" fill="#c9a422"/><circle cx="16.5" cy="13.6" r="0.7" fill="#c9a422"/>',
+    model: { kind: 'box', color: 0xe6c33a, w: 0.2, h: 0.12, d: 0.16 },
+  },
   feather: {
     name: 'Feather',
     examine: 'Surprisingly aerodynamic.',
