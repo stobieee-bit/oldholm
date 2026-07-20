@@ -18,6 +18,15 @@ export const SMELTING = {
   coldiron_bar: {
     req: 45, xp: 35, inputs: { coldiron_ore: 1, coal: 2 }, successChance: 1,
   },
+  mithril_bar: {
+    req: 50, xp: 30, inputs: { mithril_ore: 1, coal: 4 }, successChance: 1,
+  },
+  adamant_bar: {
+    req: 70, xp: 37.5, inputs: { adamantite_ore: 1, coal: 6 }, successChance: 1,
+  },
+  rune_bar: {
+    req: 85, xp: 50, inputs: { runite_ore: 1, coal: 8 }, successChance: 1,
+  },
   TICKS_PER_BAR: 3,
 };
 

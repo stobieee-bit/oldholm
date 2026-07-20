@@ -29,6 +29,12 @@ export const ROCKS = {
     examine: 'A pale seam of listening stone.' },
   coldiron: { label: 'Coldiron vein', req: 45, xp: 80, ore: 'coldiron_ore', respawnTicks: 40, vein: 0x9ad0e0,
     examine: 'Iron that never learned to be warm.' },
+  mithril: { label: 'Mithril vein', req: 55, xp: 95, ore: 'mithril_ore', respawnTicks: 120, vein: 0x8f9fd8,
+    examine: 'A pale-blue seam, light and unhurried.' },
+  adamantite: { label: 'Adamantite vein', req: 70, xp: 125, ore: 'adamantite_ore', respawnTicks: 200, vein: 0x5aa87a,
+    examine: 'Green-black ore, dense and reluctant.' },
+  runite: { label: 'Runite vein', req: 85, xp: 175, ore: 'runite_ore', respawnTicks: 300, vein: 0x54b8c8,
+    examine: 'It glows, very faintly and very valuably.' },
 };
 
 // Fishing. Each spot type: required tool, optional consumable per catch, and

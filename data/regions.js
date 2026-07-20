@@ -280,6 +280,17 @@ export const REGIONS = {
       { x: 301, z: 45, plane: 'guild', rocks: [ // the guild's exquisite basement
         ['coal', -2, -1], ['coal', 2, -1], ['coal', -2, 1], ['coal', 2, 1], ['gold', 0, 2],
       ] },
+      // ---- Endgame veins (Mining 55/70/85). Mithril on the cold cliffs west
+      // of Whitehold; adamantite and runite deep in the death-drops Blight. ----
+      { x: 254, z: 15, rocks: [
+        ['mithril', -1, 0], ['mithril', 1, 1], ['mithril', 0, 2], ['coal', 2, 0],
+      ] },
+      { x: 356, z: 118, rocks: [
+        ['adamantite', -1, 0], ['adamantite', 1, 1], ['coal', 0, 2], ['coal', 2, 0],
+      ] },
+      { x: 372, z: 172, rocks: [ // the realm's richest, deadliest seam
+        ['runite', 0, 0], ['runite', 2, 1], ['adamantite', -2, 1], ['coal', 1, -1],
+      ] },
     ],
     signposts: [
       { x: 247.5, z: 86.5, arms: 3,
