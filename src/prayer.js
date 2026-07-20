@@ -69,10 +69,24 @@ export class Prayers {
   strMult() { return this._mult('strMult'); }
   defMult() { return this._mult('defMult'); }
   magicMult() { return this._mult('magicMult'); }
+  rangedAttMult() { return this._mult('rangedAttMult'); }
+  rangedStrMult() { return this._mult('rangedStrMult'); }
 
   blockChance() {
     let c = 0;
     for (const id of this.active) c = Math.max(c, prayerById(id).blockChance ?? 0);
     return c;
+  }
+
+  /** Incoming-damage multiplier for an attack type, from overhead protection
+   *  prayers. stab/slash/crush count as melee; 1 = no protection. */
+  protection(vsType) {
+    const cat = vsType === 'magic' ? 'magic' : vsType === 'ranged' ? 'ranged' : 'melee';
+    let f = 1;
+    for (const id of this.active) {
+      const p = prayerById(id);
+      if (p.protect === cat) f = Math.min(f, p.factor ?? 0.5);
+    }
+    return f;
   }
 }

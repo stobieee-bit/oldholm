@@ -21,6 +21,40 @@ export const PRAYERS = [
     examine: '+15% Defence. Wear the mountain.' },
   { id: 'swiftguard', name: 'Swiftguard', req: 28, drain: 0.3, group: 'guard', blockChance: 0.15,
     examine: 'A chance to turn a blow aside entirely.' },
+
+  // ---- Prayer 29-99: stronger skins, offensive tiers, ranged, protection ----
+  { id: 'bulls_blood_3', name: "Bull's Blood III", req: 31, drain: 0.3, group: 'str', strMult: 1.15,
+    examine: '+15% Strength. The herd has filed a complaint.' },
+  { id: 'keen_edge', name: 'Keen Edge', req: 34, drain: 0.3, group: 'att', attMult: 1.12,
+    examine: '+12% Attack. Every guard has a gap.' },
+  { id: 'adamant_skin', name: 'Adamant Skin', req: 44, drain: 0.4, group: 'def', defMult: 1.20,
+    examine: '+20% Defence. Ore where your nerves used to be.' },
+  { id: 'mindstorm_2', name: 'Mindstorm II', req: 45, drain: 0.4, group: 'mag', magicMult: 1.15,
+    examine: '+15% Magic. The thunder has thunder.' },
+  { id: 'titans_fury', name: "Titan's Fury", req: 70, drain: 0.5, group: 'str', strMult: 1.20,
+    examine: '+20% Strength. Lift first, ask never.' },
+  { id: 'perfect_strike', name: 'Perfect Strike', req: 74, drain: 0.5, group: 'att', attMult: 1.18,
+    examine: '+18% Attack. It lands before they flinch.' },
+  { id: 'archmage', name: 'Archmage', req: 76, drain: 0.55, group: 'mag', magicMult: 1.20,
+    examine: '+20% Magic. The spellbook reads YOU now.' },
+  { id: 'diamond_skin', name: 'Diamond Skin', req: 80, drain: 0.55, group: 'def', defMult: 1.25,
+    examine: '+25% Defence. Flawless, and faintly smug.' },
+
+  // Ranged prayers (boost ranged accuracy + strength; own group)
+  { id: 'sharp_eye', name: 'Sharp Eye', req: 8, drain: 0.08, group: 'ranged', rangedAttMult: 1.05, rangedStrMult: 1.05,
+    examine: '+5% Ranged. Squint professionally.' },
+  { id: 'hawkeye', name: 'Hawkeye', req: 43, drain: 0.4, group: 'ranged', rangedAttMult: 1.13, rangedStrMult: 1.13,
+    examine: '+13% Ranged. The arrow already knows.' },
+  { id: 'eagle_eye', name: 'Eagle Eye', req: 82, drain: 0.55, group: 'ranged', rangedAttMult: 1.20, rangedStrMult: 1.20,
+    examine: '+20% Ranged. Distance is a suggestion.' },
+
+  // Overhead protection (one at a time; halves the matching incoming hit)
+  { id: 'protect_melee', name: 'Protect from Melee', req: 40, drain: 0.5, group: 'overhead', protect: 'melee', factor: 0.5,
+    examine: 'Halves incoming melee damage.' },
+  { id: 'protect_ranged', name: 'Protect from Missiles', req: 50, drain: 0.5, group: 'overhead', protect: 'ranged', factor: 0.5,
+    examine: 'Halves incoming ranged damage.' },
+  { id: 'protect_magic', name: 'Protect from Magic', req: 55, drain: 0.5, group: 'overhead', protect: 'magic', factor: 0.5,
+    examine: 'Halves incoming magic damage.' },
 ];
 
 export const prayerById = (id) => PRAYERS.find((p) => p.id === id);

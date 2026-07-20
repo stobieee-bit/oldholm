@@ -241,6 +241,8 @@ export class Combat {
     const atk = {
       att: s('Ranged'), attBonus: p.attackBonus('ranged'),
       str: s('Ranged'), strBonus: arrow.rangedStr ?? 0,
+      attMult: this.prayers ? this.prayers.rangedAttMult() : 1,
+      strMult: this.prayers ? this.prayers.rangedStrMult() : 1,
     };
     const dmg = rollDamage(atk, mob.stats());
     const anchor = mob.splatAnchor();
@@ -331,7 +333,8 @@ export class Combat {
       if (p.autoRetaliate && !p.target) p.target = mob;
       return;
     }
-    const dmg = rollDamage(mob.stats(), this.playerDefence(vsType));
+    let dmg = rollDamage(mob.stats(), this.playerDefence(vsType));
+    if (this.prayers) dmg = Math.round(dmg * this.prayers.protection(vsType)); // overhead protection
     p.hp = Math.max(0, p.hp - dmg);
     this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
     if (dmg > 0) this.ui.hurtFlash(dmg);
