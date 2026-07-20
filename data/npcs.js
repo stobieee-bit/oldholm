@@ -179,7 +179,7 @@ export const NPCS = {
   // ---- Phase 10 townsfolk (reuse the generic shopkeeper/banker trees) ----
   corvath_swordsmith: {
     ...base, name: 'Swordsmith', examine: 'Sells edges, keeps his own.',
-    talk: 'shopkeeper', shop: 'corvath_swords', wanderRadius: 0,
+    talk: 'corvath_swordsmith', shop: 'corvath_swords', wanderRadius: 0,
     model: human(0xc9a27a, 0x6a4a3a, 0x3a3632, 0x2a2624),
   },
   corvath_staffseller: {
@@ -206,18 +206,18 @@ export const NPCS = {
   },
   skalvik_helmsmith: {
     ...base, name: 'Helm-smith', examine: 'Believes every problem is head-shaped.',
-    talk: 'shopkeeper', shop: 'skalvik_helmets', wanderRadius: 0,
+    talk: 'skalvik_helmsmith', shop: 'skalvik_helmets', wanderRadius: 0,
     model: human(0xd8b090, 0x8a6a42, 0x5a4a33, 0xb5542a),
   },
   brinkton_keeper: {
     ...base, name: 'Shopkeeper', examine: 'Stocks for the road north. Prays you go south.',
-    talk: 'shopkeeper', shop: 'brinkton_general', wanderRadius: 0,
+    talk: 'brinkton_keeper', shop: 'brinkton_general', wanderRadius: 0,
     model: human(0xc9a27a, 0x5a5a45, 0x3a3a30, 0x8a8078),
     chatter: ['You hear things, out here. Big things.', 'Nobody retires in Brinkton. They relocate.'],
   },
   murkwell_keeper: {
     ...base, name: 'Shopkeeper', examine: 'Sells damp goods with dry wit.',
-    talk: 'shopkeeper', shop: 'murkwell_general', wanderRadius: 0,
+    talk: 'murkwell_keeper', shop: 'murkwell_general', wanderRadius: 0,
     model: human(0xd8b090, 0x4a4a52, 0x33333a, 0x5a4a33),
   },
   murkwell_banker: {
@@ -246,7 +246,7 @@ export const NPCS = {
   },
   scimitar_seller: {
     ...base, name: 'Scimitar-seller', examine: 'Curved goods, straight prices.',
-    talk: 'shopkeeper', shop: 'sunmarch_scimitars', wanderRadius: 0,
+    talk: 'scimitar_seller', shop: 'sunmarch_scimitars', wanderRadius: 0,
     model: human(0xb08050, 0x8a3a2a, 0x5a2a1a, 0x2a2624),
   },
   sunmarch_tanner: {
@@ -256,12 +256,12 @@ export const NPCS = {
   },
   gem_seller: {
     ...base, name: 'Gem-seller', examine: 'Every stone a promise; every promise, cut.',
-    talk: 'shopkeeper', shop: 'sunmarch_gems', wanderRadius: 0,
+    talk: 'gem_seller', shop: 'sunmarch_gems', wanderRadius: 0,
     model: human(0xc9a27a, 0x4a3a8a, 0x2a2a5a, 0x2a2624),
   },
   meat_vendor: {
     ...base, name: 'Meat vendor', examine: 'Sells kebabs. Never names the animal.',
-    talk: 'shopkeeper', shop: 'sunmarch_meat', wanderRadius: 0,
+    talk: 'meat_vendor', shop: 'sunmarch_meat', wanderRadius: 0,
     model: human(0xb08050, 0xb5542a, 0x6a3a2a, 0x2a2624),
     chatter: ['Kebab! Fresh-ish kebab!', 'The meat is a surprise. A nice surprise.'],
   },
@@ -269,7 +269,7 @@ export const NPCS = {
   // ---- Phase 11: Port Gullwick ----
   fishmonger: {
     ...base, name: 'Fishmonger', examine: 'Smells of the sea and honest labor.',
-    talk: 'shopkeeper', shop: 'gullwick_fishing', wanderRadius: 0,
+    talk: 'fishmonger', shop: 'gullwick_fishing', wanderRadius: 0,
     model: human(0xc9a27a, 0x2a6a7a, 0x1a4a5a, 0x5a4a33),
   },
   ferryman: {
@@ -299,7 +299,7 @@ export const NPCS = {
   },
   banana_seller: {
     ...base, name: 'Banana-seller', examine: 'Vertically integrated. Horizontally delicious.',
-    talk: 'shopkeeper', shop: 'ashkara_bananas', wanderRadius: 0,
+    talk: 'banana_seller', shop: 'ashkara_bananas', wanderRadius: 0,
     model: human(0x9a6a4a, 0xe0c83a, 0x6a5a2a, 0x2a2624),
   },
   hermit: {
@@ -331,7 +331,7 @@ export const NPCS = {
   },
   armorer: {
     ...base, name: 'Armorer', examine: 'Fits knights and, occasionally, dragon-slayers.',
-    talk: 'shopkeeper', shop: 'whitehold_armory', wanderRadius: 0,
+    talk: 'armorer', shop: 'whitehold_armory', wanderRadius: 0,
     model: human(0xc9a27a, 0x8a8a92, 0x5a5a62, 0x3a3632),
   },
   cliff_smith: {
@@ -435,5 +435,48 @@ export const NPCS = {
     ...base, name: 'Banker', examine: 'Banks bananas and bullion alike. Mostly bananas.',
     talk: 'banker', bank: true, wanderRadius: 0,
     model: human(0x9a6a4a, 0x5a7a3a, 0x3a5a2a, 0x2a2624),
+  },
+
+  // ---- Wave 5: Skalvik & Brinkton townsfolk (finally with voices) ----
+  skalvik_jarl: {
+    ...base, name: 'Jarl Halvard', examine: 'Rules the longhouses by right of shouting loudest.',
+    talk: 'skalvik_jarl', wanderRadius: 1,
+    model: {
+      height: 1.7,
+      parts: [
+        ...figure({ scale: 1.06, build: 1.3, skin: 0xd8b090, shirt: 0x6a4a3a, sleeve: 0x8a6a4a, pants: 0x4a3a2a, hair: 0xb5854b, boot: 0x3a2e22 }),
+        { kind: 'sphere', r: 0.17, scale: [1.05, 1.1, 0.8], at: [0, 1.34, 0.08], color: 0xb5854b }, // big beard
+        { kind: 'cyl', rt: 0.19, rb: 0.19, h: 0.12, seg: 10, at: [0, 1.56, 0], color: 0xcfc8b8 }, // iron circlet
+        { kind: 'cone', r: 0.05, h: 0.16, rotZ: 0.7, at: [0.16, 1.66, 0], color: 0xe8e0d0 }, // horns
+        { kind: 'cone', r: 0.05, h: 0.16, rotZ: -0.7, at: [-0.16, 1.66, 0], color: 0xe8e0d0 },
+      ],
+    },
+    chatter: ['Drink! The benches are for sleeping, the floor for the rest.', 'Whitehold calls us barbarians. We call it Tuesday.'],
+  },
+  skalvik_skald: {
+    ...base, name: 'Skald', examine: 'Rhymes for a living. Ducks benches for a hobby.',
+    talk: 'skalvik_skald', wanderRadius: 2,
+    model: {
+      height: 1.58,
+      parts: [
+        ...figure({ scale: 0.98, skin: 0xc9a27a, shirt: 0x5a3a72, sleeve: 0x7a5a92, pants: 0x3a2a4a, hair: 0x3a3632, boot: 0x2a2620 }),
+        { kind: 'box', size: [0.24, 0.3, 0.08], rotZ: 0.5, at: [0.24, 1.0, 0.08], color: 0x8a5a2a }, // a lute on the back
+        { kind: 'cyl', rt: 0.02, rb: 0.02, h: 0.34, rotZ: 0.5, at: [0.36, 1.16, 0.08], color: 0x6a4a2a }, // its neck
+      ],
+    },
+    chatter: ['A saga for a coin? A limerick for less?', 'I rhymed "Halvard" with "hard word" once. He threw a bench.'],
+  },
+  blight_survivor: {
+    ...base, name: 'Blight survivor', examine: 'Went north whole. Came back mostly.',
+    talk: 'blight_survivor', wanderRadius: 1,
+    model: {
+      height: 1.6,
+      parts: [
+        ...figure({ skin: 0xa89a86, shirt: 0x5a564e, sleeve: 0x4a463e, pants: 0x3a352c, hair: 0x6a6058, boot: 0x2a2620 }),
+        { kind: 'cone', r: 0.22, h: 0.34, seg: 8, at: [0, 1.5, 0], color: 0x4a463e }, // deep hood
+        { kind: 'box', size: [0.18, 0.05, 0.14], at: [-0.05, 1.34, 0.12], color: 0x8a4a3a }, // ash-scar across the face
+      ],
+    },
+    chatter: ['Don’t look north. I looked north.', 'The Blight keeps everything you drop. Everything.'],
   },
 };

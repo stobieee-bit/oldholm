@@ -1032,4 +1032,99 @@ export const TREES = {
       },
     },
   },
+
+  // ---- Wave 5: Skalvik & Brinkton finally speak ----
+  skalvik_jarl: {
+    start: ['greet'],
+    nodes: {
+      greet: {
+        speaker: 'npc', text: 'Stranger in the longhouse! Sit, drink, and mind the arm-wrestling. I am Jarl Halvard, and this frozen heap of benches is mine by right of shouting loudest.',
+        options: [
+          { label: 'Tell me of Skalvik.', next: 'lore' },
+          { label: 'Why the longhouses?', next: 'houses' },
+          { label: 'I’ll leave you to it.', action: 'end' },
+        ],
+      },
+      lore: {
+        speaker: 'npc', text: 'We came south off the ice when the fishing failed. Kept our axes, our songs, and our stubbornness. Whitehold calls us barbarians. We call it Tuesday.',
+        options: [{ label: 'And the barbarians in the hills?', next: 'barb' }, { label: 'Fair enough.', action: 'end' }],
+      },
+      barb: {
+        speaker: 'npc', text: 'Cousins who took the axe part more seriously than the song part. Do not begrudge them a swing — they mean it as a greeting. Mostly.',
+        options: [{ label: 'I’ll greet them back.', action: 'end' }],
+      },
+      houses: {
+        speaker: 'npc', text: 'A longhouse holds heat, and heat holds us. The beds are benches, the benches are beds, and the snoring is a folk instrument. You’ll sleep. Eventually.',
+        options: [{ label: 'Cozy.', action: 'end' }],
+      },
+    },
+  },
+  skalvik_skald: {
+    start: ['s1', 's2', 's3'],
+    nodes: {
+      s1: {
+        speaker: 'npc', text: 'A saga for you? "The adventurer came, they poked a cow, the cow said naught — the end." I am still workshopping the middle.',
+        options: [{ label: 'Keep at it.', action: 'end' }],
+      },
+      s2: {
+        speaker: 'npc', text: 'Every hero south of the ice smells of goblin and regret. You fit the verse nicely.',
+        options: [{ label: 'Charmed.', action: 'end' }],
+      },
+      s3: {
+        speaker: 'npc', text: 'I rhymed "Halvard" with "hard word" once. He threw a bench. Art demands sacrifice — usually mine.',
+        options: [{ label: 'Suffer for the craft.', action: 'end' }],
+      },
+    },
+  },
+  blight_survivor: {
+    start: ['greet'],
+    nodes: {
+      greet: {
+        speaker: 'npc', text: 'You’re looking north. Don’t. I looked north. I came back, mostly — the Blight kept the rest. Ash for soil, ash for sky, and things in it that used to be people.',
+        options: [
+          { label: 'What lives out there?', next: 'mobs' },
+          { label: 'Why does anyone stay in Brinkton?', next: 'stay' },
+          { label: 'I’ll be careful.', action: 'end' },
+        ],
+      },
+      mobs: {
+        speaker: 'npc', text: 'Bogwyrms in the shallows of it. Echoes — deaths that keep happening. Deeper, the ashfiends, and they burn. If you go, go armoured against fire and light of foot. And do not die there — the Blight keeps everything you drop.',
+        options: [{ label: 'Noted, grimly.', action: 'end' }],
+      },
+      stay: {
+        speaker: 'npc', text: 'Somebody has to watch the door so it doesn’t open wider. Warden Ashe watches. I drink. Between us, Brinkton sleeps. Barely.',
+        options: [{ label: 'Keep watching.', action: 'end' }],
+      },
+    },
+  },
 };
+
+// ---- Wave 5: bespoke per-shop greetings. Each NPC's `talk` id (data/npcs.js)
+// now matches its def id, replacing the shared Holmbridge-store reuse so no
+// vendor claims to be a store in another town. ----
+const VENDOR_GREETINGS = {
+  corvath_swordsmith: 'The Honed Edge — finest steel in Corvath, and a few things sharper. Buying?',
+  skalvik_helmsmith: 'Helm & Hearth! Every problem is head-shaped, and I have the hat for it.',
+  brinkton_keeper: 'The Last Shelf. Stocked for the road north, though I pray you turn south.',
+  murkwell_keeper: 'The Humble Market. Everything’s a little damp, prices included. Bargain.',
+  scimitar_seller: 'Curved steel for a curving sun. A Sunmarch scimitar never asks twice.',
+  gem_seller: 'Uncut fortunes under a blue awning. Cut them yourself and thank me later.',
+  meat_vendor: 'Kebab! Fresh-ish kebab! The meat is a surprise — a nice one, mostly.',
+  fishmonger: 'Nets, bait, rods — all a salt-tempered angler needs. What’ll it be?',
+  banana_seller: 'The realm’s only vertically-integrated banana concern. Yellow gold, friend.',
+  armorer: 'The Whitehold Armory. Plate for knights, and the odd dragon-slayer. Try some on.',
+};
+for (const [id, line] of Object.entries(VENDOR_GREETINGS)) {
+  TREES[id] = {
+    start: 'hi',
+    nodes: {
+      hi: {
+        speaker: 'npc', text: line,
+        options: [
+          { label: 'Let’s trade.', action: 'openShop' },
+          { label: 'Just looking.', action: 'end' },
+        ],
+      },
+    },
+  };
+}

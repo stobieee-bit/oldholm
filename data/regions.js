@@ -411,6 +411,10 @@ export const REGIONS = {
       { npc: 'skalvik_banker', x: 50.5, z: 45.5 },
       { npc: 'gullwick_banker', x: 170.5, z: 318.5 },
       { npc: 'ashkara_banker', x: 307.5, z: 352.5 },
+      // Wave 5: Skalvik & Brinkton get residents with something to say
+      { npc: 'skalvik_jarl', x: 53.5, z: 42.5 },   // by the Skalvik firepit
+      { npc: 'skalvik_skald', x: 57.5, z: 41.5 },
+      { npc: 'blight_survivor', x: 192.5, z: 32.5 }, // Brinkton, near the signpost
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
