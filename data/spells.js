@@ -79,6 +79,32 @@ export const TELEPORTS = [
 ];
 SPELLS.push(...TELEPORTS);
 
+// Utility spells (spec §10): cast from the spellbook, then click a pack item.
+//   util 'alch'      -> item becomes coins (value * ratio)
+//   util 'superheat' -> an ore is smelted to its bar (Smithing xp, no furnace)
+//   util 'enchant'   -> a gem ring becomes its enchanted form
+export const UTILITY = [
+  { id: 'enchant_sapphire', name: 'Enchant Sapphire', type: 'utility', util: 'enchant', req: 7, baseXp: 17.5,
+    cost: { tide_glyph: 1, gale_glyph: 1 }, from: 'sapphire_ring', to: 'sapphire_ring_e', color: 0x4a72e0,
+    examine: 'Wakes the sapphire in a ring.' },
+  { id: 'low_alchemy', name: 'Low Alchemy', type: 'utility', util: 'alch', ratio: 0.4, req: 21, baseXp: 20,
+    cost: { ember_glyph: 3, spirit_glyph: 1 }, color: 0xd8b13a,
+    examine: 'Turns an item to a little gold.' },
+  { id: 'enchant_emerald', name: 'Enchant Emerald', type: 'utility', util: 'enchant', req: 27, baseXp: 25,
+    cost: { tide_glyph: 3, gale_glyph: 1 }, from: 'emerald_ring', to: 'emerald_ring_e', color: 0x3aa86a,
+    examine: 'Wakes the emerald in a ring.' },
+  { id: 'superheat', name: 'Superheat Item', type: 'utility', util: 'superheat', req: 43, baseXp: 53,
+    cost: { ember_glyph: 4, sigil_glyph: 1 }, color: 0xe07a2a,
+    examine: 'Smelt ore to a bar with fire alone.' },
+  { id: 'enchant_ruby', name: 'Enchant Ruby', type: 'utility', util: 'enchant', req: 49, baseXp: 59,
+    cost: { ember_glyph: 5, sigil_glyph: 1 }, from: 'ruby_ring', to: 'ruby_ring_e', color: 0xd8404a,
+    examine: 'Wakes the ruby in a ring.' },
+  { id: 'high_alchemy', name: 'High Alchemy', type: 'utility', util: 'alch', ratio: 0.6, req: 55, baseXp: 65,
+    cost: { ember_glyph: 5, spirit_glyph: 1 }, color: 0xffc030,
+    examine: 'Turns an item to real gold.' },
+];
+SPELLS.push(...UTILITY);
+
 export const spellById = (id) => SPELLS.find((s) => s.id === id);
 
 /** staffElement: which element a wielded staff supplies for free. */

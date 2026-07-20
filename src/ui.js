@@ -427,12 +427,13 @@ export class TabPanel {
     el.appendChild(head);
     for (const s of SPELLS) {
       const b = document.createElement('button');
-      const active = magic?.autocast === s.id;
+      const active = magic?.autocast === s.id || magic?.pendingUtility?.id === s.id;
       const locked = lvl < s.req;
       const css = '#' + s.color.toString(16).padStart(6, '0');
       const cost = Object.entries(s.cost)
         .map(([id, n]) => `${n} ${ITEMS[id].name.toLowerCase().replace(' glyph', '')}`).join(', ');
-      const kind = s.type === 'teleport' ? 'teleport · click to cast' : `max ${s.maxHit}`;
+      const kind = s.type === 'teleport' ? 'teleport · click to cast'
+        : s.type === 'utility' ? 'cast on an item' : `max ${s.maxHit}`;
       b.className = 'style-btn spell-btn' + (active ? ' active' : '') + (locked ? ' locked' : '');
       b.innerHTML = `<span class="spell-dot" style="background:${css}"></span>${s.name}` +
         `<small>lvl ${s.req} · ${kind} · ${cost}</small>`;
@@ -1104,6 +1105,11 @@ export class UI {
   openItemMenu(slotIndex, e) {
     const slot = this.player.inventory.slots[slotIndex];
     if (!slot) return;
+    // an armed utility spell (alch/enchant/superheat) consumes the next item click
+    if (this.magic?.pendingUtility) {
+      this.magic.castUtility(this.magic.pendingUtility, slotIndex);
+      return;
+    }
     const def = ITEMS[slot.id];
     // trading contexts take over the pack's click meaning
     if (this.marketOpen) {

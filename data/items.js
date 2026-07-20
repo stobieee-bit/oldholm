@@ -474,6 +474,25 @@ export const ITEMS = {
     icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#d8404a"/>',
     model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
   },
+  // Enchanted rings — the payoff of the Enchant utility spells (Magic).
+  sapphire_ring_e: {
+    name: 'Ring of the deep', examine: 'A sapphire ring, enchanted to turn a blow.', value: 700, stackable: false,
+    slot: 'ring', reqs: {}, atk: [0, 0, 0, 0, 0], str: 0, def: [5, 5, 5, 5, 5],
+    icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#4a72e0"/><circle cx="12" cy="6" r="1.4" fill="#bfe0ff"/>',
+    model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
+  },
+  emerald_ring_e: {
+    name: 'Ring of the hunt', examine: 'An emerald ring, enchanted for a truer strike.', value: 900, stackable: false,
+    slot: 'ring', reqs: {}, atk: [6, 6, 6, 4, 6], str: 0, def: [0, 0, 0, 0, 0],
+    icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#3aa86a"/><circle cx="12" cy="6" r="1.4" fill="#bfffd8"/>',
+    model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
+  },
+  ruby_ring_e: {
+    name: 'Ring of fury', examine: 'A ruby ring, enchanted to lend real weight to a swing.', value: 1300, stackable: false,
+    slot: 'ring', reqs: {}, atk: [0, 0, 0, 0, 0], str: 9, def: [0, 0, 0, 0, 0],
+    icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#d8404a"/><circle cx="12" cy="6" r="1.4" fill="#ffbfbf"/>',
+    model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
+  },
   gold_amulet_u: {
     name: 'Gold amulet (unstrung)', examine: 'All dressed up with no string to hang from.', value: 90, stackable: false,
     icon: '<path d="M12 8a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" fill="#e0b83a"/><rect x="10.8" y="5" width="2.4" height="3" fill="#e0b83a"/>',
