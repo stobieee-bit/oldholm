@@ -290,6 +290,28 @@ export const ITEMS = {
     icon: '<path d="M4 12c5-4 12-4 15 0l3-2v4l-3-2c-3 4-10 4-15 0Z" fill="#9a7a5a"/><path d="M2 12h4" stroke="#c8ccd4" stroke-width="1.4"/>',
     model: { kind: 'box', color: 0x9a7a5a, w: 0.44, h: 0.06, d: 0.11 },
   },
+  raw_shark: {
+    name: 'Raw shark', examine: 'It was apex until about ten minutes ago.', value: 60, stackable: false,
+    icon: '<path d="M3 13c6-6 13-6 17-1l3-3-1 5 1 5-3-3c-4 5-11 5-17-1Z" fill="#5a6a72"/><path d="M12 4l3 5h-6Z" fill="#5a6a72"/>',
+    model: { kind: 'box', color: 0x5a6a72, w: 0.5, h: 0.1, d: 0.16 },
+  },
+  shark: {
+    name: 'Shark', examine: 'The finest catch in the realm. Bites back less, now.', value: 70, stackable: false, heals: 20,
+    icon: '<path d="M3 13c6-6 13-6 17-1l3-3-1 5 1 5-3-3c-4 5-11 5-17-1Z" fill="#7a8a92"/><path d="M12 4l3 5h-6Z" fill="#7a8a92"/>',
+    model: { kind: 'box', color: 0x7a8a92, w: 0.5, h: 0.1, d: 0.16 },
+  },
+  lobster_pot: {
+    name: 'Lobster pot', examine: 'A cage that lobsters keep walking into. Rude of them.', value: 20, stackable: false,
+    tool: 'cage', toolReq: 1,
+    icon: '<path d="M6 8h12l-1 12H7Z" fill="none" stroke="#a89060" stroke-width="1.4"/><path d="M6 12h12M9 8v12M15 8v12" stroke="#a89060" stroke-width="0.9"/>',
+    model: { kind: 'box', color: 0xa89060, w: 0.26, h: 0.2, d: 0.26 },
+  },
+  harpoon: {
+    name: 'Harpoon', examine: 'For fish that fight back. And the sea, generally.', value: 25, stackable: false,
+    tool: 'harpoon', toolReq: 1,
+    icon: '<rect x="11" y="4" width="2" height="17" rx="1" fill="#6e4f33"/><path d="M12 2l-3 5h6ZM9 6l-2 2M15 6l2 2" stroke="#c8ccd4" stroke-width="1.4" fill="#c8ccd4"/>',
+    model: { kind: 'rod', color: 0xc8ccd4 },
+  },
   cooked_beef: {
     name: 'Cooked beef', examine: 'Moo, well done.', value: 4, stackable: false, heals: 3,
     icon: '<path d="M5 8c5-4 12-2 14 2-1 5-6 8-11 7S3 11 5 8Z" fill="#8a5a44"/>',
@@ -436,6 +458,18 @@ export const ITEMS = {
     name: 'Sapphire ring', examine: 'Blue-eyed and smug about it.', value: 220, stackable: false,
     slot: 'ring', reqs: {}, def: [0, 0, 0, 0, 0],
     icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#4a72e0"/>',
+    model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
+  },
+  emerald_ring: {
+    name: 'Emerald ring', examine: 'Green fire for a steadier hand.', value: 340, stackable: false,
+    slot: 'ring', reqs: {}, atk: [3, 3, 3, 2, 3], str: 0, def: [0, 0, 0, 0, 0],
+    icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#3aa86a"/>',
+    model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
+  },
+  ruby_ring: {
+    name: 'Ruby ring', examine: 'It lends your arm a little of its temper.', value: 520, stackable: false,
+    slot: 'ring', reqs: {}, atk: [0, 0, 0, 0, 0], str: 5, def: [0, 0, 0, 0, 0],
+    icon: '<circle cx="12" cy="14" r="5" fill="none" stroke="#e0b83a" stroke-width="2.4"/><path d="M10 7h4l-2 3Z" fill="#d8404a"/>',
     model: { kind: 'cylinder', color: 0xe0b83a, rTop: 0.08, rBot: 0.08, h: 0.03 },
   },
   gold_amulet_u: {

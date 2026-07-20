@@ -425,6 +425,9 @@ export const REGIONS = {
       { type: 'lure', z: 71 },
       { type: 'lure', z: 30 },   // Skalvik's fly water
       { type: 'net', z: 218 },   // Murkwell's murky shallows
+      // Wave 7: Gullwick's sea fishing, flanking the charter pier (explicit x)
+      { type: 'cage', x: 180.5, z: 322.5 },
+      { type: 'harpoon', x: 184.5, z: 324.5 },
     ],
 
     // Furniture props (interior dressing; blocks its tiles).

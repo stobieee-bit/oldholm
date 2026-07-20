@@ -64,6 +64,23 @@ export const FISHING = {
     ],
     examine: 'Something down there is hungry.',
   },
+  // ---- Wave 7: coastal fishing closes the tuna/lobster/swordfish cook chain ----
+  cage: {
+    label: 'Fishing spot', verb: 'Cage', tool: 'lobster_pot',
+    options: [
+      { item: 'raw_lobster', req: 40, xp: 120, weight: 1 },
+    ],
+    examine: 'Something clatters against a submerged shell.',
+  },
+  harpoon: {
+    label: 'Fishing spot', verb: 'Harpoon', tool: 'harpoon',
+    options: [
+      { item: 'raw_tuna', req: 35, xp: 100, weight: 4 },
+      { item: 'raw_swordfish', req: 50, xp: 140, weight: 2 },
+      { item: 'raw_shark', req: 76, xp: 210, weight: 1 },
+    ],
+    examine: 'Big shapes move in the deep water.',
+  },
 };
 
 // Firemaking: lighting logs. Fires burn for lifeTicks (+ random extra).
@@ -87,6 +104,7 @@ export const COOKING = {
   raw_tuna: { cooked: 'tuna', burnt: 'burnt_fish', req: 35, xp: 100, burnStop: 63 },
   raw_lobster: { cooked: 'lobster', burnt: 'burnt_fish', req: 40, xp: 120, burnStop: 68 },
   raw_swordfish: { cooked: 'swordfish', burnt: 'burnt_fish', req: 45, xp: 140, burnStop: 86 },
+  raw_shark: { cooked: 'shark', burnt: 'burnt_fish', req: 76, xp: 210, burnStop: 94 },
   raw_beef: { cooked: 'cooked_beef', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   raw_chicken: { cooked: 'cooked_chicken', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   RANGE_BONUS: 4,           // the range stops burning 4 levels earlier

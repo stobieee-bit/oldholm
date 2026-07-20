@@ -1696,7 +1696,8 @@ export class World {
   _buildFishingSpots() {
     for (const s of this.def.fishingSpots ?? []) {
       const def = FISHING[s.type];
-      const x = this.riverCenter(s.z + 0.5) - (this.def.river.width / 2 + 1.2); // west channel edge
+      // river spots hug the west channel edge; coastal spots pass an explicit x
+      const x = s.x ?? this.riverCenter(s.z + 0.5) - (this.def.river.width / 2 + 1.2);
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(0.45, 0.055, 6, 14),
         new THREE.MeshLambertMaterial({ color: 0xbfd8cf, transparent: true, opacity: 0.75 }));

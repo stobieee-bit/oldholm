@@ -154,7 +154,8 @@ export const SHOPS = {
     restockTicks: 26,
     stock: [
       ['small_net', 4], ['fishing_rod', 4], ['fly_rod', 3], ['fishing_bait', 200],
-      ['feather', 200], ['trout', 8], ['salmon', 6], ['lobster', 4],
+      ['feather', 200], ['lobster_pot', 3], ['harpoon', 3],
+      ['trout', 8], ['salmon', 6], ['lobster', 4],
     ],
   },
   gullwick_tavern: {
@@ -204,4 +205,5 @@ const ITEM_IS_FISH = {
   raw_herring: true, herring: true, raw_trout: true, trout: true,
   raw_pike: true, pike: true, raw_salmon: true, salmon: true,
   raw_tuna: true, tuna: true, raw_lobster: true, lobster: true, raw_swordfish: true, swordfish: true,
+  raw_shark: true, shark: true,
 };

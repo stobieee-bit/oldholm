@@ -94,6 +94,8 @@ export const GEM_WEIGHTS = [['uncut_sapphire', 3], ['uncut_emerald', 2], ['uncut
 export const JEWELRY = {
   gold_ring:      { req: 5,  xp: 15, bar: 'gold_bar', mould: 'ring_mould' },
   sapphire_ring:  { req: 20, xp: 40, bar: 'gold_bar', mould: 'ring_mould', gem: 'cut_sapphire' },
+  emerald_ring:   { req: 27, xp: 55, bar: 'gold_bar', mould: 'ring_mould', gem: 'cut_emerald' },
+  ruby_ring:      { req: 34, xp: 70, bar: 'gold_bar', mould: 'ring_mould', gem: 'cut_ruby' },
   gold_amulet_u:  { req: 8,  xp: 30, bar: 'gold_bar', mould: 'amulet_mould' },
 };
 export const JEWELRY_TICKS = 3;
