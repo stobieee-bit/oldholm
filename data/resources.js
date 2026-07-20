@@ -103,7 +103,7 @@ export const COOKING = {
   raw_salmon: { cooked: 'salmon', burnt: 'burnt_fish', req: 30, xp: 90, burnStop: 58 },
   raw_tuna: { cooked: 'tuna', burnt: 'burnt_fish', req: 35, xp: 100, burnStop: 63 },
   raw_lobster: { cooked: 'lobster', burnt: 'burnt_fish', req: 40, xp: 120, burnStop: 68 },
-  raw_swordfish: { cooked: 'swordfish', burnt: 'burnt_fish', req: 45, xp: 140, burnStop: 86 },
+  raw_swordfish: { cooked: 'swordfish', burnt: 'burnt_fish', req: 45, xp: 140, burnStop: 73 },
   raw_shark: { cooked: 'shark', burnt: 'burnt_fish', req: 76, xp: 210, burnStop: 94 },
   raw_beef: { cooked: 'cooked_beef', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   raw_chicken: { cooked: 'cooked_chicken', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },

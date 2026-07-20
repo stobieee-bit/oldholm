@@ -41,11 +41,14 @@ export const PRAYERS = [
     examine: '+25% Defence. Flawless, and faintly smug.' },
 
   // Ranged prayers (boost ranged accuracy + strength; own group)
-  { id: 'sharp_eye', name: 'Sharp Eye', req: 8, drain: 0.08, group: 'ranged', rangedAttMult: 1.05, rangedStrMult: 1.05,
+  // ranged prayers bundle accuracy AND damage in one prayer, so their drain
+  // matches the equivalent TWO-prayer melee package (e.g. eagle_eye = perfect_strike
+  // 0.5 + titans_fury 0.5) to keep offensive-prayer parity across styles.
+  { id: 'sharp_eye', name: 'Sharp Eye', req: 8, drain: 0.16, group: 'ranged', rangedAttMult: 1.05, rangedStrMult: 1.05,
     examine: '+5% Ranged. Squint professionally.' },
-  { id: 'hawkeye', name: 'Hawkeye', req: 43, drain: 0.4, group: 'ranged', rangedAttMult: 1.13, rangedStrMult: 1.13,
+  { id: 'hawkeye', name: 'Hawkeye', req: 43, drain: 0.6, group: 'ranged', rangedAttMult: 1.13, rangedStrMult: 1.13,
     examine: '+13% Ranged. The arrow already knows.' },
-  { id: 'eagle_eye', name: 'Eagle Eye', req: 82, drain: 0.55, group: 'ranged', rangedAttMult: 1.20, rangedStrMult: 1.20,
+  { id: 'eagle_eye', name: 'Eagle Eye', req: 82, drain: 1.0, group: 'ranged', rangedAttMult: 1.20, rangedStrMult: 1.20,
     examine: '+20% Ranged. Distance is a suggestion.' },
 
   // Overhead protection (one at a time; halves the matching incoming hit)
@@ -60,4 +63,4 @@ export const PRAYERS = [
 export const prayerById = (id) => PRAYERS.find((p) => p.id === id);
 
 /** Bones and their burial xp (spec §10). */
-export const BONES = { bones: 4.5, big_bones: 15, dragon_bones: 48, wyrm_bones: 72 };
+export const BONES = { bones: 4.5, big_bones: 15, dragon_bones: 48 };

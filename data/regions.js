@@ -486,6 +486,10 @@ export const REGIONS = {
       { mob: 'guard', x: 285.5, z: 60.5 }, { mob: 'guard', x: 290.5, z: 46.5 },
       { mob: 'guard', x: 186.5, z: 28.5 }, { mob: 'guard', x: 199.5, z: 29.5 },
       { mob: 'highwayman', x: 172.5, z: 86.5 }, { mob: 'highwayman', x: 222.5, z: 90.5 },
+      // enough live targets for the crossroads_menace cull (8 kills) to read as
+      // clearing an area rather than camping two respawns
+      { mob: 'highwayman', x: 210.5, z: 92.5 }, { mob: 'highwayman', x: 224.5, z: 96.5 },
+      { mob: 'highwayman', x: 230.5, z: 90.5 },
       { mob: 'bear', x: 162.5, z: 60.5 }, { mob: 'bear', x: 232.5, z: 136.5 },
       { mob: 'hill_giant', x: 30.5, z: 152.5 }, { mob: 'hill_giant', x: 152.5, z: 172.5 },
       { mob: 'moss_giant', x: 104.5, z: 233.5 },

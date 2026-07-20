@@ -683,9 +683,9 @@ const P11_ITEMS = {
     { kind: 'box', color: 0x5aa84a, w: 0.1, h: 0.06, d: 0.1 }],
   family_portrait: ['Family portrait', 'A stern knight, sterner frame.', 8, '<rect x="5" y="4" width="14" height="16" rx="1" fill="#8a6a42"/><rect x="7" y="6" width="10" height="12" fill="#c9b48a"/><circle cx="12" cy="11" r="2.4" fill="#5a4a3a"/>',
     { kind: 'box', color: 0x8a6a42, w: 0.28, h: 0.36, d: 0.04 }],
-  coldiron_ore: ['Coldiron ore', 'Cold to the marrow, even in your hand.', 22, '<path d="M6 17l3-8 4-2 5 4-2 7Z" fill="#8a8078"/><circle cx="12" cy="12" r="2.6" fill="#9ad0e0"/>',
+  coldiron_ore: ['Coldiron ore', 'Cold to the marrow, even in your hand.', 50, '<path d="M6 17l3-8 4-2 5 4-2 7Z" fill="#8a8078"/><circle cx="12" cy="12" r="2.6" fill="#9ad0e0"/>',
     { kind: 'sphere', color: 0x9ad0e0, r: 0.15 }],
-  coldiron_bar: ['Coldiron bar', 'It frosts the anvil it rests on.', 60, '<path d="M5 10h11l3 5H8Z" fill="#9ad0e0"/><path d="M5 10l3 5" stroke="#6ea8b8" stroke-width="1"/>',
+  coldiron_bar: ['Coldiron bar', 'It frosts the anvil it rests on.', 110, '<path d="M5 10h11l3 5H8Z" fill="#9ad0e0"/><path d="M5 10l3 5" stroke="#6ea8b8" stroke-width="1"/>',
     { kind: 'box', color: 0x9ad0e0, w: 0.34, h: 0.09, d: 0.15 }],
   heirloom_sword: ['Heirloom sword', 'Reforged. The knight need never know it broke.', 120, '<path d="M11 2h2l0.6 12h-3.2Z" fill="#c8e4ec"/><rect x="8" y="14" width="8" height="1.8" rx="0.9" fill="#c9a232"/><rect x="11" y="15.6" width="2" height="5" rx="1" fill="#6e4f33"/>',
     { kind: 'blade', color: 0xc8e4ec, handle: 0xc9a232 }],
@@ -707,12 +707,10 @@ const P11_ITEMS = {
     { kind: 'box', color: 0xe8dcc0, w: 0.28, h: 0.02, d: 0.3 }],
   banana: ['Banana', 'Curved, cheerful, faintly smug.', 2, '<path d="M6 16c4 3 10 1 12-4-1 5-7 8-12 4Z" fill="#e0c83a"/>',
     { kind: 'box', color: 0xe0c83a, w: 0.06, h: 0.06, d: 0.2 }],
-  kebab: ['Kebab', 'The meat is a mystery. The mystery is delicious.', 3, '<rect x="11" y="3" width="2" height="18" fill="#8a6a42"/><circle cx="12" cy="8" r="3" fill="#b5542a"/><circle cx="12" cy="13" r="3" fill="#5aa84a"/><circle cx="12" cy="18" r="3" fill="#b5542a"/>',
+  kebab: ['Kebab', 'The meat is a mystery. The mystery is delicious.', 14, '<rect x="11" y="3" width="2" height="18" fill="#8a6a42"/><circle cx="12" cy="8" r="3" fill="#b5542a"/><circle cx="12" cy="13" r="3" fill="#5aa84a"/><circle cx="12" cy="18" r="3" fill="#b5542a"/>',
     { kind: 'box', color: 0xb5542a, w: 0.08, h: 0.3, d: 0.08 }],
   combat_lamp: ['Combat lamp', 'Rub it to teach yourself. No genie included.', 0, '<path d="M5 14h10l4-3v3l-4-1a5 3 0 0 1-10 1Z" fill="#c9a232"/><path d="M8 14v3h4v-3" fill="#c9a232"/>',
     { kind: 'box', color: 0xc9a232, w: 0.2, h: 0.1, d: 0.12 }],
-  starmetal_bar: ['Starmetal bar', 'It holds a little of the night sky.', 400, '<path d="M5 10h11l3 5H8Z" fill="#6a72c8"/><path d="M5 10l3 5" stroke="#4a52a8" stroke-width="1"/><circle cx="10" cy="12" r="0.7" fill="#e8e4ff"/>',
-    { kind: 'box', color: 0x6a72c8, w: 0.34, h: 0.09, d: 0.15 }],
 };
 for (const [id, [name, examine, value, icon, model]] of Object.entries(P11_ITEMS)) {
   ITEMS[id] = { name, examine, value, stackable: false, icon, model };
@@ -864,12 +862,23 @@ export const METAL_SMITHING = {
 
 const scaleArr = (arr, m) => arr.map((v) => Math.round(v * m));
 
+// Bars a shape consumes at the anvil (mirrors crafting.js SMITHABLES.bars).
+// Used to give generated gear a low vendorValue keyed to its bar cost, so
+// smith-and-sell can't out-earn the whole economy (see shop.js sellPrice).
+const BARS_PER_SHAPE = {
+  dagger: 1, sword: 1, scimitar: 2, longsword: 2, warhammer: 3, battleaxe: 3, two_handed: 3,
+  full_helm: 2, sq_shield: 2, chainbody: 3, kiteshield: 3, platelegs: 3, platebody: 5,
+  med_helm: 1, gauntlets: 2, plateboots: 2,
+};
+
 for (const [mid, metal] of Object.entries(METALS)) {
+  const barVal = ITEMS[METAL_SMITHING[mid].bar]?.value ?? 0;
+  const vendor = (shape) => Math.round((BARS_PER_SHAPE[shape] ?? 1) * barVal * 1.5);
   for (const [wid, w] of Object.entries(WEAPON_SHAPES)) {
     ITEMS[`${mid}_${wid}`] = {
       name: `${metal.label} ${w.label}`,
       examine: w.examine,
-      value: Math.round(w.value * metal.valueMult), stackable: false,
+      value: Math.round(w.value * metal.valueMult), vendorValue: vendor(wid), stackable: false,
       slot: 'weapon', twoHanded: !!w.twoHanded, speed: w.speed, styleSet: w.styleSet,
       reqs: { Attack: metal.equipReq },
       atk: scaleArr(w.atk, metal.mult), str: Math.round(w.str * metal.mult), def: [0, 0, 0, 0, 0],
@@ -881,7 +890,7 @@ for (const [mid, metal] of Object.entries(METALS)) {
     ITEMS[`${mid}_${aid}`] = {
       name: `${metal.label} ${a.label}`,
       examine: a.examine,
-      value: Math.round(a.value * metal.valueMult), stackable: false,
+      value: Math.round(a.value * metal.valueMult), vendorValue: vendor(aid), stackable: false,
       slot: a.slot,
       reqs: { Defence: metal.equipReq },
       atk: [0, 0, 0, 0, 0], str: 0, def: scaleArr(a.def, metal.mult),

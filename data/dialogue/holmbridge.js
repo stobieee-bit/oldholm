@@ -1104,6 +1104,7 @@ export const TREES = {
 // vendor claims to be a store in another town. ----
 const VENDOR_GREETINGS = {
   corvath_swordsmith: 'The Honed Edge — finest steel in Corvath, and a few things sharper. Buying?',
+  corvath_staffseller: 'The Third Eye Emporium — staves, glyph stones, and the odd honest prophecy. Browsing?',
   skalvik_helmsmith: 'Helm & Hearth! Every problem is head-shaped, and I have the hat for it.',
   brinkton_keeper: 'The Last Shelf. Stocked for the road north, though I pray you turn south.',
   murkwell_keeper: 'The Humble Market. Everything’s a little damp, prices included. Bargain.',

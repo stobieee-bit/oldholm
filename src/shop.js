@@ -40,7 +40,10 @@ export class Shops {
   }
 
   sellPrice(shop, itemId) {
-    return Math.floor(ITEMS[itemId].value * shop.def.sellMult);
+    const it = ITEMS[itemId];
+    // vendorValue (if set, e.g. smithable metal gear) caps the sell price low
+    // in every shop, so smith-and-vendor can't out-earn combat income.
+    return Math.floor((it.vendorValue ?? it.value) * shop.def.sellMult);
   }
 
   shopBuys(shop, itemId) {

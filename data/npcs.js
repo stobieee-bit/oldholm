@@ -184,7 +184,7 @@ export const NPCS = {
   },
   corvath_staffseller: {
     ...base, name: 'Staff-seller', examine: 'Every finger ringed, every ring humming.',
-    talk: 'wizard', shop: 'corvath_staffs', wanderRadius: 0,
+    talk: 'corvath_staffseller', shop: 'corvath_staffs', wanderRadius: 0,
     model: human(0xd8b090, 0x45305a, 0x3a2a4a, 0xe8e4da),
   },
   corvath_banker: {

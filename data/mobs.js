@@ -572,7 +572,7 @@ export const MOBS = {
       { item: 'ashes', count: [1, 3], weight: 2 },
       { item: 'adamantite_ore', count: [1, 2], weight: 2 },
       { item: 'runite_ore', count: 1, weight: 1 },
-      { item: 'ash_glass', count: [1, 2], weight: 3 },
+      { item: 'ash_glass', count: [1, 3], weight: 3 },
       { item: 'uncut_ruby', count: 1, weight: 1 }, { weight: 1 },
     ],
     alwaysDrops: 1,
@@ -852,7 +852,7 @@ export const MOBS = {
     examine: 'Bad breath, worse temper. The anti-flame kiteshield is not optional.',
     stats: { att: 49, str: 51, def: 46, hp: 76 }, // lv 63
     bonuses: { att: 14, str: 14, def: 12 },
-    attackType: 'slash', dragonfire: true,
+    attackType: 'slash', dragonfire: true, dragonfireMax: 24,
     speed: 5, aggroRadius: 6, wanderRadius: 4, respawnTicks: 90,
     drops: [
       { item: 'dragon_bones', count: 1, weight: 1 },
@@ -868,7 +868,7 @@ export const MOBS = {
     examine: 'Colder fire, same result. Still 40 regrets without a shield.',
     stats: { att: 55, str: 57, def: 52, hp: 86 }, // lv 70
     bonuses: { att: 16, str: 16, def: 14 },
-    attackType: 'slash', dragonfire: true,
+    attackType: 'slash', dragonfire: true, dragonfireMax: 32,
     speed: 5, aggroRadius: 6, wanderRadius: 4, respawnTicks: 100,
     drops: [
       { item: 'dragon_bones', count: 1, weight: 1 },
@@ -884,7 +884,7 @@ export const MOBS = {
     examine: 'The classic. Hoards, scorches, and resents visitors.',
     stats: { att: 58, str: 62, def: 56, hp: 92 }, // lv 76
     bonuses: { att: 18, str: 18, def: 16 },
-    attackType: 'slash', dragonfire: true,
+    attackType: 'slash', dragonfire: true, dragonfireMax: 40,
     speed: 5, aggroRadius: 7, wanderRadius: 4, respawnTicks: 110,
     drops: [
       { item: 'dragon_bones', count: 1, weight: 1 },
@@ -901,13 +901,13 @@ export const MOBS = {
     examine: 'The apex wyrmling. Its fire is a rumour you survive once.',
     stats: { att: 64, str: 68, def: 62, hp: 104 }, // lv 84
     bonuses: { att: 20, str: 20, def: 18 },
-    attackType: 'slash', dragonfire: true,
+    attackType: 'slash', dragonfire: true, dragonfireMax: 48,
     speed: 5, aggroRadius: 7, wanderRadius: 4, respawnTicks: 130,
     drops: [
       { item: 'dragon_bones', count: 1, weight: 1 },
       { item: 'coins', count: [220, 550], weight: 3 },
       { item: 'runite_ore', count: [1, 3], weight: 2 },
-      { item: 'rune_platelegs', count: 1, weight: 1 },
+      { item: 'rune_bar', count: [1, 2], weight: 1 },
       { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,
@@ -924,7 +924,7 @@ export const MOBS = {
       { item: 'big_bones', count: [1, 3], weight: 1 },
       { item: 'coins', count: [150, 420], weight: 3 },
       { item: 'rune_bar', count: 1, weight: 1 },
-      { item: 'rune_full_helm', count: 1, weight: 1 },
+      { item: 'runite_ore', count: [1, 2], weight: 1 },
       { item: 'uncut_ruby', count: 1, weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,
@@ -951,7 +951,7 @@ export const MOBS = {
       { item: 'big_bones', count: 1, weight: 1 },
       { item: 'coins', count: [160, 440], weight: 3 },
       { item: 'runite_ore', count: [1, 2], weight: 1 },
-      { item: 'rune_scimitar', count: 1, weight: 1 },
+      { item: 'rune_bar', count: [1, 2], weight: 1 },
       { item: 'uncut_emerald', count: [1, 2], weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,
@@ -981,7 +981,7 @@ export const MOBS = {
       { item: 'coins', count: [220, 600], weight: 3 },
       { item: 'ashes', count: [2, 4], weight: 2 },
       { item: 'rune_bar', count: [1, 2], weight: 1 },
-      { item: 'rune_platebody', count: 1, weight: 1 }, { weight: 2 },
+      { item: 'runite_ore', count: [2, 3], weight: 1 }, { weight: 2 },
     ],
     alwaysDrops: 1,
     model: {
@@ -1010,7 +1010,7 @@ export const MOBS = {
       { item: 'coins', count: [260, 700], weight: 3 },
       { item: 'coldiron_ore', count: [2, 4], weight: 2 },
       { item: 'rune_bar', count: [1, 2], weight: 1 },
-      { item: 'rune_kiteshield', count: 1, weight: 1 },
+      { item: 'runite_ore', count: [2, 3], weight: 1 },
       { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,

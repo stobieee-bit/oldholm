@@ -316,7 +316,7 @@ export class Combat {
     if (def.dragonfire && Math.random() < 0.28) {
       const shieldId = p.equipment.shield;
       const guarded = shieldId && ITEMS[shieldId].dragonfireGuard;
-      const dmg = guarded ? 4 + Math.floor(Math.random() * 5) : 40;
+      const dmg = guarded ? 4 + Math.floor(Math.random() * 5) : (def.dragonfireMax ?? 40);
       p.hp = Math.max(0, p.hp - dmg);
       this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
       this.ui.hurtFlash(dmg);

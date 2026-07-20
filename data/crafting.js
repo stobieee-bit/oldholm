@@ -16,7 +16,7 @@ export const SMELTING = {
     req: 40, xp: 22.5, inputs: { gold_ore: 1 }, successChance: 1,
   },
   coldiron_bar: {
-    req: 45, xp: 35, inputs: { coldiron_ore: 1, coal: 2 }, successChance: 1,
+    req: 45, xp: 27.5, inputs: { coldiron_ore: 1, coal: 2 }, successChance: 1,
   },
   mithril_bar: {
     req: 50, xp: 30, inputs: { mithril_ore: 1, coal: 4 }, successChance: 1,

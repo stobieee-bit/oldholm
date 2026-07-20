@@ -30,7 +30,7 @@ export class SaveManager {
         equipment: p.equipment, ammoCount: p.ammoCount,
         pos: { x: p.pos.x, z: p.pos.z }, plane: p.plane, yaw: p.yaw,
         styleIndex: p.styleIndex, energy: p.energy,
-        autoRetaliate: p.autoRetaliate,
+        autoRetaliate: p.autoRetaliate, boosts: p.boosts,
       },
       bank: [...g.bank.vault.entries()],
       quests: g.quests.stages,
@@ -91,6 +91,7 @@ export class SaveManager {
     p.styleIndex = data.player.styleIndex ?? 0;
     p.autoRetaliate = data.player.autoRetaliate ?? true;
     p.energy = data.player.energy ?? 100;
+    p.boosts = data.player.boosts ?? {};
     p.target = null;
     // bank
     g.bank.vault = new Map(data.bank);
