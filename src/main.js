@@ -298,6 +298,7 @@ combat.npcs = npcs;
 dialogue.quests = quests;       // stage conditions + quest actions
 dialogue.npcsRef = npcs;        // 'unhide:' summons quest characters
 dialogue.actions = actions;     // the tanner's 'tan' verb
+dialogue.combat = combat;       // 'killed' bounty conditions + 'mark' snapshots
 actions.quests = quests;        // range + Glyphcraft gates
 world.quests = quests;          // world interactions read quest state
 interactions.combat = combat;   // action ctx + nameplate level colors

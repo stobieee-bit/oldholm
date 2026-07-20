@@ -700,6 +700,20 @@ for (const [id, name, examine, value, css, dark] of BAR_STOCK) {
   };
 }
 
+// ---- Wave 3: bounty quest items ----
+ITEMS.stolen_ledger = {
+  name: 'Stolen ledger', examine: 'The crossroads toll-takings, lifted by highwaymen.',
+  value: 0, stackable: false,
+  icon: '<rect x="5" y="4" width="14" height="16" rx="1" fill="#5a4632"/><rect x="7" y="6" width="10" height="12" fill="#e8dcc0"/><path d="M9 9h6M9 12h6M9 15h4" stroke="#8a6a42" stroke-width="1"/>',
+  model: { kind: 'box', color: 0x5a4632, w: 0.2, h: 0.26, d: 0.05 },
+};
+ITEMS.ash_glass = {
+  name: 'Ash-glass', examine: 'Blight-fire fuses ash into black glass. It hums, faintly wrong.',
+  value: 20, stackable: false,
+  icon: '<path d="M9 3l5 2 1 8-4 8-4-8 1-8Z" fill="#3a3040"/><path d="M11 5l2 1 0.4 6-2.4 5-2-5 .4-6Z" fill="#6a5a80"/>',
+  model: { kind: 'box', color: 0x3a3040, w: 0.14, h: 0.22, d: 0.14 },
+};
+
 ITEMS.dawnbrand = {
   name: 'Dawnbrand', examine: 'A blessed blade. It hates the dark, personally.',
   value: 2000, stackable: false,

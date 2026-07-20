@@ -403,6 +403,9 @@ export const REGIONS = {
       { npc: 'warden_stone', x: 291.5, z: 114.5, plane: 'corvathTomb' },
       { npc: 'warden_flame', x: 301.5, z: 114.5, plane: 'corvathTomb' },
       { npc: 'warden_deep', x: 296.5, z: 123.5, plane: 'corvathTomb' },
+      // Wave 3 bounty givers
+      { npc: 'crossroads_sergeant', x: 248.5, z: 90.5 }, // the crossroads
+      { npc: 'blight_warden', x: 204.5, z: 25.5 },       // Brinkton, facing the ash road
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
@@ -548,6 +551,9 @@ export const REGIONS = {
       // Phase 11: the knight's heirloom portrait (quest 8), in the Whitehold hall
       { item: 'family_portrait', x: 282.5, z: 26.5, respawn: 120,
         onTakeQuest: ['squires_blunder', 1, 2] },
+      // Wave 3: the highwaymen's stash off the crossroads (quest 11 step 2)
+      { item: 'stolen_ledger', x: 226.5, z: 95.5, respawn: 120,
+        onTakeQuest: ['crossroads_menace', 1, 2] },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate

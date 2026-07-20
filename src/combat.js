@@ -68,7 +68,8 @@ export class Combat {
     this.magic = null;
     this.quests = null;  // wired by main.js (boss deaths advance quests)
     this.audio = null;
-    this.kills = {};     // defId -> count (saved)
+    this.kills = {};     // defId -> lifetime count (saved)
+    this.killBase = {};  // defId -> kill count snapshot at a bounty's start (saved)
     this._regen = 0;
     this._ray = new THREE.Raycaster();
   }

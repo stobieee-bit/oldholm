@@ -967,4 +967,69 @@ export const TREES = {
       },
     },
   },
+
+  // ---- Wave 3: bounty quests. Turn-in keys on {killed}+item at any active
+  // stage, so grabbing the ledger before accepting can't soft-lock the quest.
+  crossroads_sergeant: {
+    start: [
+      { if: { quest: 'crossroads_menace', is: 0 }, node: 's0' },
+      { if: { quest: 'crossroads_menace', gte: 1, lt: 100 }, node: 'working' },
+      { node: 'done' },
+    ],
+    nodes: {
+      s0: {
+        speaker: 'npc', text: 'You there — handy with that blade? Highwaymen have made the crossroads their own. Robbed the toll cart, cracked heads doing it. Cull eight of them, and fetch back the toll ledger from whatever hole they call a stash.',
+        options: [
+          { label: 'Consider it done.', actions: ['quest:crossroads_menace:1', 'mark:highwayman'], next: 's0go' },
+          { label: 'Not my problem.', action: 'end' },
+        ],
+      },
+      s0go: {
+        speaker: 'npc', text: 'Good. They lurk along the road and off it, west of here. The ledger will be near their nastiest camp. Eight of them, mind — the road stays theirs until then.',
+        options: [{ label: 'I’ll thin the herd.', action: 'end' }],
+      },
+      working: {
+        speaker: 'npc', text: 'Progress: {kills:highwayman} of eight highwaymen down. Bring me the eight and the stolen ledger, and we’re square.',
+        options: [
+          { label: 'Cleared — and here’s the ledger.', if: { killed: { highwayman: 8 }, hasAll: ['stolen_ledger'] }, actions: ['take:stolen_ledger:1', 'complete:crossroads_menace', 'end'] },
+          { label: 'Still working on it.', action: 'end' },
+        ],
+      },
+      done: {
+        speaker: 'npc', text: 'The crossroads is quiet again, thanks to you. Travelers keep their teeth AND their coin now. Rare luxury.',
+        options: [{ label: 'Safe roads, Sergeant.', action: 'end' }],
+      },
+    },
+  },
+  blight_warden: {
+    start: [
+      { if: { quest: 'blight_cull', is: 0 }, node: 's0' },
+      { if: { quest: 'blight_cull', gte: 1, lt: 100 }, node: 'turnin' },
+      { node: 'done' },
+    ],
+    nodes: {
+      s0: {
+        speaker: 'npc', text: 'You smell of road, not ash — good, you’re still alive. The Blight east of here leaks horrors toward Brinkton. Cull them: five echoes, three ashfiends. And bring me four shards of ash-glass, the black stuff their fire leaves. I study it. Don’t ask why.',
+        options: [
+          { label: 'The Blight will bleed. I accept.', actions: ['quest:blight_cull:1', 'mark:echo', 'mark:ashfiend'], next: 's0go' },
+          { label: 'I’m not ready for the Blight.', action: 'end' },
+        ],
+      },
+      s0go: {
+        speaker: 'npc', text: 'Echoes haunt the verge; ashfiends prowl deeper. Wear something that laughs at fire. Four shards, five echoes, three ashfiends — and mind the ash keeps what falls in it.',
+        options: [{ label: 'I’ll return.', action: 'end' }],
+      },
+      turnin: {
+        speaker: 'npc', text: 'Back, and breathing. So far: {kills:echo} echoes and {kills:ashfiend} ashfiends felled. Show me five, three, and four shards of ash-glass, and Brinkton owes you a debt.',
+        options: [
+          { label: 'It’s done — glass and all.', if: { killed: { echo: 5, ashfiend: 3 }, hasCount: { ash_glass: 4 } }, actions: ['take:ash_glass:4', 'complete:blight_cull', 'end'] },
+          { label: 'Not finished yet.', action: 'end' },
+        ],
+      },
+      done: {
+        speaker: 'npc', text: 'The verge is quieter than it’s been in a year. Brinkton sleeps a little easier — and so, gods help me, do I.',
+        options: [{ label: 'Watch the ash, Warden.', action: 'end' }],
+      },
+    },
+  },
 };

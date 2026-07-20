@@ -124,11 +124,36 @@ export const QUESTS = {
     rewards: ['Right to wear Starmetal platebody', 'Starmetal platebody', '18,650 Strength & Defence xp'],
     rewardFn: [['item', 'starmetal_platebody', 1], ['xp', 'Strength', 9325], ['xp', 'Defence', 9325]],
   },
+
+  // ---- Wave 3: repeatable-style bounty quests (kill-count objectives) ----
+  crossroads_menace: {
+    name: 'The Crossroads Menace',
+    qp: 1,
+    start: 'Speak with Sergeant Rook at the crossroads east of Holmbridge.',
+    journal: {
+      1: 'Sergeant Rook wants the crossroads cleared: cull 8 highwaymen and recover the stolen toll ledger from their stash off the road.',
+      2: 'I have the ledger. Return it to Sergeant Rook — though he won’t call the road safe until 8 highwaymen have fallen.',
+    },
+    rewards: ['500 gold', '1,500 Attack xp'],
+    rewardFn: [['item', 'coins', 500], ['xp', 'Attack', 1500]],
+  },
+  blight_cull: {
+    name: 'The Blight Cull',
+    qp: 2,
+    start: 'Speak with Warden Ashe at Brinkton, on the edge of the Blight.',
+    journal: {
+      1: 'Warden Ashe wants the Blight bled back: slay 5 echoes and 3 ashfiends, and gather 4 shards of ash-glass from the wreckage.',
+    },
+    rewards: ['1,000 gold', '4,000 Strength xp', '4,000 Defence xp'],
+    rewardFn: [['item', 'coins', 1000], ['xp', 'Strength', 4000], ['xp', 'Defence', 4000]],
+  },
 };
 
 export const QUEST_ORDER = [
   'cooks_calamity', 'unquiet_grave', 'beads_of_the_magus', 'severed_circle', 'matter_of_colors',
   'poultrified_professor', 'lord_of_murkwell', 'squires_blunder', 'shadow_over_corvath', 'wyrm_of_ashkara',
+  // Wave 3 (append-only: never reorder — save order is positional)
+  'crossroads_menace', 'blight_cull',
 ];
 
 // The Champions' Guild opens its door at this many quest points (spec §11).

@@ -387,4 +387,31 @@ export const NPCS = {
     talk: 'warden_deep', wanderRadius: 0,
     model: human(0x5a6a8a, 0x3a4a6a, 0x2a3a5a, 0x6a7a9a),
   },
+
+  // ---- Wave 3: bounty-quest givers ----
+  crossroads_sergeant: {
+    ...base, name: 'Sergeant Rook', examine: 'Guards the crossroads, mostly by frowning at it.',
+    talk: 'crossroads_sergeant', wanderRadius: 1,
+    model: {
+      height: 1.64,
+      parts: [
+        ...figure({ skin: 0xd8b090, shirt: 0x7a7a82, sleeve: 0x6a6a72, pants: 0x4a4a52, hair: 0x3a3632, boot: 0x3a3a40 }),
+        { kind: 'sphere', r: 0.17, scale: [1.06, 0.74, 1.06], at: [0, 1.44, 0], color: 0x9a9aa2 }, // helm
+      ],
+    },
+    chatter: ['Keep to the road and keep your purse close.', 'Highwaymen again. Always again.'],
+  },
+  blight_warden: {
+    ...base, name: 'Warden Ashe', examine: 'Watches the ash road so Brinkton doesn’t have to.',
+    talk: 'blight_warden', wanderRadius: 1,
+    model: {
+      height: 1.62,
+      parts: [
+        ...figure({ skin: 0xc9a27a, shirt: 0x4a4640, sleeve: 0x3a352c, pants: 0x33302a, hair: 0x5a5048, boot: 0x2a2620 }),
+        { kind: 'cone', r: 0.22, h: 0.34, seg: 8, at: [0, 1.5, 0], color: 0x3a352c }, // hood
+        { kind: 'box', size: [0.5, 0.06, 0.16], at: [0, 1.02, 0.02], color: 0x2a2620 }, // baldric
+      ],
+    },
+    chatter: ['The Blight leaks. Someone has to bleed it back.', 'Echoes at the verge. Ashfiends past them. Mind both.'],
+  },
 };

@@ -513,7 +513,8 @@ export const MOBS = {
       { item: 'coins', count: [50, 150], weight: 3 },
       { item: 'uncut_emerald', count: 1, weight: 1 },
       { item: 'coldiron_ore', count: [1, 2], weight: 1 },
-      { item: 'adamantite_ore', count: [1, 2], weight: 2 }, { weight: 1 },
+      { item: 'adamantite_ore', count: [1, 2], weight: 2 },
+      { item: 'ash_glass', count: 1, weight: 2 }, { weight: 1 },
     ],
     alwaysDrops: 1,
     model: {
@@ -541,6 +542,7 @@ export const MOBS = {
       { item: 'ashes', count: [1, 3], weight: 2 },
       { item: 'adamantite_ore', count: [1, 2], weight: 2 },
       { item: 'runite_ore', count: 1, weight: 1 },
+      { item: 'ash_glass', count: [1, 2], weight: 3 },
       { item: 'uncut_ruby', count: 1, weight: 1 }, { weight: 1 },
     ],
     alwaysDrops: 1,

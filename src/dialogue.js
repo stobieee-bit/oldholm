@@ -3,8 +3,10 @@
 // text, numbered options, "Click here to continue". Modal while open.
 // Phase 9: stage-conditional starts/options and quest action strings —
 //   'quest:id:stage'  'complete:id'  'give:item:n'  'take:item:n'
-//   'unhide:npcId'    'openShop'     'openBank'     'end'
-// Conditions: { quest, is|gte|lt } and { hasAll: [itemIds] }.
+//   'unhide:npcId'    'mark:defId'   'openShop'     'openBank'     'end'
+// Conditions: { quest, is|gte|lt }, { hasAll }, { hasCount }, { lacks },
+//   { qp }, and { killed: { defId: n } } (kills since the bounty's 'mark').
+// Node text may embed live {kills:defId} tokens for bounty progress.
 
 import { TREES } from '../data/dialogue/holmbridge.js';
 import { ITEMS } from '../data/items.js';
@@ -59,7 +61,24 @@ export class Dialogue {
     if (c.lacks) {
       for (const id of c.lacks) if (this._count(id) >= 1) return false;
     }
+    if (c.killed) { // { defId: n } — kills since the bounty's 'mark' snapshot
+      const base = this.combat?.killBase ?? {};
+      const tally = this.combat?.kills ?? {};
+      for (const [id, n] of Object.entries(c.killed))
+        if ((tally[id] ?? 0) - (base[id] ?? 0) < n) return false;
+    }
     return true;
+  }
+
+  /** kills of defId credited toward the current bounty (since its 'mark'). */
+  _killed(id) {
+    return (this.combat?.kills?.[id] ?? 0) - (this.combat?.killBase?.[id] ?? 0);
+  }
+
+  /** Substitute live {kills:defId} tokens in node text (bounty progress). */
+  _resolveText(t) {
+    if (!t.includes('{kills:')) return t;
+    return t.replace(/\{kills:(\w+)\}/g, (_, d) => String(Math.max(0, this._killed(d))));
   }
 
   _exec(act) {
@@ -89,6 +108,9 @@ export class Dialogue {
       }
       this.ui.refreshInventory();
     } else if (verb === 'unhide') this.npcsRef?.unhide(a);
+    else if (verb === 'mark') { // snapshot kills so a bounty counts from here
+      if (this.combat) this.combat.killBase[a] = this.combat.kills[a] ?? 0;
+    }
   }
 
   /** Begin a tree with an NPC (its name is the header for npc lines). */
@@ -123,6 +145,7 @@ export class Dialogue {
     const node = this.tree.nodes[nodeId];
     if (!node) { this.close(); return; }
     this.node = node;
+    this._text = this._resolveText(node.text);
     this.nameEl.textContent = node.speaker === 'player' ? 'You' : this.npc?.name ?? '???';
     this.optsEl.innerHTML = '';
     this._typing = true;
@@ -131,15 +154,15 @@ export class Dialogue {
     if (this._timer) clearInterval(this._timer);
     this._timer = setInterval(() => {
       i += 2;
-      this.textEl.textContent = node.text.slice(0, i);
-      if (i >= node.text.length) this._finishTyping();
+      this.textEl.textContent = this._text.slice(0, i);
+      if (i >= this._text.length) this._finishTyping();
     }, 2000 / CHARS_PER_SEC);
   }
 
   _finishTyping() {
     if (this._timer) { clearInterval(this._timer); this._timer = null; }
     this._typing = false;
-    this.textEl.textContent = this.node.text;
+    this.textEl.textContent = this._text;
     this.optsEl.innerHTML = '';
     this._visibleOptions = (this.node.options ?? []).filter((o) => this._cond(o.if));
     if (this.node.options) {
