@@ -980,3 +980,34 @@ ITEMS.burnt_bread = {
   icon: '<path d="M4 14c0-5 4-7 8-7s8 2 8 7v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="#3a3230"/>',
   model: { kind: 'box', color: 0x3a3230, w: 0.26, h: 0.14, d: 0.18 },
 };
+// Cakes & pies: multi-ingredient combines (see BAKING in crafting.js), then cooked.
+ITEMS.uncooked_cake = {
+  name: 'Uncooked cake', examine: 'Flour, egg, and milk, optimistic about their future.', value: 8, stackable: false,
+  icon: '<ellipse cx="12" cy="16" rx="8" ry="3" fill="#e8dcc0"/><path d="M4 16v-3a8 3 0 0 0 16 0v3" fill="#f0e8d4"/>',
+  model: { kind: 'box', color: 0xf0e8d4, w: 0.24, h: 0.14, d: 0.24 },
+};
+ITEMS.cake = {
+  name: 'Cake', examine: 'Golden, risen, and briefly yours.', value: 30, stackable: false, heals: 12,
+  icon: '<path d="M4 18v-6a8 3 0 0 1 16 0v6Z" fill="#e0b060"/><path d="M4 12a8 3 0 0 0 16 0" fill="#f2e0c0"/><path d="M12 6l1.5 3h-3Z" fill="#c23a5a"/>',
+  model: { kind: 'box', color: 0xe0b060, w: 0.24, h: 0.16, d: 0.24 },
+};
+ITEMS.burnt_cake = {
+  name: 'Burnt cake', examine: 'It did not rise so much as flee.', value: 1, stackable: false,
+  icon: '<path d="M4 18v-6a8 3 0 0 1 16 0v6Z" fill="#3a3230"/>',
+  model: { kind: 'box', color: 0x3a3230, w: 0.24, h: 0.16, d: 0.24 },
+};
+ITEMS.uncooked_pie = {
+  name: 'Uncooked berry pie', examine: 'Pastry and redberries, awaiting an oven.', value: 6, stackable: false,
+  icon: '<ellipse cx="12" cy="15" rx="8" ry="4" fill="#e8dcc0"/><path d="M8 13l2 2M12 12v3M16 13l-2 2" stroke="#c23a3a" stroke-width="1"/>',
+  model: { kind: 'box', color: 0xe8dcc0, w: 0.24, h: 0.1, d: 0.24 },
+};
+ITEMS.redberry_pie = {
+  name: 'Redberry pie', examine: 'Sweet, red, and staining. Worth it.', value: 24, stackable: false, heals: 10,
+  icon: '<ellipse cx="12" cy="15" rx="8" ry="4" fill="#c9a35a"/><path d="M6 14a6 2.5 0 0 1 12 0" fill="#b02f2f"/>',
+  model: { kind: 'box', color: 0xc9a35a, w: 0.24, h: 0.1, d: 0.24 },
+};
+ITEMS.burnt_pie = {
+  name: 'Burnt pie', examine: 'The berries gave their lives for nothing.', value: 1, stackable: false,
+  icon: '<ellipse cx="12" cy="15" rx="8" ry="4" fill="#3a3230"/>',
+  model: { kind: 'box', color: 0x3a3230, w: 0.24, h: 0.1, d: 0.24 },
+};

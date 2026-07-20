@@ -108,6 +108,8 @@ export const COOKING = {
   raw_beef: { cooked: 'cooked_beef', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   raw_chicken: { cooked: 'cooked_chicken', burnt: 'burnt_meat', req: 1, xp: 30, burnStop: 31 },
   flour: { cooked: 'bread', burnt: 'burnt_bread', req: 1, xp: 40, burnStop: 34 }, // bake your milled flour
+  uncooked_cake: { cooked: 'cake', burnt: 'burnt_cake', req: 40, xp: 180, burnStop: 60 },
+  uncooked_pie: { cooked: 'redberry_pie', burnt: 'burnt_pie', req: 20, xp: 110, burnStop: 45 },
   RANGE_BONUS: 4,           // the range stops burning 4 levels earlier
   TICKS_PER_ITEM: 3,
 };

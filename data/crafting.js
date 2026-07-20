@@ -108,3 +108,11 @@ export const STRINGING = { input: 'gold_amulet_u', wool: 'ball_of_wool', output:
 
 // Shearing sheep (instant; no xp — the xp is in the spinning).
 export const SHEARING = { product: 'wool', regrowTicks: 60 };
+
+// Baking combines (Cooking): mix several pack ingredients into an uncooked
+// good, then cook it on a fire/range (COOKING in resources.js). `returns` gives
+// a consumed container back (a milked bucket empties to a plain bucket).
+export const BAKING = {
+  uncooked_cake: { req: 40, xp: 40, inputs: { flour: 1, egg: 1, bucket_of_milk: 1 }, returns: { bucket: 1 } },
+  uncooked_pie:  { req: 20, xp: 20, inputs: { flour: 1, redberries: 1 } },
+};

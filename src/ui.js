@@ -5,7 +5,7 @@
 
 import { ITEMS, METAL_SMITHING } from '../data/items.js';
 import { FIREMAKING, COOKING } from '../data/resources.js';
-import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING } from '../data/crafting.js';
+import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING, BAKING } from '../data/crafting.js';
 import { SPELLS } from '../data/spells.js';
 import { PRAYERS } from '../data/prayers.js';
 import { BONES } from '../data/prayers.js';
@@ -1179,6 +1179,16 @@ export class UI {
       label: 'Bury ' + def.name,
       run: () => this.actions.buryBones(slotIndex),
     });
+    // baking combines: offer "Make X" on any ingredient when the full set is held
+    const count = (id) => this.player.inventory.slots.reduce((a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+    for (const [recipeId, r] of Object.entries(BAKING)) {
+      if (!(slot.id in r.inputs)) continue;
+      if (!Object.entries(r.inputs).every(([id, n]) => count(id) >= n)) continue;
+      entries.push({
+        label: 'Make ' + ITEMS[recipeId].name.toLowerCase().replace('uncooked ', ''),
+        run: () => this.actions.bakeCombine(recipeId),
+      });
+    }
     if (slot.id === 'logs') entries.push({
       label: 'Fletch',
       run: () => {

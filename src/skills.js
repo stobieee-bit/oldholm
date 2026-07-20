@@ -8,7 +8,7 @@ import { TREES, ROCKS, FISHING, FIREMAKING, COOKING, burnChance } from '../data/
 import {
   SMELTING, SMITHABLES, SMITH_TICKS_PER_ITEM, TANNING, LEATHER_RECIPES,
   LEATHER_TICKS_PER_ITEM, SPINNING, WOOL_CAPE, FLETCHING, GEMS, GEM_CHANCE,
-  GEM_WEIGHTS, JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING,
+  GEM_WEIGHTS, JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING, BAKING,
 } from '../data/crafting.js';
 import { BONES } from '../data/prayers.js';
 import { GLYPHCRAFT } from '../data/quests.js';
@@ -489,6 +489,30 @@ export class Actions {
     this.player.inventory.slots[slotIndex] = { id: def.cut, count: 1 };
     this._grant('Crafting', def.xp);
     this.ui.chat.add('You cut the ' + ITEMS[def.cut].name.toLowerCase() + ' to a fine sparkle.');
+    this.ui.refreshInventory();
+  }
+
+  /** Instant: mix a baking combine (flour + egg + milk -> uncooked cake, etc.).
+   *  Consumes the inputs, hands back any container, yields the uncooked good. */
+  bakeCombine(recipeId) {
+    const def = BAKING[recipeId];
+    if (!def) return;
+    const level = this.player.skillByName('Cooking').level;
+    if (level < def.req) {
+      this.ui.chat.add(`You need a Cooking level of ${def.req} to prepare ${ITEMS[recipeId].name.toLowerCase()}.`);
+      return;
+    }
+    for (const [id, n] of Object.entries(def.inputs)) {
+      if (this._countItem(id) < n) { this.ui.chat.add(`You need ${n} ${ITEMS[id].name.toLowerCase()} for that.`); return; }
+    }
+    for (const [id, n] of Object.entries(def.inputs)) this._takeItems(id, n);
+    for (const [id, n] of Object.entries(def.returns ?? {})) this.player.inventory.add(id, n);
+    if (!this.player.inventory.add(recipeId, 1)) {
+      this.ui.chat.add('Your pack is too full for that.');
+      return;
+    }
+    this._grant('Cooking', def.xp);
+    this.ui.chat.add(`You mix the makings of ${ITEMS[recipeId].name.toLowerCase().replace('uncooked ', '')}.`);
     this.ui.refreshInventory();
   }
 
