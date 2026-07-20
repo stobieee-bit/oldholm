@@ -1149,3 +1149,15 @@ export const MOBS = {
     },
   },
 };
+
+// Herblore supply: append a low-weight herb/secondary drop to themed mobs, so
+// each herb has a level-appropriate source (guam low -> irit high). The item
+// ids resolve against ITEMS (generated from the HERBLORE table in items.js).
+const HERB_DROPS = {
+  goblin: 'guam', giant_rat: 'guam', skeleton: 'tarromin', zombie: 'harralander',
+  guard: 'harralander', ghoul: 'ranarr', moss_giant: 'marrentill', hill_giant: 'irit',
+  ashfiend: 'irit', wild_dog: 'wolf_bone', giant_spider: 'snape_grass', bear: 'snape_grass',
+};
+for (const [mob, item] of Object.entries(HERB_DROPS)) {
+  if (MOBS[mob]) MOBS[mob].drops.push({ item, count: 1, weight: 2 });
+}

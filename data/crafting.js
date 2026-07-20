@@ -116,3 +116,18 @@ export const BAKING = {
   uncooked_cake: { req: 40, xp: 40, inputs: { flour: 1, egg: 1, bucket_of_milk: 1 }, returns: { bucket: 1 } },
   uncooked_pie:  { req: 20, xp: 20, inputs: { flour: 1, redberries: 1 } },
 };
+
+// Herblore (spec §16): clean herb + vial of water -> unfinished potion; then
+// unfinished + secondary -> finished potion. Keyed by the finished potion; the
+// herb/unf items and mixing actions are generated from this table. Herblore
+// level gates both steps; xp is granted on the finishing mix. The finished
+// potions are the same ones the general store sells (drink logic in player.js).
+export const HERBLORE = {
+  attack_potion:   { req: 3,  herb: 'guam',        secondary: 'eye_of_newt',   xp: 25 },
+  strength_potion: { req: 12, herb: 'tarromin',    secondary: 'limpwurt_root', xp: 50 },
+  defence_potion:  { req: 30, herb: 'harralander', secondary: 'ashes',         xp: 60 },
+  prayer_potion:   { req: 38, herb: 'ranarr',      secondary: 'snape_grass',   xp: 72 },
+  ranged_potion:   { req: 45, herb: 'marrentill',  secondary: 'wolf_bone',     xp: 82 },
+  magic_potion:    { req: 50, herb: 'irit',        secondary: 'red_bead',      xp: 92 },
+};
+export const VIAL_OF_WATER = 'vial_of_water';

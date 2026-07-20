@@ -12,6 +12,8 @@ export const SKILL_NAMES = [
   'Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer',
   'Cooking', 'Fishing', 'Mining', 'Smithing', 'Woodcutting', 'Firemaking',
   'Crafting', 'Glyphcraft',
+  // append-only (save order is positional)
+  'Herblore',
 ];
 
 /** 28 slots; stackables share a slot. */

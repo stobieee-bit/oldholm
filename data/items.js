@@ -9,6 +9,8 @@
 //               kind: 'cylinder'|'box'|'sphere'|'log'|'bones'|'blade'
 // Later phases add: slot, bonuses {stab,slash,crush,magic,ranged x atk/def, str, prayer}, reqs.
 
+import { HERBLORE } from './crafting.js'; // for generating herbs/unf potions
+
 export const ITEMS = {
   bucket: {
     name: 'Bucket',
@@ -1011,3 +1013,47 @@ ITEMS.burnt_pie = {
   icon: '<ellipse cx="12" cy="15" rx="8" ry="4" fill="#3a3230"/>',
   model: { kind: 'box', color: 0x3a3230, w: 0.24, h: 0.1, d: 0.24 },
 };
+
+// ---- Herblore: clean herbs + unfinished potions (generated from HERBLORE),
+// plus the water vials and secondaries the mixes consume. ----
+const HERB_HEX = {
+  guam: 0x5a7a3a, tarromin: 0x7a8a3a, harralander: 0x3a8a5a,
+  ranarr: 0x4aa87a, marrentill: 0x3a6a8a, irit: 0x6a4a8a,
+};
+const cap = (s) => s[0].toUpperCase() + s.slice(1);
+for (const h of Object.values(HERBLORE)) {
+  const hex = HERB_HEX[h.herb] ?? 0x5a7a3a;
+  const css = '#' + hex.toString(16).padStart(6, '0');
+  ITEMS[h.herb] = {
+    name: cap(h.herb) + ' leaf', examine: 'A cleaned herb, pungent and full of promise.',
+    value: 12, stackable: false,
+    icon: `<path d="M12 21c-1-6-5-9-8-10 5-1 8 1 8 5 0-4 3-6 8-5-3 1-7 4-8 10Z" fill="${css}"/>`,
+    model: { kind: 'box', color: hex, w: 0.04, h: 0.02, d: 0.24 },
+  };
+  ITEMS[`${h.herb}_unf`] = {
+    name: cap(h.herb) + ' potion (unf)', examine: 'A herb steeping in water. It wants one thing more.',
+    value: 14, stackable: false,
+    icon: `<path d="M9.5 5h5v3l1.8 4v7a1 1 0 0 1-1 1H8.7a1 1 0 0 1-1-1v-7L9.5 8Z" fill="${css}" opacity="0.75"/><rect x="9.2" y="4" width="5.6" height="2" rx="1" fill="#8a7a5a"/>`,
+    model: { kind: 'cylinder', color: hex, rTop: 0.06, rBot: 0.08, h: 0.18 },
+  };
+}
+ITEMS.vial_of_water = {
+  name: 'Vial of water', examine: 'Clear water in a small glass vial. The start of everything.',
+  value: 2, stackable: false,
+  icon: '<path d="M9.5 5h5v3l1.8 4v7a1 1 0 0 1-1 1H8.7a1 1 0 0 1-1-1v-7L9.5 8Z" fill="#a8d0e0"/><rect x="9.2" y="4" width="5.6" height="2" rx="1" fill="#8a7a5a"/>',
+  model: { kind: 'cylinder', color: 0xa8d0e0, rTop: 0.06, rBot: 0.08, h: 0.18 },
+};
+const SECONDARIES = [
+  ['eye_of_newt', 'Eye of newt', 'The newt is fine about it. Probably.', 3, 0xc8a83a],
+  ['limpwurt_root', 'Limpwurt root', 'A gnarled root humming with borrowed vigour.', 8, 0xb05a4a],
+  ['snape_grass', 'Snape grass', 'Reedy, riverside, and faintly holy.', 10, 0x6a9a4a],
+  ['wolf_bone', 'Wolf bone', 'Ground fine, it steadies a shaking draw.', 6, 0xe0dcc8],
+];
+for (const [id, name, examine, value, hex] of SECONDARIES) {
+  const css = '#' + hex.toString(16).padStart(6, '0');
+  ITEMS[id] = {
+    name, examine, value, stackable: false,
+    icon: `<circle cx="12" cy="13" r="5" fill="${css}"/><circle cx="10.5" cy="11.5" r="1.4" fill="#ffffff55"/>`,
+    model: { kind: 'sphere', color: hex, r: 0.11 },
+  };
+}

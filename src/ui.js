@@ -5,7 +5,7 @@
 
 import { ITEMS, METAL_SMITHING } from '../data/items.js';
 import { FIREMAKING, COOKING } from '../data/resources.js';
-import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING, BAKING } from '../data/crafting.js';
+import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING, BAKING, HERBLORE } from '../data/crafting.js';
 import { SPELLS } from '../data/spells.js';
 import { PRAYERS } from '../data/prayers.js';
 import { BONES } from '../data/prayers.js';
@@ -1188,6 +1188,13 @@ export class UI {
         label: 'Make ' + ITEMS[recipeId].name.toLowerCase().replace('uncooked ', ''),
         run: () => this.actions.bakeCombine(recipeId),
       });
+    }
+    // Herblore: herb + vial -> unfinished; unfinished + secondary -> potion
+    for (const h of Object.values(HERBLORE)) {
+      if (slot.id === h.herb && count('vial_of_water') >= 1)
+        entries.push({ label: 'Mix into unf. potion', run: () => this.actions.mixUnfinished(h.herb) });
+      if (slot.id === `${h.herb}_unf` && count(h.secondary) >= 1)
+        entries.push({ label: 'Add ' + ITEMS[h.secondary].name.toLowerCase(), run: () => this.actions.mixPotion(slot.id) });
     }
     if (slot.id === 'logs') entries.push({
       label: 'Fletch',

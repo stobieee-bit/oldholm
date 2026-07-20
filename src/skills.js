@@ -9,6 +9,7 @@ import {
   SMELTING, SMITHABLES, SMITH_TICKS_PER_ITEM, TANNING, LEATHER_RECIPES,
   LEATHER_TICKS_PER_ITEM, SPINNING, WOOL_CAPE, FLETCHING, GEMS, GEM_CHANCE,
   GEM_WEIGHTS, JEWELRY, JEWELRY_TICKS, STRINGING, SHEARING, BAKING,
+  HERBLORE, VIAL_OF_WATER,
 } from '../data/crafting.js';
 import { BONES } from '../data/prayers.js';
 import { GLYPHCRAFT } from '../data/quests.js';
@@ -513,6 +514,33 @@ export class Actions {
     }
     this._grant('Cooking', def.xp);
     this.ui.chat.add(`You mix the makings of ${ITEMS[recipeId].name.toLowerCase().replace('uncooked ', '')}.`);
+    this.ui.refreshInventory();
+  }
+
+  /** Herblore step 1: clean herb + vial of water -> unfinished potion. */
+  mixUnfinished(herbId) {
+    const entry = Object.values(HERBLORE).find((h) => h.herb === herbId);
+    if (!entry) return;
+    if (this._countItem(VIAL_OF_WATER) < 1) { this.ui.chat.add('You need a vial of water to mix that.'); return; }
+    this._takeItems(herbId, 1);
+    this._takeItems(VIAL_OF_WATER, 1);
+    this._give(`${herbId}_unf`, `You steep the ${ITEMS[herbId].name.toLowerCase()} in the vial.`);
+    this.ui.refreshInventory();
+  }
+
+  /** Herblore step 2: unfinished potion + secondary -> finished potion (xp here). */
+  mixPotion(unfId) {
+    const herbId = unfId.replace(/_unf$/, '');
+    const found = Object.entries(HERBLORE).find(([, h]) => h.herb === herbId);
+    if (!found) return;
+    const [potionId, h] = found;
+    const level = this.player.skillByName('Herblore').level;
+    if (level < h.req) { this.ui.chat.add(`You need a Herblore level of ${h.req} to finish this potion.`); return; }
+    if (this._countItem(h.secondary) < 1) { this.ui.chat.add(`You need ${ITEMS[h.secondary].name.toLowerCase()} to finish it.`); return; }
+    this._takeItems(unfId, 1);
+    this._takeItems(h.secondary, 1);
+    this._give(potionId, `You mix a ${ITEMS[potionId].name.toLowerCase()}.`);
+    this._grant('Herblore', h.xp);
     this.ui.refreshInventory();
   }
 

@@ -17,6 +17,8 @@ export const SHOPS = {
       ['bronze_arrow', 200],
       ['attack_potion', 3], ['strength_potion', 3], ['defence_potion', 3],
       ['ranged_potion', 2], ['magic_potion', 2], ['prayer_potion', 3],
+      // Herblore reagents (herbs drop from mobs; these are the buyable staples)
+      ['vial_of_water', 100], ['eye_of_newt', 50], ['limpwurt_root', 30],
     ],
   },
 
