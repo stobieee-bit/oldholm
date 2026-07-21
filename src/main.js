@@ -427,6 +427,15 @@ clock.on((tick) => {
   farming.updateVisuals(); // crops climb their stages
   siege.tick();            // the gate holds, or it doesn't
   weather.tick(tick);      // rain rolls in; the night shift wakes
+  // Agility trains by travel: 5 xp/meter at level 1, climbing with the level
+  if (player.walkedMeters >= 12) {
+    const m = player.walkedMeters;
+    player.walkedMeters = 0;
+    const lvl = player.skillByName('Agility').level;
+    const xp = Math.round((5 + 0.35 * lvl) * m * 10) / 10;
+    player.addXp('Agility', xp, ui);
+    ui.fx.xpDrop([['Agility', xp]]);
+  }
   if (tick % 500 === 0) online.submitHiscore(); // refresh the board ~5-minutely
 });
 

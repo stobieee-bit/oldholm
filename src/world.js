@@ -140,6 +140,7 @@ export class World {
     this._buildIceCave();
     this._buildUndervault();
     this._buildFarmPatches();
+    this._buildShortcuts();
     this._buildTomb();
     this._buildCaldera();
     this._buildManorInterior();
@@ -2302,6 +2303,65 @@ export class World {
         },
       }],
     });
+  }
+
+  /** Agility shortcuts: a visual span between two points, with a gated
+   *  Take-shortcut marker at each end (two-way). */
+  _buildShortcuts() {
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const vineMat = new THREE.MeshLambertMaterial({ color: 0x5a7a3a, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
+    for (const s of this.def.shortcuts ?? []) {
+      const ya = this.getGroundHeight(s.ax, s.az), yb = this.getGroundHeight(s.bx, s.bz);
+      const mx = (s.ax + s.bx) / 2, mz = (s.az + s.bz) / 2;
+      const len = Math.hypot(s.bx - s.ax, s.bz - s.az);
+      const topY = Math.max(ya, yb, this.def.waterLevel);
+      // the connecting span (decor only — the markers do the work)
+      if (s.kind === 'log') {
+        const log = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, len + 0.6, 7), wood);
+        log.rotation.z = Math.PI / 2;
+        log.rotation.y = -Math.atan2(s.bz - s.az, s.bx - s.ax);
+        log.position.set(mx, topY + 0.18, mz);
+        this.group.add(log);
+      } else if (s.kind === 'vine') {
+        const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, len, 5), vineMat);
+        rope.rotation.z = Math.PI / 2;
+        rope.rotation.y = -Math.atan2(s.bz - s.az, s.bx - s.ax);
+        rope.position.set(mx, topY + 2.4, mz);
+        this.group.add(rope);
+      } else {
+        for (let i = 1; i <= 3; i++) { // stepped stones toward the far end
+          const t = i / 4;
+          const step = this._addBox(0.7, 0.24, 0.7,
+            s.ax + (s.bx - s.ax) * t, ya + (yb - ya) * t + 0.3 * i, s.az + (s.bz - s.az) * t, stone);
+        }
+      }
+      const mkEnd = (x, z, tx, tz) => {
+        const y = this.getGroundHeight(x, z);
+        const post = this._addBox(0.34, 0.9, 0.34, x, y + 0.45, z, s.kind === 'rocks' ? stone : wood);
+        this.addInteractable({
+          kind: 'shortcut', name: `${s.name} (Agility ${s.req})`, meshes: [post],
+          examine: s.examine,
+          actions: [{
+            label: 'Take-shortcut',
+            fn: (ctx) => {
+              const lvl = ctx.player.skillByName('Agility').level;
+              if (lvl < s.req) {
+                ctx.ui.chat.add(`You need an Agility level of ${s.req} for the ${s.name.toLowerCase()}.`);
+                return;
+              }
+              ctx.player.setPosition(tx, tz, undefined, 0);
+              ctx.player.addXp('Agility', s.req * 2, ctx.ui);
+              ctx.ui.fx?.xpDrop?.([['Agility', s.req * 2]]);
+              ctx.ui.audio?.sfx('chop');
+              ctx.ui.chat.add(`You take the ${s.name.toLowerCase()} across.`);
+            },
+          }],
+        });
+      };
+      mkEnd(s.ax, s.az, s.bx, s.bz);
+      mkEnd(s.bx, s.bz, s.ax, s.az);
+    }
   }
 
   /** Soil patches for the Farming skill (src/farming.js drives growth). */

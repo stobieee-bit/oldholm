@@ -331,6 +331,22 @@ export const REGIONS = {
       sanctum: { cx: 178, cz: 150, r: 8 },
     },
 
+    // Agility shortcuts (world._buildShortcuts): two-way hops gated by level.
+    shortcuts: [
+      { name: 'Log balance', kind: 'log', req: 12,
+        ax: 86.5, az: 118.5, bx: 104.5, bz: 118.5,
+        examine: 'A felled trunk spans the river by the mine. Confidence required.' },
+      { name: 'Swamp vine', kind: 'vine', req: 20,
+        ax: 80.5, az: 147.5, bx: 80.5, bz: 157.5,
+        examine: 'A willow rope over the sinking ground. It has held so far.' },
+      { name: 'Cliff scramble', kind: 'rocks', req: 30,
+        ax: 252.5, az: 30.5, bx: 250.5, bz: 24.5,
+        examine: 'Hand-holds chipped up the frost cliff toward the ice cave.' },
+      { name: 'Crumbled wall', kind: 'rocks', req: 40,
+        ax: 260.5, az: 112.5, bx: 264.5, bz: 112.5,
+        examine: 'Corvath’s west wall, shorter than the masons intended.' },
+    ],
+
     // Farming soil patches (src/farming.js; world._buildFarmPatches).
     farmPatches: [
       { id: 'holm_field', x: 92.5, z: 47.5 },     // beside the windmill wheat

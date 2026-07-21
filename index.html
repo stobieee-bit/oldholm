@@ -102,17 +102,23 @@
 
   /* right-side tab panel */
   #side-panel {
-    position: absolute; right: 10px; top: 76px; width: 204px;
+    position: absolute; right: 10px; top: 76px; width: 252px;
     background: rgba(28, 26, 20, 0.88); border: 2px solid #55503c; border-radius: 4px;
     pointer-events: auto; user-select: none;
   }
-  #tab-strip { display: flex; border-bottom: 2px solid #55503c; }
+  /* two readable rows of tabs (nine no longer crush into one 204px line) */
+  #tab-strip { display: flex; flex-wrap: wrap; border-bottom: 2px solid #55503c; }
   .tab-btn {
-    flex: 1; padding: 6px 0; background: none; border: none; cursor: pointer;
-    color: #a8a184; font-family: inherit; font-size: 13px; letter-spacing: 1px;
+    flex: 1 0 20%; padding: 7px 0 6px; background: none; border: none; cursor: pointer;
+    color: #a8a184; font-family: inherit; font-size: 12.5px; letter-spacing: 0.4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .tab-btn.active { color: #ffe17d; background: rgba(85, 80, 60, 0.35); }
-  .tab-page { padding: 8px; }
+  /* long pages (bestiary, settings) scroll inside the panel, not past the screen */
+  .tab-page {
+    padding: 8px; max-height: calc(100vh - 240px); overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #55503c transparent;
+  }
   /* !important: must beat #tab-inventory's ID-specificity display:grid */
   .tab-page.hidden { display: none !important; }
 

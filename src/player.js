@@ -14,7 +14,7 @@ export const SKILL_NAMES = [
   'Cooking', 'Fishing', 'Mining', 'Smithing', 'Woodcutting', 'Firemaking',
   'Crafting', 'Glyphcraft',
   // append-only (save order is positional)
-  'Herblore', 'Farming',
+  'Herblore', 'Farming', 'Agility',
 ];
 
 /** 28 slots; stackables share a slot. */
@@ -66,6 +66,8 @@ export class Player {
       return { name, level, xp: XP_TABLE[level] };
     });
     this.boosts = {}; // skill -> { amount, ticksLeft } temporary potion boosts
+    this.wading = false;     // standing in water (crawl speed, no running)
+    this.walkedMeters = 0;   // distance since the last Agility xp grant
     // combat state
     this.hp = 10;
     this.maxHp = 10;
@@ -163,28 +165,40 @@ export class Player {
     if (this.menuOpen) { mx = 0; mz = 0; } // keys stay held; motion resumes on close
     const moving = mx !== 0 || mz !== 0;
 
+    // wading: water is passable on the surface, but at a crawl and never at a run
+    this.wading = this.plane === 0
+      && this.world.isWater(Math.floor(this.pos.x), Math.floor(this.pos.z));
+
     if (moving) {
       const inv = 1 / Math.hypot(mx, mz);
       mx *= inv; mz *= inv;
-      const speed = this.running ? RUN_SPEED : WALK_SPEED;
+      const speed = (this.running && !this.wading ? RUN_SPEED : WALK_SPEED)
+        * (this.wading ? 0.28 : 1);
       const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
       // forward = (-sin(yaw), -cos(yaw)), right = (cos(yaw), -sin(yaw))
       const dx = (-sin * mz + cos * mx) * speed * dt;
       const dz = (-cos * mz - sin * mx) * speed * dt;
       // axis-separated moves give free wall sliding
+      const px = this.pos.x, pz = this.pos.z;
       if (!this._collides(this.pos.x + dx, this.pos.z)) this.pos.x += dx;
       if (!this._collides(this.pos.x, this.pos.z + dz)) this.pos.z += dz;
+      this.walkedMeters += Math.hypot(this.pos.x - px, this.pos.z - pz); // Agility trains by travel
     }
 
-    if (this.running && moving) {
+    if (this.running && moving && !this.wading) {
       this.energy = Math.max(0, this.energy - RUN_DRAIN * dt);
       if (this.energy === 0) this.runOn = false;
     } else {
-      this.energy = Math.min(100, this.energy + RUN_REGEN * dt);
+      // Agility quickens the second wind (up to ~+70% regen at level 99)
+      const agi = this.skillByName('Agility')?.level ?? 1;
+      this.energy = Math.min(100, this.energy + RUN_REGEN * (1 + agi / 140) * dt);
     }
 
-    // follow the ground, smoothed so steps and bridge lips don't jolt the camera
-    const targetY = this.world.getGroundHeight(this.pos.x, this.pos.z, this.plane) + EYE_HEIGHT;
+    // follow the ground, smoothed so steps and bridge lips don't jolt the camera;
+    // in water, wade chest-deep at most instead of sinking to the river bed
+    let groundY = this.world.getGroundHeight(this.pos.x, this.pos.z, this.plane);
+    if (this.wading) groundY = Math.max(groundY, this.world.def.waterLevel - 0.85);
+    const targetY = groundY + EYE_HEIGHT;
     this._eyeY += (targetY - this._eyeY) * Math.min(1, dt * 12);
 
     this.camera.position.set(this.pos.x, this._eyeY, this.pos.z);
@@ -198,6 +212,8 @@ export class Player {
     for (let tz = tz0; tz <= tz1; tz++) {
       for (let tx = tx0; tx <= tx1; tx++) {
         if (!this.world.isBlocked(tx, tz, this.plane)) continue;
+        // water tiles are blocked for mobs but wadeable for the player
+        if (this.plane === 0 && this.world.isWater(tx, tz)) continue;
         // circle vs tile AABB
         const cx = Math.max(tx, Math.min(x, tx + 1));
         const cz = Math.max(tz, Math.min(z, tz + 1));
