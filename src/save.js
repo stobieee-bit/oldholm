@@ -57,6 +57,7 @@ export class SaveManager {
       clues: g.clues?.snapshot() ?? null,
       farming: g.farming?.snapshot() ?? null,
       siege: g.siege?.snapshot() ?? null,
+      delve: g.delve?.snapshot() ?? null,
     };
   }
 
@@ -119,6 +120,7 @@ export class SaveManager {
     g.clues?.restore(data.clues);
     g.farming?.restore(data.farming);
     g.siege?.restore(data.siege);
+    g.delve?.restore(data.delve);
     g.clock.tick = data.when ?? 0;
     g.clock.gameMinutes = data.gameMinutes ?? 600;
     g.world.reconcile(g.quests, g.npcs, {

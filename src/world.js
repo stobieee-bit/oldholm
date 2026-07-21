@@ -141,6 +141,7 @@ export class World {
     this._buildUndervault();
     this._buildFarmPatches();
     this._buildShortcuts();
+    this._buildDelve();
     this._buildTomb();
     this._buildCaldera();
     this._buildManorInterior();
@@ -296,6 +297,7 @@ export class World {
       if (plane === this.iceCavePlane) return { id: 'icecave', name: 'The Ice Cave', theme: 'dungeon' };
       if (plane === this.undervaultPlane) return { id: 'undervault', name: 'The Undervault', theme: 'dungeon' };
       if (plane === this.sanctumPlane) return { id: 'sanctum', name: 'Malgrim’s Sanctum', theme: 'blight' };
+      if (plane === this.delvePlane) return { id: 'delve', name: 'The Delve', theme: 'blight' };
       if (plane === this.calderaPlane) return { id: 'caldera', name: 'Ashkara Caldera', theme: 'blight' };
       if (plane === this.guildPlane) return { id: 'guild', name: 'Mining Guild', theme: 'dungeon' };
       return { id: 'indoors', name: '', theme: 'plains' };
@@ -2300,6 +2302,46 @@ export class World {
         fn: (ctx) => {
           ctx.player.setPosition(u.cx + u.r - 1.5, u.cz + u.r - 1.5, undefined, p);
           ctx.ui.chat.add('You climb back into the Undervault.');
+        },
+      }],
+    });
+  }
+
+  /** The Delve: a deep arena chamber (src/delve.js runs the floors) plus its
+   *  Long Stair entrance in the Undervault and a flee-exit inside. */
+  _buildDelve() {
+    const u = this.def.undervault;
+    if (!u) return;
+    const a = { x: 40, z: 40, r: 11 };
+    this.delveArena = a;
+    this.delveFloorY = -22;
+    const p = this._undergroundChamber(a.x, a.z, a.r, -22, 0x2e2234);
+    this.delvePlane = p;
+    this._delveChestMat = new THREE.MeshLambertMaterial({ color: 0xc9a232, flatShading: true });
+    // ember braziers so the arena reads as a fighting pit
+    const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
+    for (const [dx, dz] of [[-6, -6], [6, -6], [-6, 6], [6, 6]]) {
+      const b = this._addBox(0.5, 1.1, 0.5, a.x + 0.5 + dx, -22 + 0.55, a.z + 0.5 + dz, ember);
+      this.lightEmitters?.push({ x: a.x + 0.5 + dx, y: -20.8, z: a.z + 0.5 + dz, strength: 0.9 });
+    }
+    const dk = new THREE.MeshLambertMaterial({ color: 0x120c18 });
+    // the Long Stair mouth, in the Undervault's south-west corner (by = -10)
+    const mouth = this._addBox(1.2, 0.14, 1.2, u.cx - u.r + 1.5, -10 + 0.08, u.cz + u.r - 1.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'The Long Stair', meshes: [mouth],
+      examine: 'Steps that do not believe in bottoms. The Delve waits below.',
+      actions: [{ label: 'Enter-the-Delve', fn: (ctx) => ctx.ui.delve?.enter(ctx) }],
+    });
+    // fleeing mid-floor is allowed — the pot is not
+    const back = this._addBox(1.1, 0.12, 1.1, a.x + 0.5, -22 + 0.07, a.z - a.r + 1.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'The Long Stair', meshes: [back],
+      examine: 'Back up to the crystal light. Flee mid-floor and the pot stays behind.',
+      actions: [{
+        label: 'Flee-the-Delve',
+        fn: (ctx) => {
+          ctx.player.setPosition(u.cx - u.r + 2.5, u.cz + u.r - 2.5, undefined, this.undervaultPlane);
+          ctx.ui.chat.add('You climb back to the crystal light.');
         },
       }],
     });

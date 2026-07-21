@@ -31,6 +31,7 @@ import { WorldMap } from './map.js';
 import { Farming } from './farming.js';
 import { Siege } from './siege.js';
 import { Weather } from './weather.js';
+import { Delve } from './delve.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -367,6 +368,9 @@ dialogue.siegeRef = siege; // Warden Ashe's 'siege:start'
 const weather = new Weather(scene, camera, world, npcs, farming, ui, audio, clock, player);
 actions.weather = weather;  // rain drowns fresh tinder
 ui.combatRef = combat;      // the bestiary reads the kill tally
+const delve = new Delve(player, ui, npcs, world);
+game.delve = delve;
+ui.delve = delve; // the Long Stair's Enter action
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas
 const touch = TouchControls.isTouchDevice()
   ? new TouchControls(canvas, player, interactions, ui) : null;
@@ -427,6 +431,7 @@ clock.on((tick) => {
   farming.updateVisuals(); // crops climb their stages
   siege.tick();            // the gate holds, or it doesn't
   weather.tick(tick);      // rain rolls in; the night shift wakes
+  delve.tick();            // the floors keep their own count
   // Agility trains by travel — deliberately a slow burn (it's passive):
   // ~0.5 xp/meter at level 1 climbing to ~4/m at 99. Shortcuts pay extra.
   if (player.walkedMeters >= 12) {
@@ -636,7 +641,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather,
+  farming, siege, weather, delve,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
