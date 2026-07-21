@@ -41,5 +41,5 @@ Check items off as they ship; move things between sections freely.
 - [x] **Multiplayer aliveness** — floating name labels over wanderers, player dots on the world map, /wave /dance /cheer /bow /cry /laugh emotes
 - [x] **Grave marker** — death drops already held 5 min; now the spot is marked ☠ on both maps until claimed or expired
 - [x] **Combat & boss music** — war-drum pulse under the region theme while something wants you dead; doubled and deepened for bosses
-- [ ] **Construction / player housing** — the big swing; a personal plane with build hotspots (multi-session)
+- [x] **Construction / player housing** — the Hearthstead: a real cottage on the east road (146,91) with five build hotspots (hearth/workbench/strongbox/trophy/nexus), the 19th skill, and Renovate as the repeatable grind
 - [ ] *(server, later)* world-event broadcasts — realm-wide hour events (double slayer points etc.)
