@@ -1240,6 +1240,12 @@ export class UI {
       if (slot.id === `${h.herb}_unf` && count(h.secondary) >= 1)
         entries.push({ label: 'Add ' + ITEMS[h.secondary].name.toLowerCase(), run: () => this.actions.mixPotion(slot.id) });
     }
+    // treasure trails
+    if (this.clues) {
+      if (slot.id === 'clue_scroll') entries.push({ label: 'Read clue', run: () => this.clues.read() });
+      if (slot.id === 'spade') entries.push({ label: 'Dig here', run: () => this.clues.dig() });
+      if (slot.id === 'casket') entries.push({ label: 'Open casket', run: () => this.clues.openCasket(slotIndex) });
+    }
     if (slot.id === 'logs') entries.push({
       label: 'Fletch',
       run: () => {

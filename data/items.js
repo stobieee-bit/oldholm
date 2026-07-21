@@ -1033,6 +1033,26 @@ ITEMS.burnt_pie = {
   model: { kind: 'box', color: 0x3a3230, w: 0.24, h: 0.1, d: 0.24 },
 };
 
+// ---- Treasure trails: scroll -> dig trail -> casket (src/clues.js) ----
+ITEMS.clue_scroll = {
+  name: 'Clue scroll', examine: 'A riddle with a shovel-shaped answer. Read it.',
+  value: 0, stackable: false,
+  icon: '<path d="M7 4h10v16H7Z" fill="#e8dcc0"/><path d="M7 4c-1.5 0-1.5 3 0 3M17 20c1.5 0 1.5-3 0-3" stroke="#c9b48a" stroke-width="1.2" fill="none"/><path d="M9 9h6M9 12h6M9 15h4" stroke="#8a5a3a" stroke-width="1"/>',
+  model: { kind: 'box', color: 0xe8dcc0, w: 0.16, h: 0.02, d: 0.22 },
+};
+ITEMS.spade = {
+  name: 'Spade', examine: 'For digging up other people’s buried decisions.',
+  value: 6, stackable: false, tool: 'spade', toolReq: 1,
+  icon: '<rect x="11" y="3" width="2" height="11" rx="1" fill="#6e4f33"/><path d="M8 14h8v3a4 4 0 0 1-8 0Z" fill="#8a8078"/>',
+  model: { kind: 'pick', color: 0x8a8078, handle: 0x6e4f33 },
+};
+ITEMS.casket = {
+  name: 'Casket', examine: 'Soil-crusted and promising. Open it.',
+  value: 50, stackable: false,
+  icon: '<rect x="5" y="9" width="14" height="9" rx="1.5" fill="#8a6a42"/><path d="M5 12h14" stroke="#5a4326" stroke-width="1.2"/><rect x="10.8" y="10.8" width="2.4" height="3" rx="0.6" fill="#e0b83a"/><path d="M5 9c2-3 12-3 14 0" fill="#6e5030"/>',
+  model: { kind: 'box', color: 0x8a6a42, w: 0.28, h: 0.16, d: 0.2 },
+};
+
 // ---- Herblore: clean herbs + unfinished potions (generated from HERBLORE),
 // plus the water vials and secondaries the mixes consume. ----
 const HERB_HEX = {

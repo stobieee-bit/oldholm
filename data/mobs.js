@@ -1161,3 +1161,10 @@ const HERB_DROPS = {
 for (const [mob, item] of Object.entries(HERB_DROPS)) {
   if (MOBS[mob]) MOBS[mob].drops.push({ item, count: 1, weight: 2 });
 }
+
+// Treasure trails: a rare clue scroll on the mid-tier bestiary (weight 1
+// against rest-totals of ~9-12, so roughly a 1-in-10 roll where present).
+for (const mob of ['guard', 'skeleton', 'zombie', 'hobgoblin', 'ghoul', 'moss_giant',
+  'ice_fiend', 'hill_giant', 'lesser_demon', 'troll']) {
+  if (MOBS[mob]) MOBS[mob].drops.push({ item: 'clue_scroll', count: 1, weight: 1 });
+}

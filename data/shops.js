@@ -19,6 +19,7 @@ export const SHOPS = {
       ['ranged_potion', 2], ['magic_potion', 2], ['prayer_potion', 3],
       // Herblore reagents (herbs drop from mobs; these are the buyable staples)
       ['vial_of_water', 100], ['eye_of_newt', 50], ['limpwurt_root', 30],
+      ['spade', 4], // treasure trails
     ],
   },
 

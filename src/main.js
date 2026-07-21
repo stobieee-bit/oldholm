@@ -24,6 +24,7 @@ import { TitleCastle } from './title.js';
 import { Tutorial } from './tutorial.js';
 import { Slayer } from './slayer.js';
 import { Diaries } from './diaries.js';
+import { Clues } from './clues.js';
 
 export const TICK_MS = 600;
 
@@ -346,6 +347,9 @@ const game = { player, world, clock, bank, quests, prayers, magic, market, comba
 const diaries = new Diaries(game);
 game.diaries = diaries;
 ui.diaries = diaries; // the quest panel renders diary progress
+const clues = new Clues(player, ui);
+game.clues = clues;
+ui.clues = clues; // pack-menu Read/Dig/Open actions
 const save = new SaveManager(game);
 
 // Restore persisted settings (volume, music toggle) BEFORE the System tab is
@@ -554,7 +558,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
