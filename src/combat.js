@@ -306,6 +306,22 @@ export class Combat {
     this.ui.fx.xpDrop(gains);
   }
 
+  /** Boss escalation: outgoing damage climbs as the boss weakens, with
+   *  occasional telegraphed heavy blows and once-only phase snarls. */
+  _bossOutgoing(mob, def, dmg) {
+    const pct = mob.maxHp ? mob.hp / mob.maxHp : 1;
+    if (pct > 0.9) { mob._p1 = false; mob._p2 = false; }            // reset on a fresh fight
+    if (pct <= 0.5 && !mob._p1) { mob._p1 = true; this.ui.chat.add(`${def.name} snarls and presses the attack!`, 'system'); }
+    if (pct <= 0.25 && !mob._p2) { mob._p2 = true; this.ui.chat.add(`${def.name} is cornered — and utterly furious!`, 'system'); this.audio?.sfx('quest'); }
+    let out = Math.round(dmg * (1 + (1 - pct) * (def.enrage ?? 0.45))); // up to +45% at 0 hp
+    if (Math.random() < (def.specialChance ?? 0.15)) {
+      out = Math.round(out * 1.7);
+      this.ui.chat.add(`${def.name} lands a crushing blow!`, 'system');
+      this.audio?.sfx('thud');
+    }
+    return out;
+  }
+
   mobAttack(mob, tickNo) {
     const p = this.player;
     const def = MOBS[mob.defId];
@@ -335,6 +351,7 @@ export class Combat {
       return;
     }
     let dmg = rollDamage(mob.stats(), this.playerDefence(vsType));
+    if (def.boss) dmg = this._bossOutgoing(mob, def, dmg);                     // enrage + specials
     if (this.prayers) dmg = Math.round(dmg * this.prayers.protection(vsType)); // overhead protection
     p.hp = Math.max(0, p.hp - dmg);
     this.ui.fx.hitsplat(() => ({ screen: true }), dmg);

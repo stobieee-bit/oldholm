@@ -9,7 +9,7 @@ Check items off as they ship; move things between sections freely.
 - [x] **Slayer-style task loop** — Slayer master Kr0nk (Corvath) assigns level-scaled "kill N of X" tasks, awards points on completion, and runs a point reward-stall (coins/potions/ore/combat-lamp). State persists. (Points-based; a full Slayer *skill* with level gates is a possible refinement.)
 - [ ] **Achievement diaries** — per-region task lists with reward gear / perks
 - [ ] **Clue scrolls / treasure trails** — rare hunt drops (dig spots, riddles pointing at NPCs) → reward caskets; reuses the whole map
-- [ ] **Real boss mechanics** — phases / dodgeable specials / adds for Cindermaw, Zarkhul, Ravenmoor
+- [x] **Real boss mechanics** — quest bosses (Cindermaw/Zarkhul/Ravenmoor) now escalate: outgoing damage climbs as they weaken (+22% at half HP, +36% at quarter), ~15% chance of a ×1.7 "crushing blow", once-only phase snarls; resets each fresh fight. Per-boss `enrage`/`specialChance` overridable in data.
 - [ ] **Mobile / touch controls** — virtual joystick + drag-look + tap-to-interact
 
 ## 🌐 Needs a backend (your Render account to run it)
