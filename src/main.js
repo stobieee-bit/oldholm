@@ -23,6 +23,7 @@ import { SaveManager } from './save.js';
 import { TitleCastle } from './title.js';
 import { Tutorial } from './tutorial.js';
 import { Slayer } from './slayer.js';
+import { Diaries } from './diaries.js';
 
 export const TICK_MS = 600;
 
@@ -342,6 +343,9 @@ const minimap = new Minimap(world, player, npcs);
 
 // The SaveManager reaches into every subsystem through this handle.
 const game = { player, world, clock, bank, quests, prayers, magic, market, combat, npcs, ui, slayer };
+const diaries = new Diaries(game);
+game.diaries = diaries;
+ui.diaries = diaries; // the quest panel renders diary progress
 const save = new SaveManager(game);
 
 // Restore persisted settings (volume, music toggle) BEFORE the System tab is
@@ -550,7 +554,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

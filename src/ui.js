@@ -380,14 +380,52 @@ export class TabPanel {
     for (const id of QUEST_ORDER) {
       const row = document.createElement('div');
       const st = quests ? quests.status(id) : 'locked';
-      row.className = 'quest-row quest-' + st + (this.selectedQuest === id ? ' selected' : '');
+      row.className = 'quest-row quest-' + st + (this.selectedQuest === id && !this.selectedDiary ? ' selected' : '');
       row.textContent = QUESTS[id].name;
-      row.addEventListener('click', () => { this.selectedQuest = id; this.renderJournal(); });
+      row.addEventListener('click', () => { this.selectedQuest = id; this.selectedDiary = null; this.renderJournal(); });
       el.appendChild(row);
+    }
+    // ---- achievement diaries (progress derived live; claim when complete) ----
+    const diaries = this.ui.diaries;
+    if (diaries) {
+      const head = document.createElement('div');
+      head.className = 'skill-total';
+      head.textContent = 'Achievement diaries';
+      el.appendChild(head);
+      for (const id of diaries.order()) {
+        const [done, total] = diaries.progress(id);
+        const st = diaries.claimed[id] ? 'done' : diaries.claimable(id) ? 'active' : 'locked';
+        const row = document.createElement('div');
+        row.className = 'quest-row quest-' + st + (this.selectedDiary === id ? ' selected' : '');
+        row.textContent = `${diaries.def(id).name}  ${done}/${total}` + (diaries.claimable(id) ? '  — claim!' : '');
+        row.addEventListener('click', () => { this.selectedDiary = id; this.renderJournal(); });
+        el.appendChild(row);
+      }
     }
     const detail = document.createElement('div');
     detail.className = 'quest-detail';
-    detail.textContent = quests ? quests.journalLine(this.selectedQuest) : '';
+    if (this.selectedDiary && diaries) {
+      const id = this.selectedDiary;
+      for (const t of diaries.checklist(id)) {
+        const line = document.createElement('div');
+        line.className = t.done ? 'quest-done' : 'quest-locked';
+        line.textContent = (t.done ? '✓ ' : '· ') + t.text;
+        detail.appendChild(line);
+      }
+      if (diaries.claimable(id)) {
+        const btn = document.createElement('div');
+        btn.className = 'dlg-opt';
+        btn.textContent = `Claim reward: ${diaries.def(id).rewards.join(', ')}`;
+        btn.addEventListener('click', () => { diaries.claim(id); this.renderJournal(); });
+        detail.appendChild(btn);
+      } else if (diaries.claimed[id]) {
+        const doneLine = document.createElement('div');
+        doneLine.textContent = 'Reward claimed. The realm remembers.';
+        detail.appendChild(doneLine);
+      }
+    } else {
+      detail.textContent = quests ? quests.journalLine(this.selectedQuest) : '';
+    }
     el.appendChild(detail);
     const foot = document.createElement('div');
     foot.className = 'skill-total';

@@ -7,7 +7,7 @@ Check items off as they ship; move things between sections freely.
 - [x] **Sound & music** — core system already existed (11 procedural region themes + SFX bank, spec §13); added SFX for the newer actions: potion/enchant/alch/superheat/herb/bake/dragonfire/slay
 - [x] **New-player tutorial** — a skippable 5-step guided intro (look/move → open pack → talk → fight → skills), shown only on a fresh start; polls game state, no event bus
 - [x] **Slayer-style task loop** — Slayer master Kr0nk (Corvath) assigns level-scaled "kill N of X" tasks, awards points on completion, and runs a point reward-stall (coins/potions/ore/combat-lamp). State persists. (Points-based; a full Slayer *skill* with level gates is a possible refinement.)
-- [ ] **Achievement diaries** — per-region task lists with reward gear / perks
+- [x] **Achievement diaries** — 4 region diaries (Holmbridge/Corvath/Frontier/Southern, 6 tasks each) in the Quest panel; progress derives live from persisted state, claim pays coins/lamps once; claimed flags saved
 - [ ] **Clue scrolls / treasure trails** — rare hunt drops (dig spots, riddles pointing at NPCs) → reward caskets; reuses the whole map
 - [x] **Real boss mechanics** — quest bosses (Cindermaw/Zarkhul/Ravenmoor) now escalate: outgoing damage climbs as they weaken (+22% at half HP, +36% at quarter), ~15% chance of a ×1.7 "crushing blow", once-only phase snarls; resets each fresh fight. Per-boss `enrage`/`specialChance` overridable in data.
 - [ ] **Mobile / touch controls** — virtual joystick + drag-look + tap-to-interact

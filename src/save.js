@@ -53,6 +53,7 @@ export class SaveManager {
       kills: g.combat.kills ?? {},
       killBase: g.combat.killBase ?? {},
       slayer: g.slayer?.snapshot() ?? null,
+      diaries: g.diaries?.snapshot() ?? null,
     };
   }
 
@@ -111,6 +112,7 @@ export class SaveManager {
     g.combat.kills = data.kills ?? {};
     g.combat.killBase = data.killBase ?? {};
     g.slayer?.restore(data.slayer);
+    g.diaries?.restore(data.diaries);
     g.clock.tick = data.when ?? 0;
     g.clock.gameMinutes = data.gameMinutes ?? 600;
     g.world.reconcile(g.quests, g.npcs, {
