@@ -10,7 +10,7 @@ Check items off as they ship; move things between sections freely.
 - [x] **Achievement diaries** — 4 region diaries (Holmbridge/Corvath/Frontier/Southern, 6 tasks each) in the Quest panel; progress derives live from persisted state, claim pays coins/lamps once; claimed flags saved
 - [x] **Clue scrolls / treasure trails** — rare clue drops from 10 mid-tier mobs → 2-3-step riddle trails over 16 real landmarks → dig with a spade → casket with a weighted loot roll; trail state persists
 - [x] **Real boss mechanics** — quest bosses (Cindermaw/Zarkhul/Ravenmoor) now escalate: outgoing damage climbs as they weaken (+22% at half HP, +36% at quarter), ~15% chance of a ×1.7 "crushing blow", once-only phase snarls; resets each fresh fight. Per-boss `enrage`/`specialChance` overridable in data.
-- [ ] **Mobile / touch controls** — virtual joystick + drag-look + tap-to-interact
+- [x] **Mobile / touch controls** — floating joystick (left 40%) drives movement keys, drag-look elsewhere, short tap = act, long press = context menu; canvas-only handlers so the HUD keeps native taps; touch-aware tutorial text
 
 ## 🌐 Needs a backend (your Render account to run it)
 I'll build the server + a one-click deploy blueprint (like the initial static deploy); you connect it. The client degrades gracefully when the backend is offline.

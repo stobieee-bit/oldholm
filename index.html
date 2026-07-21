@@ -2,12 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>OLDHOLM</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; overflow: hidden; background: #4a5548; }
-  #game { display: block; width: 100%; height: 100%; }
+  #game { display: block; width: 100%; height: 100%; touch-action: none; }
+
+  /* mobile joystick (built by src/touch.js on touch devices) */
+  #joy-base {
+    position: fixed; width: 110px; height: 110px; border-radius: 50%;
+    background: rgba(28, 26, 20, 0.35); border: 2px solid rgba(201, 162, 50, 0.5);
+    z-index: 30; pointer-events: none;
+  }
+  #joy-base.hidden { display: none; }
+  #joy-nub {
+    position: absolute; left: 33px; top: 33px; width: 40px; height: 40px;
+    border-radius: 50%; background: rgba(201, 162, 50, 0.55);
+    border: 2px solid rgba(255, 225, 125, 0.7);
+  }
 
   #hud { position: fixed; inset: 0; pointer-events: none; font-family: Georgia, 'Times New Roman', serif; }
 

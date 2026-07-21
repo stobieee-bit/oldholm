@@ -3,18 +3,30 @@
 // state each tick and advances when a step's condition is met — no event bus
 // needed. Only shown on a fresh start (no autosave).
 
+const TOUCH = 'ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0;
+
 const STEPS = [
-  { text: 'Welcome to OLDHOLM! Click the screen to look around with the mouse, then walk with W · A · S · D.',
+  { text: TOUCH
+      ? 'Welcome to OLDHOLM! Drag the left side of the screen to walk, drag the right side to look around.'
+      : 'Welcome to OLDHOLM! Click the screen to look around with the mouse, then walk with W · A · S · D.',
     done: (c) => c.dist(c.player.pos, c.spawn) > 4 },
-  { text: 'Good. Press F4 to open your Pack — everything you carry lives there.',
+  { text: TOUCH
+      ? 'Good. Tap "Pack" on the side panel — everything you carry lives there.'
+      : 'Good. Press F4 to open your Pack — everything you carry lives there.',
     done: (c, s) => s.inv },
-  { text: 'Left-click a person or object to interact. Try talking to a villager here in the castle courtyard.',
+  { text: TOUCH
+      ? 'Tap a person or object to interact (hold for more options). Try talking to a villager here in the courtyard.'
+      : 'Left-click a person or object to interact. Try talking to a villager here in the castle courtyard.',
     done: (c, s) => s.talked },
   { text: 'Now a fight: head east over the bridge to the pasture and left-click a chicken or cow. Combat trains Attack, Strength, Defence and Hitpoints.',
     done: (c, s) => s.killed },
-  { text: 'Well fought. Press F2 to open Skills — almost everything you do trains one of your 16 skills.',
+  { text: TOUCH
+      ? 'Well fought. Tap "Skills" on the side panel — almost everything you do trains one of your 16 skills.'
+      : 'Well fought. Press F2 to open Skills — almost everything you do trains one of your 16 skills.',
     done: (c, s) => s.skills },
-  { text: 'You’re ready! Explore the realm, level up, and press F3 for your Quest journal to find adventures. Good luck out there.',
+  { text: TOUCH
+      ? 'You’re ready! Explore the realm, level up, and check the Quests panel for adventures. Good luck out there.'
+      : 'You’re ready! Explore the realm, level up, and press F3 for your Quest journal to find adventures. Good luck out there.',
     last: true },
 ];
 

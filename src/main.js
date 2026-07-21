@@ -25,6 +25,7 @@ import { Tutorial } from './tutorial.js';
 import { Slayer } from './slayer.js';
 import { Diaries } from './diaries.js';
 import { Clues } from './clues.js';
+import { TouchControls } from './touch.js';
 
 export const TICK_MS = 600;
 
@@ -350,6 +351,9 @@ ui.diaries = diaries; // the quest panel renders diary progress
 const clues = new Clues(player, ui);
 game.clues = clues;
 ui.clues = clues; // pack-menu Read/Dig/Open actions
+// touch devices get a joystick + drag-look + tap-to-act layer on the canvas
+const touch = TouchControls.isTouchDevice()
+  ? new TouchControls(canvas, player, interactions, ui) : null;
 const save = new SaveManager(game);
 
 // Restore persisted settings (volume, music toggle) BEFORE the System tab is
@@ -558,7 +562,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
