@@ -67,6 +67,46 @@ export class Online {
     } catch (_) { return null; }
   }
 
+  // ---- cloud saves (backup/transfer; localStorage stays the primary copy) ---------
+
+  pin() { try { return localStorage.getItem('oldholm_pin') ?? ''; } catch (_) { return ''; } }
+  setPin(p) { try { localStorage.setItem('oldholm_pin', String(p).replace(/\D/g, '').slice(0, 8)); } catch (_) {} }
+
+  async saveToCloud() {
+    const save = this.ui.save;
+    if (!save) return { ok: false, msg: 'Saving is not ready yet.' };
+    if (!this.name()) return { ok: false, msg: 'Set your wanderer name first.' };
+    if (!/^\d{4,8}$/.test(this.pin())) return { ok: false, msg: 'Set a 4–8 digit PIN first.' };
+    try {
+      const blob = JSON.stringify(save.snapshot());
+      const r = await fetch(this.base() + '/save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: this.name(), pin: this.pin(), blob }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.status === 403) return { ok: false, msg: 'Wrong PIN for that name.' };
+      if (!r.ok) return { ok: false, msg: 'The cloud declined the save.' };
+      return { ok: true, msg: 'Progress backed up to the cloud.' };
+    } catch (_) { return { ok: false, msg: 'The realm link is quiet (server offline).' }; }
+  }
+
+  async loadFromCloud() {
+    const save = this.ui.save;
+    if (!save) return { ok: false, msg: 'Saving is not ready yet.' };
+    if (!this.name() || !this.pin()) return { ok: false, msg: 'Set your name and PIN first.' };
+    try {
+      const r = await fetch(this.base() + `/save?name=${encodeURIComponent(this.name())}&pin=${encodeURIComponent(this.pin())}`,
+        { signal: AbortSignal.timeout(8000) });
+      if (r.status === 404) return { ok: false, msg: 'No cloud save under that name.' };
+      if (r.status === 403) return { ok: false, msg: 'Wrong PIN for that name.' };
+      if (!r.ok) return { ok: false, msg: 'The cloud declined.' };
+      const { blob } = await r.json();
+      const data = JSON.parse(blob);
+      if (!save.apply(data)) return { ok: false, msg: 'That cloud save failed validation.' };
+      return { ok: true, msg: 'Cloud save restored. Welcome back.' };
+    } catch (_) { return { ok: false, msg: 'The realm link is quiet (server offline).' }; }
+  }
+
   // ---- presence + chat ------------------------------------------------------------
 
   connect() {

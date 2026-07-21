@@ -5,22 +5,68 @@
 
 import http from 'node:http';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { WebSocketServer } from 'ws';
 
 const PORT = process.env.PORT || 8439;
 const FILE = './hiscores.json';
+const SAVE_FILE = './saves.json';
 const MAX_BOARD = 200;
+const MAX_SAVES = 500;
+const MAX_BLOB = 200_000; // a full snapshot is ~30-60KB
 
 // ---- hiscores -----------------------------------------------------------------
 // name -> { name, total, combat, when }
 let board = new Map();
 try { board = new Map(JSON.parse(fs.readFileSync(FILE, 'utf8'))); } catch (_) {}
-let dirty = false;
+// ---- cloud saves ----------------------------------------------------------------
+// nameKey -> { name, pinHash, blob, when }. Best-effort disk snapshot; the
+// client always keeps its localStorage copy too — this is backup/transfer.
+let saves = new Map();
+try { saves = new Map(JSON.parse(fs.readFileSync(SAVE_FILE, 'utf8'))); } catch (_) {}
+let dirty = false, savesDirty = false;
 setInterval(() => {
-  if (!dirty) return;
-  dirty = false;
-  try { fs.writeFileSync(FILE, JSON.stringify([...board.entries()])); } catch (_) {}
+  if (dirty) {
+    dirty = false;
+    try { fs.writeFileSync(FILE, JSON.stringify([...board.entries()])); } catch (_) {}
+  }
+  if (savesDirty) {
+    savesDirty = false;
+    try { fs.writeFileSync(SAVE_FILE, JSON.stringify([...saves.entries()])); } catch (_) {}
+  }
 }, 30_000);
+
+const pinHash = (pin) => crypto.createHash('sha256').update('oldholm:' + pin).digest('hex');
+
+function handleSave(req, res, body, url) {
+  if (req.method === 'GET') {
+    const name = cleanName(url.searchParams.get('name'));
+    const pin = String(url.searchParams.get('pin') ?? '');
+    const rec = saves.get(name.toLowerCase());
+    if (!rec) { res.statusCode = 404; res.end('{"error":"no save"}'); return; }
+    if (rec.pinHash !== pinHash(pin)) { res.statusCode = 403; res.end('{"error":"wrong pin"}'); return; }
+    res.end(JSON.stringify({ blob: rec.blob, when: rec.when }));
+    return;
+  }
+  if (req.method === 'POST') {
+    let d;
+    try { d = JSON.parse(body); } catch (_) { res.statusCode = 400; res.end('{}'); return; }
+    const name = cleanName(d.name);
+    const pin = String(d.pin ?? '');
+    if (!name || !/^\d{4,8}$/.test(pin)) { res.statusCode = 400; res.end('{"error":"name + 4-8 digit pin required"}'); return; }
+    if (typeof d.blob !== 'string' || d.blob.length > MAX_BLOB) { res.statusCode = 400; res.end('{"error":"blob too large"}'); return; }
+    const key = name.toLowerCase();
+    const prev = saves.get(key);
+    if (prev && prev.pinHash !== pinHash(pin)) { res.statusCode = 403; res.end('{"error":"wrong pin"}'); return; }
+    saves.set(key, { name, pinHash: pinHash(pin), blob: d.blob, when: Date.now() });
+    if (saves.size > MAX_SAVES) { // evict the stalest
+      const oldest = [...saves.entries()].sort((a, b) => a[1].when - b[1].when)[0];
+      saves.delete(oldest[0]);
+    }
+    savesDirty = true;
+    res.end(JSON.stringify({ ok: true, when: Date.now() }));
+  }
+}
 
 const cleanName = (s) => String(s ?? '').replace(/[^\w \-']/g, '').trim().slice(0, 16);
 const clampInt = (n, lo, hi) => Math.max(lo, Math.min(hi, Math.floor(Number(n) || 0)));
@@ -65,11 +111,13 @@ const server = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') { res.end(); return; }
   let body = '';
-  req.on('data', (c) => { body += c; if (body.length > 4096) req.destroy(); });
+  req.on('data', (c) => { body += c; if (body.length > MAX_BLOB + 4096) req.destroy(); });
   req.on('end', () => {
-    const path = (req.url ?? '/').split('?')[0];
+    const url = new URL(req.url ?? '/', 'http://x');
+    const path = url.pathname;
     if (path === '/hiscores') return handleHiscores(req, res, body);
-    if (path === '/health') { res.end(JSON.stringify({ ok: true, online: wss.clients.size })); return; }
+    if (path === '/save') return handleSave(req, res, body, url);
+    if (path === '/health') { res.end(JSON.stringify({ ok: true, online: wss.clients.size, saves: saves.size })); return; }
     res.statusCode = 404;
     res.end('{}');
   });

@@ -455,6 +455,44 @@ export class TabPanel {
       nameWrap.appendChild(nameIn);
       el.appendChild(nameWrap);
 
+      // cloud saves: name + PIN key a backup slot on the server
+      const pinWrap = document.createElement('div');
+      pinWrap.className = 'sys-slider';
+      pinWrap.innerHTML = '<span>PIN</span>';
+      const pinIn = document.createElement('input');
+      pinIn.type = 'password'; pinIn.maxLength = 8; pinIn.inputMode = 'numeric';
+      pinIn.placeholder = '4–8 digits'; pinIn.value = online.pin();
+      pinIn.addEventListener('change', () => { online.setPin(pinIn.value); pinIn.value = online.pin(); });
+      pinWrap.appendChild(pinIn);
+      el.appendChild(pinWrap);
+
+      const cloudRow = document.createElement('div');
+      cloudRow.style.cssText = 'display:flex;gap:6px';
+      const upBtn = document.createElement('button');
+      upBtn.className = 'sys-btn'; upBtn.style.flex = '1';
+      upBtn.textContent = 'Save to cloud';
+      upBtn.addEventListener('click', async () => {
+        upBtn.textContent = 'Saving…';
+        const r = await online.saveToCloud();
+        upBtn.textContent = 'Save to cloud';
+        this.ui.chat.add(r.msg, r.ok ? 'system' : undefined);
+      });
+      const downBtn = document.createElement('button');
+      downBtn.className = 'sys-btn'; downBtn.style.flex = '1';
+      downBtn.textContent = 'Load from cloud';
+      downBtn.addEventListener('click', async () => {
+        downBtn.textContent = 'Loading…';
+        const r = await online.loadFromCloud();
+        downBtn.textContent = 'Load from cloud';
+        this.ui.chat.add(r.msg, r.ok ? 'system' : undefined);
+      });
+      cloudRow.appendChild(upBtn); cloudRow.appendChild(downBtn);
+      el.appendChild(cloudRow);
+      const cloudNote = document.createElement('div');
+      cloudNote.className = 'sys-note';
+      cloudNote.textContent = 'Cloud backup lets you move between devices. Your browser save stays the main copy.';
+      el.appendChild(cloudNote);
+
       const board = document.createElement('div');
       board.className = 'sys-note';
       board.textContent = 'Hiscores: fetching…';
