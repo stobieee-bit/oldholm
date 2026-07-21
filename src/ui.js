@@ -400,7 +400,8 @@ export class TabPanel {
 
     const note = document.createElement('div');
     note.className = 'sys-note';
-    note.textContent = 'The realm autosaves every half-minute and when you leave.';
+    note.textContent = 'The realm autosaves every half-minute, when you tab away, and when you leave. '
+      + 'With a name and PIN set, it also backs itself up to the cloud every five minutes.';
     el.appendChild(note);
 
     // ---- graphics + accessibility -------------------------------------------

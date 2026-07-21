@@ -498,10 +498,18 @@ let entered = false;
 const titleCastle = new TitleCastle(document.getElementById('title-castle'));
 titleCastle.start();
 
-// Offer "Continue" only when there's an autosave to resume.
+// With an autosave, ANY click resumes — a stray click must never start a
+// fresh game whose first autosave would overwrite the old journey. Starting
+// anew is the explicit little button instead.
 const continueBtn = document.getElementById('title-continue');
+const freshBtn = document.getElementById('title-fresh');
 const isNewPlayer = !save.hasAuto(); // captured before any save is written
-if (continueBtn && save.hasAuto()) continueBtn.classList.remove('hidden');
+if (save.hasAuto()) {
+  continueBtn?.classList.remove('hidden');
+  freshBtn?.classList.remove('hidden');
+  const enterLine = document.querySelector('#lock-overlay .enter');
+  if (enterLine) enterLine.textContent = 'Click anywhere to continue your journey';
+}
 
 function enterWorld(loadAuto) {
   entered = true;
@@ -522,8 +530,8 @@ function enterWorld(loadAuto) {
 
 overlay.addEventListener('click', (e) => {
   if (entered) return;
-  // clicks on the Continue button resume; anywhere else starts fresh
-  enterWorld(e.target && e.target.id === 'title-continue');
+  const startFresh = e.target && e.target.id === 'title-fresh';
+  enterWorld(save.hasAuto() && !startFresh);
 });
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === canvas;
@@ -621,6 +629,22 @@ let last = performance.now();
 let tickAcc = 0;
 let fpsFrames = 0, fpsLast = performance.now();
 let autosaveAcc = 0;
+let cloudSaveAcc = 0;
+
+/** Autosave every 30s once the player is in the world; every 5 minutes the
+ *  save is also quietly backed up to the cloud when a name + PIN are set.
+ *  A snapshot is a sub-millisecond stringify — no frame-time impact. */
+function runAutosave(dt) {
+  if (!entered) return;
+  autosaveAcc += dt;
+  if (autosaveAcc < 30) return;
+  autosaveAcc = 0;
+  save.autosave();
+  if (++cloudSaveAcc >= 10 && online.name() && /^\d{4,8}$/.test(online.pin())) {
+    cloudSaveAcc = 0;
+    online.saveToCloud(); // fire-and-forget; localStorage stays the primary copy
+  }
+}
 
 /** The foe the target frame should show: your engaged target first, else
  *  whichever living mob is currently coming at you (retaliators, casters).
@@ -670,9 +694,7 @@ function frame(now) {
   updateRidges();
   audio.setTheme(world.regionAt(player.pos.x, player.pos.z, player.plane).theme);
 
-  // autosave every 30s once the player is actually in the world
-  autosaveAcc += dt;
-  if (entered && autosaveAcc >= 30) { autosaveAcc = 0; save.autosave(); }
+  runAutosave(dt);
 
   fpsFrames++;
   if (now - fpsLast >= 500) {
@@ -703,6 +725,7 @@ window.__OLDHOLM = {
       world.updateProjectiles(dt);
       world.updateEffects(dt);
       world.updateSpinners(dt);
+      runAutosave(dt); // same path as the live loop, so tooling can test it
     }
     interactions.updateHover();
     applyDayTint();
@@ -721,3 +744,10 @@ window.__OLDHOLM = {
 
 // Best-effort autosave when the tab closes.
 window.addEventListener('beforeunload', () => { if (entered) save.autosave(); });
+// The reliable one: mobile browsers and background-tab kills never fire
+// beforeunload, but they do flip visibility. Save the moment we're hidden.
+document.addEventListener('visibilitychange', () => {
+  if (!entered || document.visibilityState !== 'hidden') return;
+  save.autosave();
+  if (online.name() && /^\d{4,8}$/.test(online.pin())) online.saveToCloud();
+});

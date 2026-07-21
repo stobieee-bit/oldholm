@@ -563,6 +563,12 @@
   }
   #title-continue:hover { background: linear-gradient(#ffe9a0, #e0be52); }
   #title-continue.hidden { display: none; }
+  #title-fresh {
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    font-size: 13px; color: #a8a184; text-decoration: underline;
+  }
+  #title-fresh:hover { color: #ffe9a0; }
+  #title-fresh.hidden { display: none; }
 
   /* minimap, classic round, top-left below the fps counter */
   #minimap-wrap { position: absolute; top: 26px; left: 10px; width: 148px; height: 148px; }
@@ -869,6 +875,7 @@
       </div>
       <div class="enter">Click to begin a new journey</div>
       <button id="title-continue" class="hidden">Continue your last journey</button>
+      <button id="title-fresh" class="hidden">Begin a new journey instead</button>
     </div>
   </div>
 
