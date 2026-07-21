@@ -263,7 +263,7 @@ export class Combat {
       this.ui.fx.xpDrop(gains);
     }
     if (Math.random() < 0.8) // most arrows survive to be picked back up
-      this.world.addGroundItem(arrowId, 1, mob.tile.x + 0.5, mob.tile.z + 0.5, 0, 0,
+      this.world.addGroundItem(arrowId, 1, mob.tile.x + 0.5, mob.tile.z + 0.5, mob.plane ?? 0, 0,
         { despawnAtTick: tickNo + 500, merge: true });
   }
 

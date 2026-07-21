@@ -1338,6 +1338,19 @@ for (const mob of ['guard', 'skeleton', 'zombie', 'hobgoblin', 'ghoul', 'moss_gi
   if (MOBS[mob]) MOBS[mob].drops.push({ item: 'clue_scroll', count: 1, weight: 1 });
 }
 
+// The engine leads with a model's -z side (npc.js facing math); these
+// humanoids were authored face-forward at +z (the figure() chassis plus +z
+// face details — eyes, beards, tusks, masks), so the baker turns them around.
+// Beasts (heads at -z), symmetric models (ice_fiend, ashfiend, ghost) and the
+// imp (its tail at +z already trails correctly) stay engine-front.
+for (const id of ['goblin', 'goblin_strong', 'guard', 'skeleton', 'zombie', 'highwayman',
+  'hill_giant', 'moss_giant', 'ghoul', 'barbarian', 'vex_cultist', 'mugger', 'hobgoblin',
+  'goblin_champion', 'frost_skeleton', 'ogre', 'troll', 'elder_moss_giant', 'lesser_demon',
+  'echo', 'deep_troll', 'gloom_stalker', 'night_wraith', 'kalphar_bonelord',
+  'abyssal_warden', 'frost_monarch', 'malgrim', 'ravenmoor', 'zarkhul']) {
+  MOBS[id].model.front = 'z';
+}
+
 // Farming: seeds fall where the level band suits the crop (see data/farming.js).
 const SEED_DROPS = {
   goblin: 'wheat_seed', barbarian: 'guam_seed', hobgoblin: 'tarromin_seed',

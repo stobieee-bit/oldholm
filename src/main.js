@@ -364,7 +364,7 @@ ui.farming = farming; // soil-patch Plant/Harvest actions
 const siege = new Siege(player, ui, npcs);
 game.siege = siege;
 dialogue.siegeRef = siege; // Warden Ashe's 'siege:start'
-const weather = new Weather(scene, camera, world, npcs, farming, ui, audio, clock);
+const weather = new Weather(scene, camera, world, npcs, farming, ui, audio, clock, player);
 actions.weather = weather;  // rain drowns fresh tinder
 ui.combatRef = combat;      // the bestiary reads the kill tally
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas

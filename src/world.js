@@ -1888,9 +1888,14 @@ export class World {
     this._addBox(w + 0.5, 0.16, d + 0.5, midX, y + H + 0.06, midZ, wood);
     const roofMat = new THREE.MeshLambertMaterial({ color: b.roofColor ?? 0x6e3a2c, flatShading: true });
     const roofH = Math.min(w, d) * 0.42 + 0.45;
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 4), roofMat);
-    roof.rotation.y = Math.PI / 4;               // align the four slopes with the walls
-    roof.scale.set((w / 2 + 0.45) / 0.7071, roofH, (d / 2 + 0.45) / 0.7071);
+    // Bake the 45° into the GEOMETRY (base becomes an axis-aligned unit square)
+    // so the non-uniform footprint scale stays axis-aligned. Object-level
+    // rotation + scale composes T*R*S — scaling a rotated pyramid shears it
+    // into the skewed blades that used to loom over rectangular buildings.
+    const roofGeo = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4);
+    roofGeo.rotateY(Math.PI / 4);
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.scale.set(w + 0.9, roofH, d + 0.9);
     roof.position.set(midX, y + H + 0.14 + roofH / 2, midZ);
     roof.updateMatrix(); roof.matrixAutoUpdate = false;
     this.group.add(roof);
@@ -3131,11 +3136,13 @@ export class World {
     this._addBox(0.8, wallH + sink, d - 2, x1 - 0.5, wy, midZ, stone);    // east
     // ceiling seals the eaves; the gable sits above it
     this._addBox(w + 0.4, 0.14, d + 0.4, midX, y + wallH + 0.05, midZ, wood);
-    // roof: a shallow gable of two slabs
+    // roof: a shallow gable of two slabs — inner (ridge) edges rise to meet at
+    // midZ. (The signs were swapped once: the slabs dipped inward into an
+    // upside-down valley roof.)
     const roofA = this._addBox(w + 0.8, 0.18, d / 2 + 0.7, midX, y + wallH + 0.55, midZ - d / 4 + 0.1, darkStone);
-    roofA.rotation.x = 0.22; roofA.updateMatrix();
+    roofA.rotation.x = -0.22; roofA.updateMatrix();
     const roofB = this._addBox(w + 0.8, 0.18, d / 2 + 0.7, midX, y + wallH + 0.55, midZ + d / 4 - 0.1, darkStone);
-    roofB.rotation.x = -0.22; roofB.updateMatrix();
+    roofB.rotation.x = 0.22; roofB.updateMatrix();
     // the sun-disc of Aurel above the door
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 5), wood);
     pole.position.set(doorX + 0.5, y + wallH + 1.0, z1 - 0.5);
@@ -3435,7 +3442,8 @@ export class World {
         break;
       }
       case 'rod': {
-        const rod = add(new THREE.CylinderGeometry(0.015, 0.028, 0.95, 5), 0, 0.12, 0);
+        // y 0.22 keeps the tilted butt end resting ON the ground, not in it
+        const rod = add(new THREE.CylinderGeometry(0.015, 0.028, 0.95, 5), 0, 0.22, 0);
         rod.rotation.z = 1.1;
         break;
       }

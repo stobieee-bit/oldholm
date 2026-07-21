@@ -108,7 +108,7 @@ export class Online {
       const k = Math.min(1, dt * 6);
       pos.x += (g.tx - pos.x) * k;
       pos.z += (g.tz - pos.z) * k;
-      pos.y = this.world.getGroundHeight(pos.x, pos.z);
+      pos.y = this.world.getGroundHeight(pos.x, pos.z, g.plane ?? 0);
       g.group.visible = g.plane === (typeof this.player.plane === 'number' ? this.player.plane : 1);
     }
   }
@@ -120,7 +120,7 @@ export class Online {
       let g = this.ghosts.get(p.id);
       if (!g) {
         g = { group: this._makeGhost(), tx: p.x, tz: p.z, plane: p.plane };
-        g.group.position.set(p.x, this.world.getGroundHeight(p.x, p.z), p.z);
+        g.group.position.set(p.x, this.world.getGroundHeight(p.x, p.z, p.plane ?? 0), p.z);
         this.world.group.add(g.group);
         this.ghosts.set(p.id, g);
       }

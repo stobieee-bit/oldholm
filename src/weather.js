@@ -15,7 +15,7 @@ const RAIN_TICKS = [250, 700];  // rain duration range
 const DROPS = 900;
 
 export class Weather {
-  constructor(scene, camera, world, npcs, farming, ui, audio, clock) {
+  constructor(scene, camera, world, npcs, farming, ui, audio, clock, player) {
     this.scene = scene;
     this.camera = camera;
     this.world = world;
@@ -24,6 +24,7 @@ export class Weather {
     this.ui = ui;
     this.audio = audio;
     this.clock = clock;
+    this.player = player;
     this.raining = false;
     this._rainUntil = 0;
     this._night = null; // unknown until the first tick
@@ -100,6 +101,9 @@ export class Weather {
 
   /** Per-frame: drops fall and the curtain follows the camera. */
   update(dt) {
+    // no rain underground: the storm continues, but not in the sewers
+    const indoors = (this.player?.plane ?? 0) !== 0;
+    this.rain.visible = this.raining && !indoors;
     if (!this.rain.visible) return;
     this.rain.position.copy(this.camera.position);
     const pos = this.rain.geometry.getAttribute('position');

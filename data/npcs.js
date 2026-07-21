@@ -7,8 +7,10 @@
 import { figure } from './figure.js';
 
 // A rounded low-poly person. boot defaults dark; pass a 5th colour to override.
+// front: 'z' — figure() is authored face-forward at +z (toes, hair cap), and
+// the engine leads with -z, so the baker turns these around (npc.js).
 const human = (skin, shirt, pants, hair, boot = 0x3a2f26) =>
-  ({ height: 1.62, parts: figure({ skin, shirt, pants, hair, boot }) });
+  ({ height: 1.62, front: 'z', parts: figure({ skin, shirt, pants, hair, boot }) });
 
 const base = {
   attackable: false,
@@ -460,8 +462,8 @@ export const NPCS = {
       height: 1.58,
       parts: [
         ...figure({ scale: 0.98, skin: 0xc9a27a, shirt: 0x5a3a72, sleeve: 0x7a5a92, pants: 0x3a2a4a, hair: 0x3a3632, boot: 0x2a2620 }),
-        { kind: 'box', size: [0.24, 0.3, 0.08], rotZ: 0.5, at: [0.24, 1.0, 0.08], color: 0x8a5a2a }, // a lute on the back
-        { kind: 'cyl', rt: 0.02, rb: 0.02, h: 0.34, rotZ: 0.5, at: [0.36, 1.16, 0.08], color: 0x6a4a2a }, // its neck
+        { kind: 'box', size: [0.24, 0.3, 0.08], rotZ: 0.5, at: [0.24, 1.0, -0.08], color: 0x8a5a2a }, // a lute on the back (-z = behind the +z face)
+        { kind: 'cyl', rt: 0.02, rb: 0.02, h: 0.34, rotZ: 0.5, at: [0.36, 1.16, -0.08], color: 0x6a4a2a }, // its neck
       ],
     },
     chatter: ['A saga for a coin? A limerick for less?', 'I rhymed "Halvard" with "hard word" once. He threw a bench.'],
@@ -503,3 +505,11 @@ export const NPCS = {
     chatter: ['No task, no glory.', 'I’ve a list. You’re on it, metaphorically.'],
   },
 };
+
+// Custom NPC models built on figure() (front = +z) get the same turn-around
+// flag as human(). Hand-built beasts (dairy cow, the professor) and symmetric
+// models (ghost, the goblin chiefs) are already engine-front and stay put.
+for (const id of ['inquisitor_serra', 'crossroads_sergeant', 'blight_warden',
+  'skalvik_jarl', 'skalvik_skald', 'blight_survivor']) {
+  if (NPCS[id]?.model) NPCS[id].model.front = 'z';
+}

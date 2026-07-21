@@ -44,6 +44,10 @@ function bakeMobGeometry(defId, def) {
     parts.push(g.toNonIndexed());
   }
   const merged = mergeGeometries(parts, false);
+  // The engine points model FRONTS toward -z (facing math adds PI). Models
+  // authored face-forward at +z (the figure() humanoids and their kin) declare
+  // front: 'z' and get turned around here, once, at bake time.
+  if (def.model.front === 'z') merged.rotateY(Math.PI);
   merged.computeVertexNormals();
   for (const p of parts) p.dispose();
   geoCache.set(defId, merged);
@@ -75,6 +79,10 @@ class Mob {
     this.lastCombatTick = -999;
 
     this.mesh = new THREE.Mesh(bakeMobGeometry(defId, def), mobMaterial.clone()); // own material → can flash on hit
+    // yaw outermost: rotation.x becomes a facing-relative pitch, so the attack
+    // lunge and death topple tip FORWARD on every heading (default XYZ order
+    // pitched about the world X axis — mobs facing east toppled sideways)
+    this.mesh.rotation.order = 'YXZ';
     this.mesh.position.set(this.tile.x + 0.5, 0, this.tile.z + 0.5);
     world.group.add(this.mesh);
     this._from = { x: this.tile.x + 0.5, z: this.tile.z + 0.5 };

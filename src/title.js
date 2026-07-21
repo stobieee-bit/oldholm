@@ -115,8 +115,10 @@ export class TitleCastle {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3, 5), darkStone);
     pole.position.y = 13.4;
     g.add(pole);
-    const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.0), banner);
-    flag.position.set(0.9, 13.8, 0);
+    const flagGeo = new THREE.PlaneGeometry(1.8, 1.0);
+    flagGeo.translate(0.9, 0, 0); // hinge the cloth at its pole-side edge
+    const flag = new THREE.Mesh(flagGeo, banner);
+    flag.position.set(0, 13.8, 0); // flutter now pivots around the pole
     g.add(flag);
     this.flag = flag;
 
