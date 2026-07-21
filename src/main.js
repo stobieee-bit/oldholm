@@ -33,6 +33,7 @@ import { Siege } from './siege.js';
 import { Weather } from './weather.js';
 import { Delve } from './delve.js';
 import { Pets } from './pets.js';
+import { House } from './house.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -375,6 +376,9 @@ ui.delve = delve; // the Long Stair's Enter action
 const pets = new Pets(player, world);
 game.pets = pets;
 ui.pets = pets; // pack-menu Summon/Stow
+const house = new House(game);
+game.house = house;
+for (const s of world.houseSpots ?? []) house.registerSpot(s.id, s.entry, s.mesh);
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas
 const touch = TouchControls.isTouchDevice()
   ? new TouchControls(canvas, player, interactions, ui) : null;
@@ -671,7 +675,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather, delve, pets,
+  farming, siege, weather, delve, pets, house,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

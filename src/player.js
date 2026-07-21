@@ -14,7 +14,7 @@ export const SKILL_NAMES = [
   'Cooking', 'Fishing', 'Mining', 'Smithing', 'Woodcutting', 'Firemaking',
   'Crafting', 'Glyphcraft',
   // append-only (save order is positional)
-  'Herblore', 'Farming', 'Agility',
+  'Herblore', 'Farming', 'Agility', 'Construction', // append-only: save order is positional
 ];
 
 /** 28 slots; stackables share a slot. */

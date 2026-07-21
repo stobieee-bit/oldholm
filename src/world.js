@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ITEMS } from '../data/items.js';
 import { TREES, ROCKS, FISHING, FIREMAKING } from '../data/resources.js';
+import { HOUSE_PLOT } from '../data/house.js';
 
 export const FLAG_BLOCKED = 1;
 export const FLAG_WATER = 2;
@@ -142,6 +143,7 @@ export class World {
     this._buildFarmPatches();
     this._buildShortcuts();
     this._buildDelve();
+    this._buildHouse();
     this._buildTomb();
     this._buildCaldera();
     this._buildManorInterior();
@@ -1150,6 +1152,8 @@ export class World {
       if (ch && tx >= ch.x0 - 2 && tx < ch.x1 + 2 && tz >= ch.z0 - 2 && tz < ch.z1 + 2) return true;
       const st = d.store;
       if (st && tx >= st.x0 - 2 && tx < st.x1 + 2 && tz >= st.z0 - 2 && tz < st.z1 + 2) return true;
+      const hp = HOUSE_PLOT; // the Hearthstead keeps its garden clear
+      if (tx >= hp.x0 - 2 && tx < hp.x1 + 2 && tz >= hp.z0 - 2 && tz < hp.z1 + 2) return true;
       for (const tn of d.towns ?? []) {
         const bb = tn.bounds;
         if (bb && tx >= bb.x0 - 2 && tx < bb.x1 + 2 && tz >= bb.z0 - 2 && tz < bb.z1 + 2) return true;
@@ -2305,6 +2309,33 @@ export class World {
         },
       }],
     });
+  }
+
+  /** The Hearthstead: the player's cottage on the east road. The shell is a
+   *  normal building; the five hotspot pedestals inside are handed to
+   *  src/house.js, which turns them into working furniture when built. */
+  _buildHouse() {
+    this._buildSimpleBuilding({
+      ...HOUSE_PLOT, name: 'The Hearthstead', color: 0x9a8a72, roofColor: 0x7a4a30,
+      examine: 'Yours. The only deed in the realm with your boot-prints on it.',
+    });
+    this.houseSpots = [];
+    const spotMat = new THREE.MeshLambertMaterial({ color: 0x6a6258, flatShading: true });
+    const y = this.getGroundHeight(149, 94);
+    this._addTorch(147.4, y + 2.1, 95.2, { strength: 0.9 }); // parlour light
+    const SPOTS = {
+      hearth: [148.0, 92.9], bench: [150.2, 92.9],
+      chest: [147.7, 95.0], trophy: [149.2, 95.3], nexus: [150.3, 95.0],
+    };
+    for (const [id, [x, z]] of Object.entries(SPOTS)) {
+      const m = this._addBox(0.6, 0.5, 0.6, x, y + 0.25, z, spotMat);
+      m.matrixAutoUpdate = true; // house.js grows it into furniture
+      m.userData.baseY = y + 0.25;
+      m.userData.spotMat = spotMat;
+      let entry;
+      entry = this.addInteractable({ kind: 'house', name: id, meshes: [m], examine: '', actions: [] });
+      this.houseSpots.push({ id, entry, mesh: m });
+    }
   }
 
   /** The Delve: a deep arena chamber (src/delve.js runs the floors) plus its
