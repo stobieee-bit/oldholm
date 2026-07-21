@@ -20,6 +20,7 @@ export const SHOPS = {
       // Herblore reagents (herbs drop from mobs; these are the buyable staples)
       ['vial_of_water', 100], ['eye_of_newt', 50], ['limpwurt_root', 30],
       ['spade', 4], // treasure trails
+      ['wheat_seed', 40], ['guam_seed', 25], // starter Farming (better seeds drop)
     ],
   },
 

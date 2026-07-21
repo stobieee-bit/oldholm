@@ -1028,6 +1028,148 @@ export const MOBS = {
     },
   },
 
+  // ---- The Undervault bestiary (crystal cavern, lv 22-73) ----
+  cave_crawler: {
+    name: 'Cave crawler',
+    examine: 'Too many legs, all of them quiet.',
+    stats: { att: 17, str: 18, def: 16, hp: 30 }, // lv 22
+    bonuses: { att: 4, str: 4, def: 4 },
+    attackType: 'stab',
+    speed: 4, aggroRadius: 5, wanderRadius: 4, respawnTicks: 45,
+    drops: [{ item: 'bones', count: 1, weight: 1 }, { item: 'coins', count: [4, 18], weight: 3 }, { item: 'guam_seed', count: 1, weight: 2 }, { weight: 2 }],
+    alwaysDrops: 1,
+    model: {
+      height: 0.6,
+      parts: [
+        { kind: 'ball', r: 0.3, at: [0, 0.32, 0], color: 0x4a4458 },
+        { kind: 'ball', r: 0.18, at: [0, 0.3, -0.34], color: 0x5a5468 },
+        { kind: 'sphere', r: 0.04, detail: 0, at: [-0.08, 0.36, -0.48], color: 0x7ac8d8 },
+        { kind: 'sphere', r: 0.04, detail: 0, at: [0.08, 0.36, -0.48], color: 0x7ac8d8 },
+        { kind: 'box', size: [0.8, 0.05, 0.05], at: [0, 0.22, 0.1], rotY: 0.5, color: 0x322e3e },
+        { kind: 'box', size: [0.8, 0.05, 0.05], at: [0, 0.22, -0.06], rotY: -0.5, color: 0x322e3e },
+        { kind: 'box', size: [0.8, 0.05, 0.05], at: [0, 0.22, -0.2], rotY: 0.4, color: 0x322e3e },
+      ],
+    },
+  },
+  crystal_scuttler: {
+    name: 'Crystal scuttler',
+    examine: 'A beetle that ate the cavern and grew opinions.',
+    stats: { att: 36, str: 38, def: 32, hp: 54 }, // lv 45
+    bonuses: { att: 8, str: 8, def: 10 },
+    attackType: 'crush',
+    speed: 5, aggroRadius: 5, wanderRadius: 4, respawnTicks: 55,
+    drops: [
+      { item: 'bones', count: 1, weight: 1 },
+      { item: 'coins', count: [10, 40], weight: 3 },
+      { item: 'uncut_sapphire', count: 1, weight: 2 },
+      { item: 'uncut_emerald', count: 1, weight: 1 },
+      { item: 'coal', count: [1, 2], weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 0.9,
+      parts: [
+        { kind: 'sphere', r: 0.42, scale: [1.2, 0.7, 1.35], at: [0, 0.42, 0], color: 0x3a3448 },
+        { kind: 'cone', r: 0.14, h: 0.5, at: [-0.16, 0.85, 0.05], color: 0x7ac8d8 },  // crystal growths
+        { kind: 'cone', r: 0.12, h: 0.42, at: [0.18, 0.8, -0.12], color: 0x9a6ad8 },
+        { kind: 'cone', r: 0.1, h: 0.34, at: [0, 0.78, 0.25], color: 0x7ac8d8 },
+        { kind: 'box', size: [0.24, 0.16, 0.2], at: [0, 0.34, -0.6], color: 0x4a4458 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.3, 0.15, 0.2], color: 0x322e3e },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.3, 0.15, 0.2], color: 0x322e3e },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.3, 0.15, -0.24], color: 0x322e3e },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.3, 0.15, -0.24], color: 0x322e3e },
+      ],
+    },
+  },
+  deep_troll: {
+    name: 'Deep troll',
+    examine: 'Never seen the sun. Would fight it if it had.',
+    stats: { att: 46, str: 48, def: 42, hp: 66 }, // lv 57
+    bonuses: { att: 12, str: 14, def: 12 },
+    attackType: 'crush',
+    speed: 6, aggroRadius: 5, wanderRadius: 4, respawnTicks: 75,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [20, 60], weight: 3 },
+      { item: 'adamantite_ore', count: 1, weight: 1 },
+      { item: 'limpwurt_root', count: 1, weight: 2 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.2,
+      parts: [
+        ...figure({ scale: 1.38, build: 1.48, headScale: 1.1, skin: 0x6a6a78, shirt: 0x55556a, sleeve: 0x55556a, pants: 0x44445a, hair: 0x3a3a4c, boot: 0x30303e, bald: true }),
+        { kind: 'sphere', r: 0.15, scale: [1, 0.65, 1], at: [-0.35, 1.86, -0.04], color: 0x7a7a8c },
+        { kind: 'sphere', r: 0.15, scale: [1, 0.65, 1], at: [0.36, 1.82, -0.04], color: 0x7a7a8c },
+        { kind: 'cone', r: 0.05, h: 0.16, rotX: 3.14, at: [-0.1, 1.58, 0.16], color: 0xd8d4e0 },
+        { kind: 'cone', r: 0.05, h: 0.16, rotX: 3.14, at: [0.1, 1.58, 0.16], color: 0xd8d4e0 },
+      ],
+    },
+  },
+  gloom_stalker: {
+    name: 'Gloom stalker',
+    examine: 'The dark between the crystals, gone hunting.',
+    stats: { att: 58, str: 62, def: 54, hp: 84 }, // lv 73
+    bonuses: { att: 16, str: 16, def: 14 },
+    attackType: 'slash',
+    speed: 4, aggroRadius: 6, wanderRadius: 5, respawnTicks: 95,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [40, 140], weight: 3 },
+      { item: 'runite_ore', count: 1, weight: 1 },
+      { item: 'ranarr', count: 1, weight: 1 },
+      { item: 'irit_seed', count: 1, weight: 1 },
+      { item: 'clue_scroll', count: 1, weight: 1 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 1.9,
+      parts: [
+        { kind: 'box', size: [0.46, 1.0, 0.3], at: [0, 1.0, 0], color: 0x1e1a28 },
+        { kind: 'box', size: [0.3, 0.3, 0.3], at: [0, 1.66, 0], color: 0x2a2438 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.08, 1.7, 0.14], color: 0x9a6ad8 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.08, 1.7, 0.14], color: 0x9a6ad8 },
+        { kind: 'box', size: [0.13, 0.85, 0.16], at: [-0.32, 0.95, 0], color: 0x16121e },
+        { kind: 'box', size: [0.13, 0.85, 0.16], at: [0.32, 0.95, 0], color: 0x16121e },
+        { kind: 'cone', r: 0.09, h: 0.5, seg: 5, rotZ: 0.5, at: [-0.2, 2.0, -0.05], color: 0x0e0a14 },
+        { kind: 'cone', r: 0.09, h: 0.5, seg: 5, rotZ: -0.5, at: [0.2, 2.0, -0.05], color: 0x0e0a14 },
+      ],
+    },
+  },
+
+  // The villain of the arc: Malgrim, master of the severed circle.
+  malgrim: {
+    name: 'Malgrim',
+    examine: 'The hand that severed the circle, the voice beneath Corvath. Done hiding.',
+    stats: { att: 70, str: 74, def: 66, hp: 220 },
+    bonuses: { att: 22, str: 22, def: 20 },
+    attackType: 'magic', attackRange: 7, projectileColor: 0x8f2fbf,
+    boss: true, enrage: 0.55, specialChance: 0.2,
+    onDeathQuest: ['the_last_circle', 2, 3],
+    speed: 4, aggroRadius: 9, wanderRadius: 2, respawnTicks: 300,
+    drops: [],
+    alwaysDrops: 0,
+    model: {
+      height: 2.15,
+      parts: [
+        { kind: 'cyl', rt: 0.2, rb: 0.5, h: 1.65, seg: 10, at: [0, 0.95, 0], color: 0x241a30 }, // great robe
+        { kind: 'sphere', r: 0.17, at: [0, 1.86, 0.02], color: 0xd6d0dc },                        // pale head
+        { kind: 'cone', r: 0.26, h: 0.5, seg: 8, at: [0, 2.12, -0.02], color: 0x1a1226 },         // high cowl
+        { kind: 'sphere', r: 0.045, detail: 0, at: [-0.07, 1.9, 0.15], color: 0x8f2fbf },         // burning eyes
+        { kind: 'sphere', r: 0.045, detail: 0, at: [0.07, 1.9, 0.15], color: 0x8f2fbf },
+        { kind: 'box', size: [0.16, 0.55, 0.05], at: [0, 1.15, 0.26], color: 0x8f2f4a },          // sigil stole
+        { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.6, rotZ: 0.2, at: [-0.3, 1.15, 0.05], color: 0x241a30 }, // sleeves
+        { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.6, rotZ: -0.2, at: [0.3, 1.15, 0.05], color: 0x241a30 },
+        { kind: 'cyl', rt: 0.035, rb: 0.035, h: 1.9, rotZ: 0.12, at: [0.44, 1.15, 0.06], color: 0x16101e }, // black staff
+        { kind: 'sphere', r: 0.11, detail: 0, at: [0.47, 2.14, 0.06], color: 0x8f2fbf },          // staff void-gem
+        // orbiting shard crown
+        { kind: 'cone', r: 0.05, h: 0.22, rotZ: 0.9, at: [-0.34, 2.2, 0], color: 0x9a6ad8 },
+        { kind: 'cone', r: 0.05, h: 0.22, rotZ: -0.9, at: [0.34, 2.24, 0], color: 0x7ac8d8 },
+        { kind: 'cone', r: 0.05, h: 0.22, rotX: 0.9, at: [0, 2.3, -0.3], color: 0x9a6ad8 },
+      ],
+    },
+  },
+
   // ---- Phase 11: quest bosses ----
   ravenmoor: {
     name: 'Lord Ravenmoor',
@@ -1167,4 +1309,14 @@ for (const [mob, item] of Object.entries(HERB_DROPS)) {
 for (const mob of ['guard', 'skeleton', 'zombie', 'hobgoblin', 'ghoul', 'moss_giant',
   'ice_fiend', 'hill_giant', 'lesser_demon', 'troll']) {
   if (MOBS[mob]) MOBS[mob].drops.push({ item: 'clue_scroll', count: 1, weight: 1 });
+}
+
+// Farming: seeds fall where the level band suits the crop (see data/farming.js).
+const SEED_DROPS = {
+  goblin: 'wheat_seed', barbarian: 'guam_seed', hobgoblin: 'tarromin_seed',
+  guard: 'harralander_seed', ghoul: 'ranarr_seed', troll: 'marrentill_seed',
+  lesser_demon: 'irit_seed', wild_dog: 'wheat_seed',
+};
+for (const [mob, seed] of Object.entries(SEED_DROPS)) {
+  if (MOBS[mob]) MOBS[mob].drops.push({ item: seed, count: [1, 2], weight: 2 });
 }

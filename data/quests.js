@@ -149,11 +149,48 @@ export const QUESTS = {
   },
 };
 
+// ---- The villain arc: Malgrim, master of the severed circle ----
+QUESTS.embers_of_malgrim = {
+  name: 'Embers of Malgrim',
+  qp: 2,
+  start: 'Speak with Inquisitor Serra outside the Corvath church.',
+  journal: {
+    1: 'Serra suspects the severed circle never died. Cull 6 Vex cultists at their shrines and bring her 3 cult sigils — by the gale altar, the manor grounds, and the Holmbridge churchyard.',
+  },
+  rewards: ['2,500 coins', '3,000 Prayer xp'],
+  rewardFn: [['item', 'coins', 2500], ['xp', 'Prayer', 3000]],
+};
+QUESTS.the_black_stair = {
+  name: 'The Black Stair',
+  qp: 2,
+  start: 'Serra has traced the cult’s tunnels to a shaft in the southern hills.',
+  journal: {
+    1: 'Find the Undervault — a shaft in the hills south of the east road — and recover the Warden’s Seal from its depths.',
+    2: 'I hold the Warden’s Seal. Serra will want it — though the gloom stalkers below deserve thinning too (slay 4).',
+  },
+  rewards: ['4,000 coins', 'A combat xp lamp', 'The Black Stair unsealed'],
+  rewardFn: [['item', 'coins', 4000], ['item', 'combat_lamp', 1]],
+};
+QUESTS.the_last_circle = {
+  name: 'The Last Circle',
+  qp: 4,
+  start: 'The Black Stair stands open. Serra asks the unthinkable: go down and finish it.',
+  journal: {
+    1: 'Descend the Black Stair beneath the Undervault and disturb Malgrim’s circle. Come armed. Come fed.',
+    2: 'Malgrim has stopped hiding. End the master of the severed circle.',
+    3: 'Malgrim is dust. Tell Serra the circle is closed for good.',
+  },
+  rewards: ["Malgrim's mantle", '2 combat xp lamps', '8,000 coins'],
+  rewardFn: [['item', 'malgrims_mantle', 1], ['item', 'combat_lamp', 2], ['item', 'coins', 8000]],
+};
+
 export const QUEST_ORDER = [
   'cooks_calamity', 'unquiet_grave', 'beads_of_the_magus', 'severed_circle', 'matter_of_colors',
   'poultrified_professor', 'lord_of_murkwell', 'squires_blunder', 'shadow_over_corvath', 'wyrm_of_ashkara',
   // Wave 3 (append-only: never reorder — save order is positional)
   'crossroads_menace', 'blight_cull',
+  // the villain arc
+  'embers_of_malgrim', 'the_black_stair', 'the_last_circle',
 ];
 
 // The Champions' Guild opens its door at this many quest points (spec §11).

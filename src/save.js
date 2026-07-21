@@ -47,7 +47,7 @@ export class SaveManager {
       // the actual revealed/dead state of every quest-hidden NPC + boss, so a
       // reload restores exactly what the player earned (no re-derivation from
       // quest stages, which can strand you between "revealed" and "complete").
-      hidden: g.npcs.mobs.filter((m) => m.def.hidden)
+      hidden: g.npcs.mobs.filter((m) => m.startsHidden)
         .map((m) => ({ id: m.defId, hid: !!m.hiddenNpc, dead: !!m.dead })),
       manor: g.world.manorPuzzle ? { ...g.world.manorPuzzle, levers: [...g.world.manorPuzzle.levers] } : null,
       kills: g.combat.kills ?? {},
@@ -55,6 +55,8 @@ export class SaveManager {
       slayer: g.slayer?.snapshot() ?? null,
       diaries: g.diaries?.snapshot() ?? null,
       clues: g.clues?.snapshot() ?? null,
+      farming: g.farming?.snapshot() ?? null,
+      siege: g.siege?.snapshot() ?? null,
     };
   }
 
@@ -115,6 +117,8 @@ export class SaveManager {
     g.slayer?.restore(data.slayer);
     g.diaries?.restore(data.diaries);
     g.clues?.restore(data.clues);
+    g.farming?.restore(data.farming);
+    g.siege?.restore(data.siege);
     g.clock.tick = data.when ?? 0;
     g.clock.gameMinutes = data.gameMinutes ?? 600;
     g.world.reconcile(g.quests, g.npcs, {

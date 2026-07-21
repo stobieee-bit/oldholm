@@ -319,6 +319,26 @@ export const REGIONS = {
       entrance: { x: 288.5, z: 104.5 }, // trapdoor by the palace
       cx: 296, cz: 118, r: 7,
     },
+    // The Undervault — a crystal cavern with the realm's safest endgame mine,
+    // and Malgrim's sealed sanctum beneath it (the villain questline).
+    undervault: {
+      entrance: { x: 170.5, z: 120.5 },   // the empty hills south of the east road
+      cx: 180, cz: 150, r: 13,
+      rocks: [
+        ['mithril', -4, -3], ['mithril', 4, -4], ['adamantite', -5, 3],
+        ['adamantite', 5, 4], ['runite', 0, 5], ['coal', -2, -5], ['coal', 2, 5],
+      ],
+      sanctum: { cx: 178, cz: 150, r: 8 },
+    },
+
+    // Farming soil patches (src/farming.js; world._buildFarmPatches).
+    farmPatches: [
+      { id: 'holm_field', x: 92.5, z: 47.5 },     // beside the windmill wheat
+      { id: 'murk_bog', x: 93.5, z: 217.5 },      // rich black bog-soil
+      { id: 'sun_oasis', x: 292.5, z: 277.5 },    // Sunmarch's watered corner
+      { id: 'ashkara_ash', x: 303.5, z: 349.5 },  // volcanic loam
+    ],
+
     // The Ashkara caldera — Cindermaw's lair (quest 10), reached by boat.
     caldera: {
       cx: 306, cz: 358, r: 8,
@@ -430,6 +450,8 @@ export const REGIONS = {
       { npc: 'skalvik_skald', x: 57.5, z: 41.5 },
       { npc: 'blight_survivor', x: 192.5, z: 32.5 }, // Brinkton, near the signpost
       { npc: 'slayer_master', x: 290.5, z: 120.5 },  // Corvath square, near the fountain
+      // The villain questline: the Inquisitor outside Corvath's church
+      { npc: 'inquisitor_serra', x: 290.5, z: 140.5 },
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).
@@ -553,6 +575,24 @@ export const REGIONS = {
       { mob: 'zarkhul', x: 296.5, z: 116.5, plane: 'corvathTomb', hidden: true },
       // The manor crypt (quest 7) — Lord Ravenmoor sleeps, awaiting a stake.
       { mob: 'ravenmoor', x: 119.5, z: 213.5, plane: 'manorCrypt', hidden: true },
+      // ---- The Undervault (new zone) + Malgrim's sanctum (villain arc) ----
+      { mob: 'cave_crawler', x: 173.5, z: 144.5, plane: 'undervault' },
+      { mob: 'cave_crawler', x: 187.5, z: 146.5, plane: 'undervault' },
+      { mob: 'cave_crawler', x: 176.5, z: 157.5, plane: 'undervault' },
+      { mob: 'crystal_scuttler', x: 184.5, z: 154.5, plane: 'undervault' },
+      { mob: 'crystal_scuttler', x: 171.5, z: 151.5, plane: 'undervault' },
+      { mob: 'crystal_scuttler', x: 188.5, z: 158.5, plane: 'undervault' },
+      { mob: 'deep_troll', x: 180.5, z: 141.5, plane: 'undervault' },
+      { mob: 'deep_troll', x: 189.5, z: 151.5, plane: 'undervault' },
+      { mob: 'gloom_stalker', x: 174.5, z: 160.5, plane: 'undervault' },
+      { mob: 'gloom_stalker', x: 190.5, z: 143.5, plane: 'undervault' },
+      { mob: 'vex_cultist', x: 175.5, z: 148.5, plane: 'sanctum' },
+      { mob: 'vex_cultist', x: 181.5, z: 152.5, plane: 'sanctum' },
+      { mob: 'malgrim', x: 178.5, z: 150.5, plane: 'sanctum', hidden: true },
+      // cult shrines on the surface (quest: Embers of Malgrim)
+      { mob: 'vex_cultist', x: 133.5, z: 45.5 },   // by the gale altar
+      { mob: 'vex_cultist', x: 111.5, z: 208.5 },  // the manor grounds
+      { mob: 'vex_cultist', x: 87.5, z: 55.5 },    // Holmbridge churchyard
       // The caldera (quest 10) — Cindermaw, the capstone wyrm.
       { mob: 'cindermaw', x: 306.5, z: 360.5, plane: 'ashkaraCaldera', hidden: true },
     ],
@@ -596,6 +636,13 @@ export const REGIONS = {
       // Wave 3: the highwaymen's stash off the crossroads (quest 11 step 2)
       { item: 'stolen_ledger', x: 226.5, z: 95.5, respawn: 120,
         onTakeQuest: ['crossroads_menace', 1, 2] },
+      // Villain arc: three defiled shrine sigils (Embers of Malgrim)…
+      { item: 'cult_sigil', x: 134.5, z: 44.5, respawn: 150 },
+      { item: 'cult_sigil', x: 110.5, z: 210.5, respawn: 150 },
+      { item: 'cult_sigil', x: 86.5, z: 56.5, respawn: 150 },
+      // …and the Warden's Seal in the Undervault (The Black Stair)
+      { item: 'wardens_seal', x: 185.5, z: 159.5, plane: 'undervault', respawn: 150,
+        onTakeQuest: ['the_black_stair', 1, 2] },
     ],
 
     spawn: { x: 67.5, z: 88.5, yaw: -Math.PI / 2 }, // castle courtyard, facing the east gate

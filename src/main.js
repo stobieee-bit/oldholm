@@ -27,6 +27,9 @@ import { Diaries } from './diaries.js';
 import { Clues } from './clues.js';
 import { TouchControls } from './touch.js';
 import { Online } from './online.js';
+import { WorldMap } from './map.js';
+import { Farming } from './farming.js';
+import { Siege } from './siege.js';
 
 export const TICK_MS = 600;
 
@@ -343,6 +346,7 @@ ui.audio = audio;
 interactions.audio = audio;
 
 const minimap = new Minimap(world, player, npcs);
+const worldMap = new WorldMap(player, world, minimap, ui);
 
 // The SaveManager reaches into every subsystem through this handle.
 const game = { player, world, clock, bank, quests, prayers, magic, market, combat, npcs, ui, slayer };
@@ -352,6 +356,12 @@ ui.diaries = diaries; // the quest panel renders diary progress
 const clues = new Clues(player, ui);
 game.clues = clues;
 ui.clues = clues; // pack-menu Read/Dig/Open actions
+const farming = new Farming(player, ui, world, clock);
+game.farming = farming;
+ui.farming = farming; // soil-patch Plant/Harvest actions
+const siege = new Siege(player, ui, npcs);
+game.siege = siege;
+dialogue.siegeRef = siege; // Warden Ashe's 'siege:start'
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas
 const touch = TouchControls.isTouchDevice()
   ? new TouchControls(canvas, player, interactions, ui) : null;
@@ -397,6 +407,8 @@ clock.on((tick) => {
   npcs.tick(tick, combat); // …then the realm answers
   tutorial.tick();         // advance the new-player onboarding
   online.tick();           // position beacon for fellow wanderers (if connected)
+  farming.updateVisuals(); // crops climb their stages
+  siege.tick();            // the gate holds, or it doesn't
   if (tick % 500 === 0) online.submitHiscore(); // refresh the board ~5-minutely
 });
 
@@ -583,7 +595,8 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
+  farming, siege,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

@@ -125,7 +125,7 @@ export class Dialogue {
       if (a === 'assign') this.slayerRef?.assign();
       else if (a === 'turnin') this.slayerRef?.turnIn();
       else if (a === 'buy') this.slayerRef?.buy(b);
-    }
+    } else if (verb === 'siege') this._deferred = () => this.siegeRef?.start();
   }
 
   /** Begin a tree with an NPC (its name is the header for npc lines). */

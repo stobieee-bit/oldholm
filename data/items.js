@@ -1033,6 +1033,47 @@ ITEMS.burnt_pie = {
   model: { kind: 'box', color: 0x3a3230, w: 0.24, h: 0.1, d: 0.24 },
 };
 
+// ---- The villain arc (Embers of Malgrim / The Black Stair / The Last Circle) ----
+ITEMS.cult_sigil = {
+  name: 'Cult sigil', examine: 'A charred disc scratched with the severed circle. It itches to be burned.',
+  value: 0, stackable: false,
+  icon: '<circle cx="12" cy="12" r="7" fill="none" stroke="#8f2f4a" stroke-width="2"/><path d="M7 12h4M13 12h4" stroke="#8f2f4a" stroke-width="2"/><path d="M12 5v-2M12 21v-2" stroke="#5a1e30" stroke-width="1.4"/>',
+  model: { kind: 'cylinder', color: 0x8f2f4a, rTop: 0.12, rBot: 0.12, h: 0.04 },
+};
+ITEMS.wardens_seal = {
+  name: "Warden's Seal", examine: 'A stone key-disc, humming with the wards that lock the Black Stair.',
+  value: 0, stackable: false,
+  icon: '<circle cx="12" cy="12" r="7.5" fill="#4a4458"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="#7ac8d8" stroke-width="1.6"/><path d="M12 4.5v15M4.5 12h15" stroke="#7ac8d8" stroke-width="0.9"/>',
+  model: { kind: 'cylinder', color: 0x4a4458, rTop: 0.14, rBot: 0.14, h: 0.05 },
+};
+ITEMS.malgrims_mantle = {
+  name: "Malgrim's mantle", examine: 'The archmage’s cowl, tamed. It drinks stray spells with quiet satisfaction.',
+  value: 6000, stackable: false,
+  slot: 'cape', reqs: {}, equipQuest: 'the_last_circle',
+  atk: [0, 0, 0, 6, 0], str: 0, def: [6, 6, 6, 10, 6],
+  icon: '<path d="M8 4h8l3 15-7 2-7-2Z" fill="#241a30"/><path d="M8 4c1.5 2 6.5 2 8 0" stroke="#8f2fbf" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2.2" fill="#8f2fbf"/>',
+  model: { kind: 'box', color: 0x241a30, w: 0.34, h: 0.05, d: 0.3 },
+};
+
+// ---- Farming: seeds for every growable crop (see data/farming.js) ----
+const SEEDS = [
+  ['wheat_seed', 'Wheat seed', 'A promise of bread.', 2, 0xd8b13a],
+  ['guam_seed', 'Guam seed', 'The humblest herb, in kernel form.', 4, 0x5a7a3a],
+  ['tarromin_seed', 'Tarromin seed', 'Sow it somewhere it can brood.', 8, 0x7a8a3a],
+  ['harralander_seed', 'Harralander seed', 'Sharp-smelling even asleep.', 14, 0x3a8a5a],
+  ['ranarr_seed', 'Ranarr seed', 'Prayers grow from small things.', 28, 0x4aa87a],
+  ['marrentill_seed', 'Marrentill seed', 'Patience in a husk.', 40, 0x3a6a8a],
+  ['irit_seed', 'Irit seed', 'It hums faintly with unspent magic.', 60, 0x6a4a8a],
+];
+for (const [id, name, examine, value, hex] of SEEDS) {
+  const css = '#' + hex.toString(16).padStart(6, '0');
+  ITEMS[id] = {
+    name, examine, value, stackable: true,
+    icon: `<ellipse cx="10" cy="14" rx="2.6" ry="3.6" transform="rotate(-20 10 14)" fill="${css}"/><ellipse cx="14.5" cy="11" rx="2.2" ry="3" transform="rotate(25 14.5 11)" fill="${css}" opacity="0.8"/>`,
+    model: { kind: 'sphere', color: hex, r: 0.06 },
+  };
+}
+
 // ---- Treasure trails: scroll -> dig trail -> casket (src/clues.js) ----
 ITEMS.clue_scroll = {
   name: 'Clue scroll', examine: 'A riddle with a shovel-shaped answer. Read it.',

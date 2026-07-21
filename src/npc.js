@@ -124,7 +124,7 @@ class Mob {
     this._deathT = 0;                     // topple animation (updateVisual runs it)
     this._deathBaseY = this.world.getGroundHeight(this.mesh.position.x, this.mesh.position.z, this.plane);
     this._deathDir = Math.random() < 0.5 ? 1 : -1;
-    this.respawnAt = tickNo + this.def.respawnTicks;
+    this.respawnAt = this.temporary ? Infinity : tickNo + this.def.respawnTicks;
     if (combat.player.target === this) combat.player.target = null;
     if (combat.kills) combat.kills[this.defId] = (combat.kills[this.defId] ?? 0) + 1;
     this.rollDrops(tickNo);
@@ -382,11 +382,14 @@ export class NPCManager {
     if (p === 'corvathTomb') return this.world.tombPlane ?? 0;
     if (p === 'manorCrypt') return this.world.manorCryptPlane ?? 0;
     if (p === 'ashkaraCaldera') return this.world.calderaPlane ?? 0;
+    if (p === 'undervault') return this.world.undervaultPlane ?? 0;
+    if (p === 'sanctum') return this.world.sanctumPlane ?? 0;
     return p ?? 0;
   }
 
-  spawnAll(ui, getCombat) {
-    const spawnOne = (defId, def, x, z, plane) => {
+  /** Spawn one mob/NPC and register its interactable. Also used dynamically
+   *  (siege waves): pass opts.temporary to skip respawn and allow removal. */
+  spawnOne(defId, def, x, z, plane, opts = {}) {
       const mob = new Mob(defId, def, { x: Math.floor(x), z: Math.floor(z) }, this.world, plane);
       const actions = [];
       if (def.talk) actions.push({
@@ -428,18 +431,31 @@ export class NPCManager {
         meshes: [mob.mesh], examine: def.examine,
         actions,
       });
-      if (def.hidden) { // quest characters awaiting their cue
+      if (def.hidden || opts.hidden) { // quest characters awaiting their cue
         mob.hiddenNpc = true;
+        mob.startsHidden = true; // save.js persists reveal/dead state for these
         mob.mesh.visible = false;
         mob.entry.hidden = true;
       }
+      if (opts.temporary) mob.temporary = true; // no respawn; culled after death
       this.mobs.push(mob);
       return mob;
-    };
+  }
+
+  spawnAll() {
+    // a spawn entry's own hidden flag counts too (quest bosses set it there)
     for (const s of this.world.def.spawns ?? [])
-      spawnOne(s.mob, MOBS[s.mob], s.x, s.z, this._resolvePlane(s.plane));
+      this.spawnOne(s.mob, MOBS[s.mob], s.x, s.z, this._resolvePlane(s.plane), { hidden: s.hidden });
     for (const s of this.world.def.npcs ?? [])
-      spawnOne(s.npc, NPCS[s.npc], s.x, s.z, this._resolvePlane(s.plane));
+      this.spawnOne(s.npc, NPCS[s.npc], s.x, s.z, this._resolvePlane(s.plane), { hidden: s.hidden });
+  }
+
+  /** Remove a (temporary) mob entirely: scene, interactables, list. */
+  remove(mob) {
+    this.world.removeInteractable?.(mob.entry);
+    mob.mesh.parent?.remove(mob.mesh);
+    const i = this.mobs.indexOf(mob);
+    if (i !== -1) this.mobs.splice(i, 1);
   }
 
   /** Reveal a hidden quest NPC (dialogue action 'unhide:<defId>'). */

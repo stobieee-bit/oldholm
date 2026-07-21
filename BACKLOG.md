@@ -20,9 +20,10 @@ Check items off as they ship; move things between sections freely.
 ## 📦 Backlog (not started)
 
 ### Content drops
-- [ ] **Grand villain questline** — a multi-part arc with a recurring antagonist and a real climax
-- [ ] **New biome + skill** — an underworld / underwater / sky zone with its own mobs; a **Farming** skill (grow your own Herblore herbs — closes that supply loop) or **Thieving** (pickpocket NPCs, loot stalls)
-- [ ] **Wave-defense minigame** — hold the Brinkton gate against the Blight for escalating waves + a point shop
+- [x] **Grand villain questline** — the Malgrim arc: Embers of Malgrim → The Black Stair → The Last Circle (Inquisitor Serra, Corvath church); ends in a lv-118 archmage boss fight in a sealed sanctum; rewards Malgrim's mantle
+- [x] **New biome + skill** — the **Undervault** crystal cavern (4 new mobs lv 22-73, endgame mine, Malgrim's sanctum below) + an 18th skill, **Farming**: 4 soil patches, 7 seed crops closing the Herblore/bread supply loops
+- [x] **Wave-defense minigame** — "hold the gate" at Brinkton (Warden Ashe, after The Blight Cull): 6 escalating Blight waves, coins per wave + a lamp for a full hold; best-wave persisted
+- [x] **World map** *(user request)* — fullscreen map on M / minimap click: baked terrain, town labels, bank marks, player arrow
 
 ### Feel & polish (deferred)
 - [ ] Weather + day/night that *affect* play (night-only mobs, rain dampening fires)

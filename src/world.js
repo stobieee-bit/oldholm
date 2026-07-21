@@ -138,6 +138,8 @@ export class World {
     this._buildMiningGuild();
     // Phase 11 dungeons & sites (build planes before mines/ground items resolve them)
     this._buildIceCave();
+    this._buildUndervault();
+    this._buildFarmPatches();
     this._buildTomb();
     this._buildCaldera();
     this._buildManorInterior();
@@ -291,6 +293,8 @@ export class World {
       if (plane === this.sewersPlane || plane === this.tombPlane) return { id: 'dungeon', name: 'Corvath Depths', theme: 'dungeon' };
       if (plane === this.manorCryptPlane || plane === this.towerBasementPlane) return { id: 'crypt', name: 'The Deep Dark', theme: 'dungeon' };
       if (plane === this.iceCavePlane) return { id: 'icecave', name: 'The Ice Cave', theme: 'dungeon' };
+      if (plane === this.undervaultPlane) return { id: 'undervault', name: 'The Undervault', theme: 'dungeon' };
+      if (plane === this.sanctumPlane) return { id: 'sanctum', name: 'Malgrim’s Sanctum', theme: 'blight' };
       if (plane === this.calderaPlane) return { id: 'caldera', name: 'Ashkara Caldera', theme: 'blight' };
       if (plane === this.guildPlane) return { id: 'guild', name: 'Mining Guild', theme: 'dungeon' };
       return { id: 'indoors', name: '', theme: 'plains' };
@@ -2208,6 +2212,118 @@ export class World {
     });
   }
 
+  /** The Undervault: a great crystal cavern with the realm's safest endgame
+   *  mine, and Malgrim's sanctum sealed below it (the villain questline). */
+  _buildUndervault() {
+    const u = this.def.undervault;
+    if (!u) return;
+    const by = -10;
+    const p = this._undergroundChamber(u.cx, u.cz, u.r, by, 0x4a4458);
+    this.undervaultPlane = p;
+    // glowing crystal spires
+    const crystal = new THREE.MeshLambertMaterial({ color: 0x7ac8d8, emissive: 0x1a4a58, flatShading: true });
+    const violet = new THREE.MeshLambertMaterial({ color: 0x9a6ad8, emissive: 0x2a1a48, flatShading: true });
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2 + 0.4;
+      const rr = u.r - 2.5 - (i % 2);
+      const cx = u.cx + 0.5 + Math.cos(a) * rr, cz = u.cz + 0.5 + Math.sin(a) * rr;
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.42, 2.2 + (i % 3) * 0.7, 5), i % 2 ? crystal : violet);
+      spike.position.set(cx, by + 1.1, cz);
+      spike.rotation.z = (i % 2 ? 1 : -1) * 0.12;
+      this.group.add(spike);
+      if (i % 2 === 0) this.lightEmitters?.push({ x: cx, y: by + 2, z: cz, strength: 0.8 });
+    }
+    // the deep mine: endgame ores without the Blight's death rule
+    this._buildOneMine({ x: u.cx, z: u.cz, rocks: u.rocks }, p);
+    this._addDungeonPortal(u.entrance.x, u.entrance.z, p, u.cx + 0.5, u.cz - u.r + 2.5, by, {
+      name: 'Undervault shaft', downExamine: 'A cold violet glow breathes up from below.',
+      downMsg: 'You descend into the Undervault. Crystal light hums around you.',
+      upMsg: 'You climb back to the honest sun.',
+    });
+
+    // ---- Malgrim's sanctum, sealed beneath (opens after The Black Stair) ----
+    const s = u.sanctum;
+    const sby = -16;
+    const sp = this._undergroundChamber(s.cx, s.cz, s.r, sby, 0x3a2434);
+    this.sanctumPlane = sp;
+    const rune = new THREE.MeshLambertMaterial({ color: 0x8f2f4a, emissive: 0x4a0f22 });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.14, 6, 20), rune);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(s.cx + 0.5, sby + 0.12, s.cz + 0.5);
+    this.group.add(ring);
+    this.addInteractable({
+      kind: 'scenery', name: 'Malgrim’s circle', meshes: [ring],
+      examine: 'The mark from the Corvath tomb — finished this time, and warm.',
+      actions: [{
+        label: 'Disturb',
+        fn: (ctx) => {
+          const st = ctx.quests?.stage('the_last_circle') ?? 0;
+          if (st < 1) { ctx.ui.chat.add('The circle thrums. Whatever sleeps here has no reason to notice you. Yet.'); return; }
+          if (st >= 2) { ctx.ui.chat.add('The circle is scuffed and dead. Its owner is awake.'); return; }
+          ctx.quests.setStage('the_last_circle', 2);
+          ctx.npcs?.unhide('malgrim');
+          ctx.ui.chat.add('You drag a boot through the chalk. The dark stands up and puts on a face.', 'system');
+          ctx.ui.audio?.sfx('quest');
+        },
+      }],
+    });
+    // the black stair: undervault -> sanctum, gated on the questline
+    const dk = new THREE.MeshLambertMaterial({ color: 0x1c1622 });
+    const stairDown = this._addBox(1.1, 0.12, 1.1, u.cx + u.r - 1.5, by + 0.07, u.cz + u.r - 1.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'The Black Stair', meshes: [stairDown],
+      examine: 'Steps of dark stone, older than the cavern around them.',
+      actions: [{
+        label: 'Descend',
+        fn: (ctx) => {
+          if ((ctx.quests?.stage('the_black_stair') ?? 0) < 100) {
+            ctx.ui.chat.add('A seal of old wards turns you gently around. Inquisitor Serra would know more.');
+            return;
+          }
+          ctx.player.setPosition(s.cx + 0.5, s.cz - s.r + 2.5, undefined, sp);
+          ctx.ui.chat.add('You descend the Black Stair. The air tastes of ash and patience.');
+        },
+      }],
+    });
+    const stairUp = this._addBox(1.1, 0.12, 1.1, s.cx + 0.5, sby + 0.07, s.cz - s.r + 1.5, dk);
+    this.addInteractable({
+      kind: 'ladder', name: 'The Black Stair', meshes: [stairUp],
+      examine: 'Up, toward the crystal light.',
+      actions: [{
+        label: 'Ascend',
+        fn: (ctx) => {
+          ctx.player.setPosition(u.cx + u.r - 1.5, u.cz + u.r - 1.5, undefined, p);
+          ctx.ui.chat.add('You climb back into the Undervault.');
+        },
+      }],
+    });
+  }
+
+  /** Soil patches for the Farming skill (src/farming.js drives growth). */
+  _buildFarmPatches() {
+    this.farmPatches = [];
+    const soil = new THREE.MeshLambertMaterial({ color: 0x4a3624, flatShading: true });
+    for (const fp of this.def.farmPatches ?? []) {
+      const y = this.getGroundHeight(fp.x, fp.z);
+      const bed = this._addBox(1.7, 0.14, 1.7, fp.x, y + 0.07, fp.z, soil);
+      const growth = new THREE.Mesh(
+        new THREE.ConeGeometry(0.4, 1.0, 6),
+        new THREE.MeshLambertMaterial({ color: 0x557a3a, flatShading: true }));
+      growth.position.set(fp.x, y + 0.6, fp.z);
+      growth.visible = false;
+      this.group.add(growth);
+      this.farmPatches.push({ id: fp.id, growth });
+      this.addInteractable({
+        kind: 'farm', name: 'Soil patch', meshes: [bed],
+        examine: 'Turned earth, hungry for seeds.',
+        actions: [
+          { label: 'Plant', fn: (ctx) => ctx.ui.farming?.plant(fp.id) },
+          { label: 'Harvest', fn: (ctx) => ctx.ui.farming?.harvest(fp.id) },
+        ],
+      });
+    }
+  }
+
   _buildTomb() {
     const t = this.def.tomb;
     if (!t) return;
@@ -3134,6 +3250,7 @@ export class World {
       towerBasement: this.towerBasementPlane, corvathSewers: this.sewersPlane,
       guild: this.guildPlane, iceCave: this.iceCavePlane, corvathTomb: this.tombPlane,
       manorCrypt: this.manorCryptPlane, ashkaraCaldera: this.calderaPlane,
+      undervault: this.undervaultPlane, sanctum: this.sanctumPlane,
     };
     return typeof key === 'string' ? (map[key] ?? 0) : (key ?? 0);
   }

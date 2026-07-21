@@ -1,0 +1,102 @@
+// OLDHOLM — map.js
+// The world map: a fullscreen overlay drawn from the minimap's baked terrain
+// with town labels, bank marks and the player arrow. M (or clicking the
+// minimap) opens it; M / Escape / ✕ closes. Movement freezes while it's open.
+
+const LABELS = [
+  { x: 56, z: 88, t: 'Holmbridge' },
+  { x: 296, z: 127, t: 'Corvath' },
+  { x: 288, z: 42, t: 'Whitehold' },
+  { x: 56, z: 32, t: 'Skalvik' },
+  { x: 194, z: 26, t: 'Brinkton' },
+  { x: 102, z: 215, t: 'Murkwell' },
+  { x: 288, z: 272, t: 'Sunmarch' },
+  { x: 182, z: 315, t: 'Gullwick' },
+  { x: 308, z: 351, t: 'Ashkara' },
+  { x: 357, z: 132, t: 'THE BLIGHT', dim: true },
+];
+
+export class WorldMap {
+  constructor(player, world, minimap, ui) {
+    this.player = player;
+    this.world = world;
+    this.minimap = minimap;
+    this.ui = ui;
+    this.open = false;
+    this.el = document.getElementById('worldmap');
+    this.canvas = document.getElementById('worldmap-canvas');
+    document.getElementById('worldmap-close')?.addEventListener('click', () => this.hide());
+    this.el?.addEventListener('mousedown', (e) => { if (e.target === this.el) this.hide(); });
+    window.addEventListener('keydown', (e) => {
+      if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName ?? '')) return;
+      if (e.code === 'KeyM' && this.player.inputEnabled && !this.ui.menu.isOpen) {
+        e.preventDefault();
+        this.open ? this.hide() : this.show();
+      } else if (e.code === 'Escape' && this.open) this.hide();
+    });
+    document.getElementById('minimap')?.addEventListener('mousedown', () => {
+      if (this.player.inputEnabled) this.show();
+    });
+  }
+
+  show() {
+    if (this.open || !this.el) return;
+    this.open = true;
+    this.player.menuOpen = true; // freeze walk + look under the overlay
+    this.player.clearKeys();
+    if (document.pointerLockElement) document.exitPointerLock();
+    this.el.classList.remove('hidden');
+    this._draw();
+  }
+
+  hide() {
+    if (!this.open) return;
+    this.open = false;
+    this.player.menuOpen = false;
+    this.el.classList.add('hidden');
+  }
+
+  _draw() {
+    const baked = this.minimap.baked;
+    if (!baked) return;
+    const S = 768; // draw resolution; CSS scales it responsively
+    this.canvas.width = S; this.canvas.height = S;
+    const ctx = this.canvas.getContext('2d');
+    const k = S / this.world.size; // tiles -> px
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(baked, 0, 0, S, S);
+    // parchment vignette
+    const grd = ctx.createRadialGradient(S / 2, S / 2, S * 0.4, S / 2, S / 2, S * 0.72);
+    grd.addColorStop(0, 'rgba(0,0,0,0)');
+    grd.addColorStop(1, 'rgba(12,10,6,0.55)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, S, S);
+
+    // banks
+    ctx.font = 'bold 13px serif';
+    ctx.textAlign = 'center';
+    for (const b of this.minimap.banks) {
+      ctx.fillStyle = '#e0b83a';
+      ctx.fillText('$', b.x * k, b.z * k + 4);
+    }
+    // town labels with a soft shadow
+    for (const l of LABELS) {
+      ctx.font = l.dim ? 'bold 13px serif' : 'bold 15px serif';
+      ctx.fillStyle = 'rgba(0,0,0,0.75)';
+      ctx.fillText(l.t, l.x * k + 1, l.z * k + 1);
+      ctx.fillStyle = l.dim ? '#b0705a' : '#ffe17d';
+      ctx.fillText(l.t, l.x * k, l.z * k);
+    }
+    // the player arrow (surface position even when in a dungeon)
+    const px = this.player.pos.x * k, pz = this.player.pos.z * k;
+    ctx.save();
+    ctx.translate(px, pz);
+    ctx.rotate(-this.player.yaw);
+    ctx.fillStyle = '#ffe15a';
+    ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(6, 7); ctx.lineTo(-6, 7); ctx.closePath();
+    ctx.stroke(); ctx.fill();
+    ctx.restore();
+  }
+}

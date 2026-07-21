@@ -480,6 +480,21 @@ export const NPCS = {
     chatter: ['Don’t look north. I looked north.', 'The Blight keeps everything you drop. Everything.'],
   },
 
+  // ---- The villain arc: Inquisitor Serra (Corvath church) ----
+  inquisitor_serra: {
+    ...base, name: 'Inquisitor Serra', examine: 'Aurel’s blade against the cults. Tired eyes, steady hands.',
+    talk: 'inquisitor_serra', wanderRadius: 0,
+    model: {
+      height: 1.66,
+      parts: [
+        ...figure({ skin: 0xc9a27a, shirt: 0xe8e2d0, sleeve: 0x8f2f4a, pants: 0x3a3632, hair: 0x2a2624, boot: 0x2a2620 }),
+        { kind: 'box', size: [0.14, 0.5, 0.04], at: [0, 1.05, 0.18], color: 0x8f2f4a },   // crimson stole
+        { kind: 'cyl', rt: 0.025, rb: 0.025, h: 0.85, rotX: 0.9, at: [-0.3, 1.0, -0.1], color: 0x6a6a72 }, // sheathed blade
+      ],
+    },
+    chatter: ['The circle was severed for a reason.', 'Malgrim is a name the dark still answers to.'],
+  },
+
   // ---- Slayer master (Corvath) ----
   slayer_master: {
     ...base, name: 'Slayer master Kr0nk', examine: 'Assigns things to kill, and counts them personally.',

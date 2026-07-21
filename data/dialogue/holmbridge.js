@@ -1027,8 +1027,18 @@ export const TREES = {
         ],
       },
       done: {
-        speaker: 'npc', text: 'The verge is quieter than it’s been in a year. Brinkton sleeps a little easier — and so, gods help me, do I.',
-        options: [{ label: 'Watch the ash, Warden.', action: 'end' }],
+        speaker: 'npc', text: 'The verge is quieter than it’s been in a year. Brinkton sleeps a little easier — and so, gods help me, do I. Though if you’re restless… the gate could always use holding.',
+        options: [
+          { label: 'The gate needs holding? I’m ready.', next: 'siege_brief' },
+          { label: 'Watch the ash, Warden.', action: 'end' },
+        ],
+      },
+      siege_brief: {
+        speaker: 'npc', text: 'Then hear it plain: I sound the horn, the Blight answers, and you hold the road east of town — wave after wave, worse each time. Coin per wave held, and something finer if you outlast the horn. Walk away from the fight and it ends.',
+        options: [
+          { label: 'Sound the horn.', actions: ['siege:start', 'end'] },
+          { label: 'Another day.', action: 'end' },
+        ],
       },
     },
   },
@@ -1094,6 +1104,94 @@ export const TREES = {
       stay: {
         speaker: 'npc', text: 'Somebody has to watch the door so it doesn’t open wider. Warden Ashe watches. I drink. Between us, Brinkton sleeps. Barely.',
         options: [{ label: 'Keep watching.', action: 'end' }],
+      },
+    },
+  },
+
+  // ---- The villain arc: Inquisitor Serra (three-quest chain; the start list
+  // checks quests in reverse progression order so each state is unambiguous) ----
+  inquisitor_serra: {
+    start: [
+      { if: { quest: 'the_last_circle', is: 3 }, node: 'lc_done' },
+      { if: { quest: 'the_last_circle', gte: 100 }, node: 'epilogue' },
+      { if: { quest: 'the_last_circle', gte: 1 }, node: 'lc_mid' },
+      { if: { quest: 'the_black_stair', is: 100 }, node: 'lc_offer' },
+      { if: { quest: 'the_black_stair', gte: 2 }, node: 'bs_return' },
+      { if: { quest: 'the_black_stair', is: 1 }, node: 'bs_mid' },
+      { if: { quest: 'embers_of_malgrim', is: 100 }, node: 'bs_offer' },
+      { if: { quest: 'embers_of_malgrim', is: 1 }, node: 'embers_mid' },
+      { node: 'intro' },
+    ],
+    nodes: {
+      intro: {
+        speaker: 'npc', text: 'You’ve the look of someone the dark hasn’t managed to eat yet. Good. I am Serra, Aurel’s Inquisitor — and I believe the severed circle still burns. Cult shrines, lit again: the gale altar, the manor grounds, our own churchyard.',
+        options: [
+          { label: 'What needs doing?', next: 'intro2' },
+          { label: 'Not my fight.', action: 'end' },
+        ],
+      },
+      intro2: {
+        speaker: 'npc', text: 'Cull six of their Vex cultists and bring me three of their sigils from the shrines. Burn the roots before the tree.',
+        options: [
+          { label: 'The circle burns out today. I accept.', actions: ['quest:embers_of_malgrim:1', 'mark:vex_cultist'], next: 'accepted' },
+          { label: 'Let me prepare first.', action: 'end' },
+        ],
+      },
+      accepted: {
+        speaker: 'npc', text: 'Aurel keep your edge. Six cultists, three sigils. I’ll be here, praying I’m wrong. I am not wrong.',
+        options: [{ label: 'To work.', action: 'end' }],
+      },
+      embers_mid: {
+        speaker: 'npc', text: 'The count so far: {kills:vex_cultist} of six cultists. Sigils in hand, or still in the dirt?',
+        options: [
+          { label: 'Done — six down, three sigils.', if: { killed: { vex_cultist: 6 }, hasCount: { cult_sigil: 3 } }, actions: ['take:cult_sigil:3', 'complete:embers_of_malgrim', 'end'] },
+          { label: 'Still hunting.', action: 'end' },
+        ],
+      },
+      bs_offer: {
+        speaker: 'npc', text: 'The sigils named a place, not a person: a shaft in the hills south of the east road. The old records call what lies under it the Undervault — and what lies under THAT, they refuse to name. Bring me the Warden’s Seal from the cavern. And the shadows there — gloom stalkers — thin them by four.',
+        options: [
+          { label: 'Into the Undervault, then.', actions: ['quest:the_black_stair:1', 'mark:gloom_stalker'], next: 'bs_go' },
+          { label: 'Below can wait.', action: 'end' },
+        ],
+      },
+      bs_go: {
+        speaker: 'npc', text: 'Take light, take food, and mind the crystal — it hums when something moves behind you.',
+        options: [{ label: 'Understood.', action: 'end' }],
+      },
+      bs_mid: {
+        speaker: 'npc', text: 'The shaft is south of the east road, in the empty hills. The Seal will be deep in the cavern — where the stalkers are thickest ({kills:gloom_stalker}/4 so far).',
+        options: [{ label: 'On it.', action: 'end' }],
+      },
+      bs_return: {
+        speaker: 'npc', text: 'The Seal — you actually… Aurel’s teeth. And the stalkers: {kills:gloom_stalker} of four thinned.',
+        options: [
+          { label: 'Here it is. Four stalkers, down.', if: { hasAll: ['wardens_seal'], killed: { gloom_stalker: 4 } }, actions: ['take:wardens_seal:1', 'complete:the_black_stair', 'end'] },
+          { label: 'Not finished below yet.', action: 'end' },
+        ],
+      },
+      lc_offer: {
+        speaker: 'npc', text: 'The Seal’s wards are broken; the Black Stair in the Undervault stands open. Beneath it, Malgrim — the hand that severed the circle, the voice your Dawnbrand silenced once already, wearing a new servant. Go down. Disturb his circle. End him. I would come, but someone must hold the prayer if you fail.',
+        options: [
+          { label: 'I’ll finish what the circle started.', actions: ['quest:the_last_circle:1'], next: 'lc_go' },
+          { label: 'I need to prepare for this one.', action: 'end' },
+        ],
+      },
+      lc_go: {
+        speaker: 'npc', text: 'Come armed. Come fed. Come back.',
+        options: [{ label: 'All three. Promise.', action: 'end' }],
+      },
+      lc_mid: {
+        speaker: 'npc', text: 'The Stair waits in the Undervault’s far corner. Scuff his circle and he will come to you — pride was always the cult’s true god.',
+        options: [{ label: 'Going.', action: 'end' }],
+      },
+      lc_done: {
+        speaker: 'npc', text: 'I felt it from here — like a held breath finally let out. Malgrim is ended. The circle is closed, truly closed, and the realm owes you a debt it will immediately forget. I won’t. Take his mantle — tamed, I promise — and this.',
+        options: [{ label: 'It was worth the climb down.', actions: ['complete:the_last_circle', 'end'] }],
+      },
+      epilogue: {
+        speaker: 'npc', text: 'Quiet, isn’t it? The shrines are cold, the Stair is just stairs. I find I don’t trust it — but that is MY burden. Yours is worn magnificently, by the way.',
+        options: [{ label: 'Stay watchful, Inquisitor.', action: 'end' }],
       },
     },
   },

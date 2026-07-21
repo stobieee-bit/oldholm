@@ -369,6 +369,28 @@
   .dlg-opt:hover { color: #fff; background: rgba(201,162,50,0.14); }
   .dlg-continue { color: #a8a184; font-size: 13px; text-align: center; padding: 4px; cursor: pointer; }
 
+  /* the world map overlay */
+  #worldmap {
+    position: fixed; inset: 0; z-index: 26; background: rgba(8, 7, 5, 0.72);
+    display: flex; align-items: center; justify-content: center; pointer-events: auto;
+  }
+  #worldmap.hidden { display: none; }
+  #worldmap-frame {
+    background: rgba(28, 26, 20, 0.97); border: 2px solid #c9a232; border-radius: 6px;
+    padding: 8px 10px 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  }
+  #worldmap-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    color: #c9a232; font-variant: small-caps; letter-spacing: 3px; font-size: 14px;
+    padding: 0 2px 6px;
+  }
+  #worldmap-close { cursor: pointer; color: #a8a184; letter-spacing: 0; }
+  #worldmap-close:hover { color: #ffe17d; }
+  #worldmap-canvas {
+    display: block; width: min(76vh, 86vw, 700px); height: min(76vh, 86vw, 700px);
+    border: 1px solid #55503c; border-radius: 3px; image-rendering: pixelated;
+  }
+
   /* new-player tutorial card (top-centre so it clears the dialogue box) */
   #tutorial {
     position: fixed; left: 50%; top: 16px; transform: translateX(-50%);
@@ -650,6 +672,17 @@
 <body>
   <canvas id="game"></canvas>
   <div id="vignette"></div>
+
+  <!-- the world map overlay (M, or click the minimap) -->
+  <div id="worldmap" class="hidden">
+    <div id="worldmap-frame">
+      <div id="worldmap-head">
+        <span>THE REALM OF OLDHOLM</span>
+        <span id="worldmap-close" title="Close (M)">✕</span>
+      </div>
+      <canvas id="worldmap-canvas"></canvas>
+    </div>
+  </div>
 
   <!-- new-player tutorial card (shown only on a fresh start) -->
   <div id="tutorial" class="hidden">
