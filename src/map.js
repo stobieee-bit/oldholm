@@ -39,6 +39,16 @@ export class WorldMap {
     document.getElementById('minimap')?.addEventListener('mousedown', () => {
       if (this.player.inputEnabled) this.show();
     });
+    // click the map to plant (or clear) a personal flag marker
+    this.canvas?.addEventListener('mousedown', (e) => {
+      const r = this.canvas.getBoundingClientRect();
+      const wx = ((e.clientX - r.left) / r.width) * this.world.size;
+      const wz = ((e.clientY - r.top) / r.height) * this.world.size;
+      const f = this.player.mapFlag;
+      if (f && Math.hypot(f.x - wx, f.z - wz) < 8) this.player.mapFlag = null; // click it away
+      else this.player.mapFlag = { x: wx, z: wz };
+      this._draw();
+    });
   }
 
   show() {
@@ -74,13 +84,30 @@ export class WorldMap {
     ctx.fillStyle = grd;
     ctx.fillRect(0, 0, S, S);
 
-    // banks
-    ctx.font = 'bold 13px serif';
+    // points of interest
     ctx.textAlign = 'center';
-    for (const b of this.minimap.banks) {
-      ctx.fillStyle = '#e0b83a';
-      ctx.fillText('$', b.x * k, b.z * k + 4);
+    const mark = (x, z, glyph, color, size = 12) => {
+      ctx.font = `bold ${size}px serif`;
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillText(glyph, x * k + 1, z * k + 5);
+      ctx.fillStyle = color;
+      ctx.fillText(glyph, x * k, z * k + 4);
+    };
+    for (const b of this.minimap.banks) mark(b.x, b.z, '$', '#e0b83a', 13);
+    const d = this.world.def;
+    if (d.galeAltar) mark(d.galeAltar.x, d.galeAltar.z, '✦', '#bfe0ec');
+    for (const a of d.glyphAltars ?? []) mark(a.x, a.z, '✦', '#bfe0ec');
+    for (const f of d.farmPatches ?? []) mark(f.x, f.z, '❀', '#7fdf5f');
+    for (const s of d.shortcuts ?? []) { mark(s.ax, s.az, '⇄', '#ffe17d', 11); mark(s.bx, s.bz, '⇄', '#ffe17d', 11); }
+    if (d.undervault) mark(d.undervault.entrance.x, d.undervault.entrance.z, '▼', '#9a6ad8', 13);
+    for (const n of d.npcs ?? []) if (n.npc === 'slayer_master') mark(n.x, n.z, '☠', '#e8e4da', 11);
+    // fellow wanderers (white), your flag (gold), your grave (red skull)
+    for (const g of this.ui.online?.ghosts?.values?.() ?? []) {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(g.group.position.x * k, g.group.position.z * k, 3, 0, Math.PI * 2); ctx.fill();
     }
+    if (this.player.mapFlag) mark(this.player.mapFlag.x, this.player.mapFlag.z, '⚑', '#ffe15a', 16);
+    if (this.player.deathSpot) mark(this.player.deathSpot.x, this.player.deathSpot.z, '☠', '#e05a4a', 15);
     // town labels with a soft shadow
     for (const l of LABELS) {
       ctx.font = l.dim ? 'bold 13px serif' : 'bold 15px serif';

@@ -130,6 +130,9 @@ export class Audio {
     this._musicNodes = [];
   }
 
+  /** Combat music intensity: 0 calm, 1 fighting, 2 boss. Set per frame. */
+  setCombat(level) { this._combat = level; }
+
   _schedule() {
     if (!this.ctx || !this.musicEnabled || !this.theme) return;
     const def = THEMES[this.theme];
@@ -147,6 +150,10 @@ export class Audio {
       if (def.swing && this._beat % 1 === 0) t += beatDur * 0.06;
       this._playTone(freq, t, len * beatDur * 0.92, def.type, 0.5);
       if (def.perc && (this._beat % 2 === 0)) this._playPerc(t);
+      // the fight underscore: a war-drum pulse while something wants you dead,
+      // doubled and deepened when that something is a boss
+      if (this._combat >= 1 && this._beat % 1 === 0) this._playWarDrum(t, this._combat >= 2);
+      if (this._combat >= 2 && this._beat % 1 === 0) this._playWarDrum(t + beatDur * 0.5, true);
       this._nextNoteTime += len * beatDur;
       this._beat += len;
       this._motifPos++;
@@ -162,6 +169,19 @@ export class Audio {
     g.gain.exponentialRampToValueAtTime(0.0008, time + dur);
     o.connect(g); g.connect(this.musicGain);
     o.start(time); o.stop(time + dur + 0.05);
+  }
+
+  _playWarDrum(time, deep) {
+    const o = this.ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(deep ? 82 : 110, time);
+    o.frequency.exponentialRampToValueAtTime(deep ? 40 : 55, time + 0.16);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.linearRampToValueAtTime(deep ? 0.2 : 0.14, time + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+    o.connect(g); g.connect(this.musicGain);
+    o.start(time); o.stop(time + 0.26);
   }
 
   _playPerc(time) {

@@ -37,8 +37,9 @@ Check items off as they ship; move things between sections freely.
 - [x] **The Delve** — endless dungeon under the Undervault: escalating floors, descend-or-leave spoils chest (pot = 60×floor²), forfeit on death/flee; best floor persisted
 - [x] **Pets** — 6 rare companions (wyrmling, void sprite, rock golem chick, heron, beaver, wild pup) from boss/monster kills and gathering; Summon/Stow from the pack, follower trails you
 - [x] **Dragonhide + Ranged completion** — dragons drop hides → tan → d'hide vambraces/chaps/body; willow + yew bows via Fletching
-- [ ] **Map & QoL bundle** — map icons + legend + flag marker, mouse sensitivity + FOV sliders, bank search + deposit-all
-- [ ] **Multiplayer aliveness** — ghost name labels, player dots on the map, emotes; world-event broadcasts (server)
-- [ ] **Gravestone deaths** — dropped items wait at a gravestone ~5 min instead of scattering
-- [ ] **Combat & boss music** — combat layer + boss stingers on the procedural audio
+- [x] **Map & QoL bundle** — world-map icons + legend (banks/altars/soil/shortcuts/Undervault/slayer) + click-to-flag marker (on minimap too), mouse sensitivity + FOV sliders, bank Deposit-pack (search already existed)
+- [x] **Multiplayer aliveness** — floating name labels over wanderers, player dots on the world map, /wave /dance /cheer /bow /cry /laugh emotes
+- [x] **Grave marker** — death drops already held 5 min; now the spot is marked ☠ on both maps until claimed or expired
+- [x] **Combat & boss music** — war-drum pulse under the region theme while something wants you dead; doubled and deepened for bosses
 - [ ] **Construction / player housing** — the big swing; a personal plane with build hotspots (multi-session)
+- [ ] *(server, later)* world-event broadcasts — realm-wide hour events (double slayer points etc.)

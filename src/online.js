@@ -159,7 +159,7 @@ export class Online {
       seen.add(p.id);
       let g = this.ghosts.get(p.id);
       if (!g) {
-        g = { group: this._makeGhost(), tx: p.x, tz: p.z, plane: p.plane };
+        g = { group: this._makeGhost(p.name), tx: p.x, tz: p.z, plane: p.plane };
         g.group.position.set(p.x, this.world.getGroundHeight(p.x, p.z, p.plane ?? 0), p.z);
         this.world.group.add(g.group);
         this.ghosts.set(p.id, g);
@@ -171,7 +171,7 @@ export class Online {
     }
   }
 
-  _makeGhost() {
+  _makeGhost(name) {
     const mat = new THREE.MeshLambertMaterial({ color: 0xc9a232, transparent: true, opacity: 0.5, flatShading: true });
     const group = new THREE.Group();
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.85, 0.26), mat);
@@ -179,6 +179,22 @@ export class Online {
     const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.15, 1), mat);
     head.position.y = 1.44;
     group.add(body, head);
+    if (name) { // a floating name label so wanderers are people, not furniture
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 64;
+      const g2 = c.getContext('2d');
+      g2.font = 'bold 30px serif';
+      g2.textAlign = 'center';
+      g2.fillStyle = 'rgba(0,0,0,0.75)';
+      g2.fillText(name, 129, 41);
+      g2.fillStyle = '#ffe17d';
+      g2.fillText(name, 128, 40);
+      const tex = new THREE.CanvasTexture(c);
+      const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+      label.scale.set(1.9, 0.48, 1);
+      label.position.y = 1.95;
+      group.add(label);
+    }
     return group;
   }
 }

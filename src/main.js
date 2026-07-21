@@ -391,6 +391,14 @@ chatInput?.addEventListener('keydown', (e) => {
   chatInput.blur(); // hand the keyboard back to the game
   if (!msg) return;
   if (!online.name()) { ui.chat.add('Set your wanderer name in the System tab to chat.', 'system'); return; }
+  // emotes: /wave etc. become third-person flourishes
+  const EMOTES = { wave: 'waves to the realm', dance: 'dances a merry jig', cheer: 'cheers!', bow: 'takes a gracious bow', cry: 'weeps dramatically', laugh: 'laughs aloud' };
+  if (msg.startsWith('/')) {
+    const key = msg.slice(1).toLowerCase().trim();
+    if (EMOTES[key]) { online.sendChat('~ ' + EMOTES[key]); return; }
+    ui.chat.add('Emotes: ' + Object.keys(EMOTES).map((e) => '/' + e).join(' '), 'system');
+    return;
+  }
   online.sendChat(msg);
 });
 const save = new SaveManager(game);
@@ -411,6 +419,13 @@ ui.graphics = {
   },
 };
 ui.graphics.set(settings.quality === 'low' ? 'low' : 'high');
+ui.graphics.setFov = (v) => {
+  camera.fov = Math.max(55, Math.min(100, v));
+  camera.updateProjectionMatrix();
+};
+ui.cameraFov = settings.fov ?? 72;
+if (settings.fov) ui.graphics.setFov(settings.fov);
+if (settings.sens) player.lookSens = settings.sens;  // mouse sensitivity multiplier
 if (ui.fx) ui.fx.colorblind = !!settings.colorblind; // accessible hitsplats
 applyBinds(settings.binds);                          // remembered key remaps
 
@@ -436,6 +451,11 @@ clock.on((tick) => {
   siege.tick();            // the gate holds, or it doesn't
   weather.tick(tick);      // rain rolls in; the night shift wakes
   delve.tick();            // the floors keep their own count
+  // the grave-marker fades once claimed (stand on it) or after five minutes
+  if (player.deathSpot && (tick > player.deathSpot.until
+    || (player.plane === player.deathSpot.plane
+      && Math.hypot(player.pos.x - player.deathSpot.x, player.pos.z - player.deathSpot.z) < 2.5)))
+    player.deathSpot = null;
   // Agility trains by travel — deliberately a slow burn (it's passive):
   // ~0.5 xp/meter at level 1 climbing to ~4/m at 99. Shortcuts pay extra.
   if (player.walkedMeters >= 12) {
@@ -621,7 +641,9 @@ function frame(now) {
   ui.setRun(player.energy, player.runOn);
   ui.setHp(player.hp, player.maxHp);
   ui.setPrayerOrb(prayers.points, prayers.maxPoints());
-  ui.updateTargetBar(pickTargetMob());
+  const foe = pickTargetMob();
+  ui.updateTargetBar(foe);
+  audio.setCombat(foe ? (foe.def?.boss ? 2 : 1) : 0); // the war-drums follow the fight
   ui.fx.update(camera);
   minimap.update();
   updateClouds(dt);

@@ -336,7 +336,7 @@ export class TabPanel {
     const persist = () => save && audio && save.saveSettings({
       volume: audio.volume, music: audio.musicEnabled, sound: audio.enabled,
       quality: this.ui.graphicsQuality ?? 'high', colorblind: !!this.ui.fx?.colorblind,
-      binds: bindsSnapshot(),
+      binds: bindsSnapshot(), sens: this.player.lookSens ?? 1, fov: this.ui.cameraFov ?? 72,
     });
 
     // sound on/off
@@ -369,6 +369,29 @@ export class TabPanel {
     volWrap.appendChild(slider);
     el.appendChild(volWrap);
 
+    // mouse sensitivity + field of view
+    const sensWrap = document.createElement('div');
+    sensWrap.className = 'sys-slider';
+    sensWrap.innerHTML = '<span>Mouse</span>';
+    const sens = document.createElement('input');
+    sens.type = 'range'; sens.min = '40'; sens.max = '200';
+    sens.value = String(Math.round((this.player.lookSens ?? 1) * 100));
+    sens.addEventListener('input', () => { this.player.lookSens = sens.value / 100; });
+    sens.addEventListener('change', persist);
+    sensWrap.appendChild(sens);
+    el.appendChild(sensWrap);
+
+    const fovWrap = document.createElement('div');
+    fovWrap.className = 'sys-slider';
+    fovWrap.innerHTML = '<span>FOV</span>';
+    const fov = document.createElement('input');
+    fov.type = 'range'; fov.min = '60'; fov.max = '100';
+    fov.value = String(this.ui.cameraFov ?? 72);
+    fov.addEventListener('input', () => { this.ui.cameraFov = +fov.value; this.ui.graphics?.setFov?.(+fov.value); });
+    fov.addEventListener('change', persist);
+    fovWrap.appendChild(fov);
+    el.appendChild(fovWrap);
+
     const saveBtn = document.createElement('button');
     saveBtn.className = 'sys-btn';
     saveBtn.textContent = 'Save & Load…';
@@ -384,7 +407,7 @@ export class TabPanel {
     const persistAll = () => save && save.saveSettings({
       volume: audio?.volume ?? 0.6, music: audio?.musicEnabled ?? true, sound: audio?.enabled ?? true,
       quality: this.ui.graphicsQuality ?? 'high', colorblind: !!this.ui.fx?.colorblind,
-      binds: bindsSnapshot(),
+      binds: bindsSnapshot(), sens: this.player.lookSens ?? 1, fov: this.ui.cameraFov ?? 72,
     });
 
     const gfxRow = document.createElement('button');
@@ -790,6 +813,7 @@ export class UI {
     document.getElementById('anvil-close').addEventListener('click', () => this.closeAnvil());
     document.getElementById('shop-close').addEventListener('click', () => this.closeShop());
     document.getElementById('bank-close').addEventListener('click', () => this.closeBank());
+    document.getElementById('bank-deposit-all')?.addEventListener('click', () => this.bank?.depositAll());
     document.getElementById('bank-search').addEventListener('input', () => this.refreshBank());
   }
 

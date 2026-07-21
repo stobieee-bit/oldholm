@@ -91,6 +91,14 @@ export class Minimap {
       else dot(v.x, v.z, 'rgba(200,90,80,0.55)', 1.8);
     }
 
+    // your flag and your grave, when placed / fresh (surface positions)
+    if (p.plane === 0) {
+      if (p.mapFlag) { const [mx, mz] = toMap(p.mapFlag.x, p.mapFlag.z);
+        if (mx >= 0 && mx <= MAP_PX && mz >= 0 && mz <= MAP_PX) { ctx.fillStyle = '#ffe15a'; ctx.font = 'bold 12px serif'; ctx.textAlign = 'center'; ctx.fillText('⚑', mx, mz + 4); } }
+      if (p.deathSpot && p.deathSpot.plane === 0) { const [mx, mz] = toMap(p.deathSpot.x, p.deathSpot.z);
+        if (mx >= 0 && mx <= MAP_PX && mz >= 0 && mz <= MAP_PX) { ctx.fillStyle = '#e05a4a'; ctx.font = 'bold 12px serif'; ctx.textAlign = 'center'; ctx.fillText('☠', mx, mz + 4); } }
+    }
+
     // the player, always centred, with a facing wedge
     const cx = MAP_PX / 2, cz = MAP_PX / 2;
     ctx.save();

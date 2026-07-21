@@ -40,6 +40,22 @@ export class Bank {
     this.ui.refreshBank();
   }
 
+  /** Sweep the whole pack into the vault (skips nothing — tools included). */
+  depositAll() {
+    const slots = this.player.inventory.slots;
+    let moved = 0;
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      if (!s) continue;
+      if (!this.vault.has(s.id) && this.vault.size >= CAPACITY) continue;
+      this.vault.set(s.id, this.count(s.id) + (s.count ?? 1));
+      slots[i] = null;
+      moved++;
+    }
+    if (moved) { this.ui.refreshInventory(); this.ui.refreshBank(); }
+    this.ui.chat.add(moved ? 'The pack empties into the vault.' : 'Your pack has nothing to give.');
+  }
+
   withdraw(id, n) {
     const have = this.count(id);
     if (have <= 0) return;

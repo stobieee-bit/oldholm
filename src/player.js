@@ -149,8 +149,9 @@ export class Player {
   }
 
   _look(dx, dy) {
-    this.yaw -= dx * MOUSE_SENS;
-    this.pitch -= dy * MOUSE_SENS;
+    const s = MOUSE_SENS * (this.lookSens ?? 1);
+    this.yaw -= dx * s;
+    this.pitch -= dy * s;
     this.pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, this.pitch));
   }
 

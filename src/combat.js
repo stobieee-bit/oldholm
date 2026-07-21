@@ -391,6 +391,10 @@ export class Combat {
         deathPlane, 0, { despawnAtTick: tickNo + 500 }); // 5 minutes of real time
     }
 
+    // a grave-marker: the maps show where your goods wait (they hold ~5 min)
+    p.deathSpot = { x: deathX, z: deathZ, plane: deathPlane, until: tickNo + 500 };
+    this.ui.chat.add('Your dropped goods wait where you fell — marked on your map for five minutes.', 'system');
+
     p.target = null;
     p.hp = p.maxHp;
     p.runOn = false;
