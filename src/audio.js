@@ -233,6 +233,15 @@ export class Audio {
       case 'levelup': this._fanfare([0, 4, 7, 12, 16], 0.11, 'square'); break;
       case 'quest': this._fanfare([0, 5, 7, 12, 14, 19], 0.13, 'triangle'); break;
       case 'error': this._blip(200, 0.12, 'sawtooth', 0.1, 140); break;
+      // ---- sounds for the newer content ----
+      case 'potion': this._blip(190, 0.18, 'sine', 0.14, 95); this._noise(0.12, 520, 0.6, 0.06); break; // glug
+      case 'enchant': this._fanfare([0, 7, 12, 19], 0.06, 'sine'); this._noise(0.32, 2400, 4, 0.05); break;
+      case 'alch': for (let i = 0; i < 5; i++) setTimeout(() => this._blip(1500 + i * 190, 0.07, 'sine', 0.08), i * 42); break;
+      case 'superheat': this._noise(0.34, 380, 0.5, 0.14); this._blip(230, 0.34, 'sawtooth', 0.1, 540); break;
+      case 'herb': this._blip(300, 0.14, 'triangle', 0.1, 380); this._noise(0.16, 720, 0.5, 0.05); break; // bubble
+      case 'bake': this._noise(0.18, 300, 0.4, 0.1); this._blip(240, 0.12, 'sine', 0.08, 185); break;
+      case 'dragonfire': this._noise(0.6, 260, 0.4, 0.22); this._blip(88, 0.6, 'sawtooth', 0.16, 58); break; // roar
+      case 'slay': this._fanfare([0, 4, 7, 11, 12, 16], 0.09, 'triangle'); break;
     }
   }
 

@@ -122,11 +122,11 @@ export class Magic {
     const item = ITEMS[slot.id];
     if (!this.canAfford(spell)) { this.ui.chat.add('You are out of glyph stones.'); this.cancelUtility(); return; }
 
-    const finish = (msg) => {
+    const finish = (msg, sound) => {
       this.consume(spell);
       this.player.addXp('Magic', spell.baseXp, this.ui);
       this.ui.fx?.xpDrop?.([['Magic', spell.baseXp]]);
-      this.audio?.sfx('teleport');
+      this.audio?.sfx(sound ?? spell.util);
       this.ui.chat.add(msg);
       this.pendingUtility = null;
       this.ui.refreshInventory();

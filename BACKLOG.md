@@ -4,7 +4,7 @@ Living list of planned / possible work. Seeded from the 2026-07-20 idea brainsto
 Check items off as they ship; move things between sections freely.
 
 ## 🔨 Building now (this batch — client-side, I deploy these fully)
-- [ ] **Sound & music** — ambient town / dungeon / Blight loops + richer combat & skill SFX (procedural WebAudio, extends `src/audio.js`)
+- [x] **Sound & music** — core system already existed (11 procedural region themes + SFX bank, spec §13); added SFX for the newer actions: potion/enchant/alch/superheat/herb/bake/dragonfire/slay
 - [ ] **New-player tutorial** — a guided intro so newcomers aren't dropped in cold
 - [ ] **Slayer-style task loop** — a Slayer master assigns "kill N of X", you earn points and spend them in an unlock shop (reuses the kill-count infra from the bounty quests)
 - [ ] **Achievement diaries** — per-region task lists with reward gear / perks

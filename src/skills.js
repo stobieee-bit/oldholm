@@ -513,6 +513,7 @@ export class Actions {
       return;
     }
     this._grant('Cooking', def.xp);
+    this.audio?.sfx('bake');
     this.ui.chat.add(`You mix the makings of ${ITEMS[recipeId].name.toLowerCase().replace('uncooked ', '')}.`);
     this.ui.refreshInventory();
   }
@@ -525,6 +526,7 @@ export class Actions {
     this._takeItems(herbId, 1);
     this._takeItems(VIAL_OF_WATER, 1);
     this._give(`${herbId}_unf`, `You steep the ${ITEMS[herbId].name.toLowerCase()} in the vial.`);
+    this.audio?.sfx('herb');
     this.ui.refreshInventory();
   }
 
@@ -541,6 +543,7 @@ export class Actions {
     this._takeItems(h.secondary, 1);
     this._give(potionId, `You mix a ${ITEMS[potionId].name.toLowerCase()}.`);
     this._grant('Herblore', h.xp);
+    this.audio?.sfx('herb');
     this.ui.refreshInventory();
   }
 

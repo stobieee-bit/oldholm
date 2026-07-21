@@ -406,7 +406,7 @@ export class Player {
     if (!def || (!def.boost && !def.restore)) return;
     this.inventory.removeSlot(slotIndex);
     this.attackCooldown = Math.max(this.attackCooldown, 3);
-    ui.audio?.sfx('eat');
+    ui.audio?.sfx('potion');
     if (def.boost) {
       const { skill, amount, ticks } = def.boost;
       this.boosts[skill] = { amount, ticksLeft: ticks }; // re-drinking refreshes, not stacks
