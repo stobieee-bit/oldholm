@@ -55,6 +55,7 @@ export class Interactions {
         this.defaultAction(this.pickAtPointer());
     });
     window.addEventListener('keydown', (e) => {
+      if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName ?? '')) return; // typing, not playing
       if (!this.player.inputEnabled || this.ui.menu.isOpen || e.repeat) return;
       if (e.code === 'KeyE') this.openMenuFor(this.pickAtPointer());
     });

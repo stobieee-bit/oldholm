@@ -1,0 +1,13 @@
+{
+  "name": "oldholm-server",
+  "version": "1.0.0",
+  "description": "OLDHOLM online services: hiscores + player presence/chat",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

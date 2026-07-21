@@ -26,6 +26,7 @@ import { Slayer } from './slayer.js';
 import { Diaries } from './diaries.js';
 import { Clues } from './clues.js';
 import { TouchControls } from './touch.js';
+import { Online } from './online.js';
 
 export const TICK_MS = 600;
 
@@ -354,6 +355,21 @@ ui.clues = clues; // pack-menu Read/Dig/Open actions
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas
 const touch = TouchControls.isTouchDevice()
   ? new TouchControls(canvas, player, interactions, ui) : null;
+// optional online services (hiscores + presence); quiet when the server's away
+const online = new Online(player, ui, world);
+ui.online = online; // System-tab Online section + chat input send path
+const chatInput = document.getElementById('chat-input');
+chatInput?.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.code === 'Escape') { chatInput.blur(); return; }
+  if (e.code !== 'Enter') return;
+  const msg = chatInput.value.trim();
+  chatInput.value = '';
+  chatInput.blur(); // hand the keyboard back to the game
+  if (!msg) return;
+  if (!online.name()) { ui.chat.add('Set your wanderer name in the System tab to chat.', 'system'); return; }
+  online.sendChat(msg);
+});
 const save = new SaveManager(game);
 
 // Restore persisted settings (volume, music toggle) BEFORE the System tab is
@@ -380,6 +396,8 @@ clock.on((tick) => {
   actions.tick(tick);      // …or keeps working…
   npcs.tick(tick, combat); // …then the realm answers
   tutorial.tick();         // advance the new-player onboarding
+  online.tick();           // position beacon for fellow wanderers (if connected)
+  if (tick % 500 === 0) online.submitHiscore(); // refresh the board ~5-minutely
 });
 
 // --- pointer lock / cursor mode ----------------------------------------------
@@ -411,6 +429,8 @@ function enterWorld(loadAuto) {
   } else {
     tutorial.maybeStart(isNewPlayer); // guide brand-new players through the basics
   }
+  online.connect();        // joins presence if a name is set (System tab)
+  online.submitHiscore();  // no-op without a name or server
   player.requestLock();
 }
 
@@ -533,6 +553,7 @@ function frame(now) {
   world.updateProjectiles(dt);
   world.updateEffects(dt);
   world.updateSpinners(dt);
+  online.update(dt); // ease fellow wanderers toward their reported spots
   interactions.updateHover();
   applyDayTint();
   updateTorchLights(dt);
@@ -562,7 +583,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

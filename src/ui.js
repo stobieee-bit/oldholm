@@ -371,6 +371,47 @@ export class TabPanel {
     note.className = 'sys-note';
     note.textContent = 'The realm autosaves every half-minute and when you leave.';
     el.appendChild(note);
+
+    // ---- online: wanderer name + hiscores (quiet when the server is away) ----
+    const online = this.ui.online;
+    if (online) {
+      const oHead = document.createElement('div');
+      oHead.className = 'combat-head';
+      oHead.innerHTML = '<div class="combat-lvl">ONLINE</div>';
+      el.appendChild(oHead);
+
+      const nameWrap = document.createElement('div');
+      nameWrap.className = 'sys-slider';
+      nameWrap.innerHTML = '<span>Name</span>';
+      const nameIn = document.createElement('input');
+      nameIn.type = 'text'; nameIn.maxLength = 16; nameIn.value = online.name();
+      nameIn.placeholder = 'wanderer name';
+      nameIn.addEventListener('change', () => {
+        online.setName(nameIn.value.trim());
+        if (online.name()) { online.connect(); online.submitHiscore(); }
+      });
+      nameWrap.appendChild(nameIn);
+      el.appendChild(nameWrap);
+
+      const board = document.createElement('div');
+      board.className = 'sys-note';
+      board.textContent = 'Hiscores: fetching…';
+      const drawBoard = async () => {
+        const data = await online.fetchHiscores();
+        if (!data) { board.textContent = 'Hiscores: the realm link is quiet (server offline).'; return; }
+        const lines = data.top.slice(0, 10)
+          .map((r, i) => `${i + 1}. ${r.name} — total ${r.total} (cb ${r.combat})`);
+        board.textContent = lines.length ? lines.join('\n') : 'Hiscores: no wanderers recorded yet.';
+        board.style.whiteSpace = 'pre-line';
+      };
+      drawBoard();
+      const refresh = document.createElement('button');
+      refresh.className = 'sys-btn';
+      refresh.textContent = 'Refresh hiscores';
+      refresh.addEventListener('click', () => { online.submitHiscore(); drawBoard(); });
+      el.appendChild(refresh);
+      el.appendChild(board);
+    }
   }
 
   renderJournal() {

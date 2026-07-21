@@ -12,10 +12,10 @@ Check items off as they ship; move things between sections freely.
 - [x] **Real boss mechanics** — quest bosses (Cindermaw/Zarkhul/Ravenmoor) now escalate: outgoing damage climbs as they weaken (+22% at half HP, +36% at quarter), ~15% chance of a ×1.7 "crushing blow", once-only phase snarls; resets each fresh fight. Per-boss `enrage`/`specialChance` overridable in data.
 - [x] **Mobile / touch controls** — floating joystick (left 40%) drives movement keys, drag-look elsewhere, short tap = act, long press = context menu; canvas-only handlers so the HUD keeps native taps; touch-aware tutorial text
 
-## 🌐 Needs a backend (your Render account to run it)
-I'll build the server + a one-click deploy blueprint (like the initial static deploy); you connect it. The client degrades gracefully when the backend is offline.
-- [ ] **Hiscores / leaderboard** — post total-level & per-skill rankings
-- [ ] **Minimal multiplayer presence** — see other players walking around + a global chat (websockets)
+## 🌐 Backend (built — needs one Render deploy to go live)
+`server/` + the `oldholm-server` service in render.yaml are ready; **sync/redeploy the Blueprint on Render to create it**. The client degrades gracefully while it's offline.
+- [x] **Hiscores / leaderboard** — POST/GET top-50 by total level; name set in System → Online; clients re-submit on visit so the board survives free-tier restarts
+- [x] **Minimal multiplayer presence** — golden ghost players eased between position beacons + join/leave notices + global chat (Enter in the chat box); ws with rate-limited relay
 
 ## 📦 Backlog (not started)
 

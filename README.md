@@ -35,6 +35,17 @@ Render gives you a public `*.onrender.com` URL to share with players. Any other
 static host (GitHub Pages, Netlify, Cloudflare Pages, plain nginx) works too —
 just serve the repo root.
 
+### Online services (optional)
+
+The blueprint also defines **`oldholm-server`** ([server/](server/)) — a tiny
+Node service for hiscores and player presence/chat. Deploying the blueprint
+again (or syncing it) creates it. The game defaults to
+`https://oldholm-server.onrender.com`; if Render gives your service a different
+URL, point the client at it once per browser via the console:
+`localStorage.setItem('oldholm_server', 'https://YOUR-URL.onrender.com')`.
+Players set a wanderer name in **System → Online** to join the board and chat.
+The game is fully playable when the server is offline.
+
 ## Tech
 
 - three.js 0.160 via CDN import map · ES modules · zero build tooling

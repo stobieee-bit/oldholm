@@ -8,3 +8,15 @@ services:
     buildCommand: "echo 'no build step'"
     # Publish the repo root; index.html is the entry point.
     staticPublishPath: .
+
+  # Optional online services: hiscores + player presence/chat. The game works
+  # fully without it (client times out quietly). Free-tier note: the service
+  # sleeps when idle and its disk is ephemeral — clients re-submit their own
+  # hiscores on every visit, so the board self-heals after restarts.
+  - type: web
+    name: oldholm-server
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
