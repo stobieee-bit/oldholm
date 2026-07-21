@@ -365,10 +365,11 @@ export class Actions {
 
   // ---- crafting: tanning, spinning, leather, gems, jewellery ---------------------
 
-  startTan() {
-    // work the first hide type in the pack (dragon hides take precedence)
-    const job = TANNING.find((t) => this._countItem(t.input) >= 1);
-    if (!job) { this.ui.chat.add('You have no hides to tan.'); return; }
+  startTan(inputId) {
+    // a chosen hide type from the rack panel, else the first in the pack
+    const job = inputId ? TANNING.find((t) => t.input === inputId)
+      : TANNING.find((t) => this._countItem(t.input) >= 1);
+    if (!job || this._countItem(job.input) < 1) { this.ui.chat.add('You have no hides to tan.'); return; }
     const haveHide = () => this._countItem(job.input) >= 1 && this._countItem('coins') >= job.coinCost;
     if (this._countItem('coins') < job.coinCost) {
       this.ui.chat.add(`The rack's absent owner expects ${job.coinCost} coin${job.coinCost > 1 ? 's' : ''} per hide. You are short.`);

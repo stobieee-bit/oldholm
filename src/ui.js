@@ -5,7 +5,7 @@
 
 import { ITEMS, METAL_SMITHING } from '../data/items.js';
 import { FIREMAKING, COOKING } from '../data/resources.js';
-import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING, BAKING, HERBLORE } from '../data/crafting.js';
+import { SMELTING, SMITHABLES, JEWELRY, LEATHER_RECIPES, FLETCHING, GEMS, STRINGING, BAKING, HERBLORE, TANNING, SPINNING } from '../data/crafting.js';
 import { SPELLS } from '../data/spells.js';
 import { PRAYERS } from '../data/prayers.js';
 import { BONES } from '../data/prayers.js';
@@ -49,7 +49,7 @@ export class Menu {
       if (e.code === 'Escape' || e.code === 'KeyE') { this.close(); }
       else if (e.code === 'ArrowDown' || e.code === 'KeyS') this._move(1);
       else if (e.code === 'ArrowUp' || e.code === 'KeyW') this._move(-1);
-      else if (e.code === 'Enter') this._pick(this.highlight);
+      else if (e.code === 'Enter' || e.code === 'NumpadEnter') this._pick(this.highlight);
       else if (/^Digit[1-9]$/.test(e.code)) this._pick(Number(e.code.slice(5)) - 1);
       e.preventDefault();
     }, true); // capture: the menu owns keys while open
@@ -1292,64 +1292,133 @@ export class UI {
     this.setHp(this.player.hp, this.player.maxHp);
   }
 
-  /** Furnace: choose a bar to smelt. */
-  openSmeltMenu(furnaceEntry) {
-    const count = (id) => this.player.inventory.slots.reduce(
-      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
-    const entries = Object.entries(SMELTING)
-      .filter(([id]) => id !== 'TICKS_PER_BAR' && typeof SMELTING[id] === 'object')
-      .map(([barId, def]) => ({
-        label: `Smelt ${ITEMS[barId].name} (lvl ${def.req})`,
-        run: () => this.actions.startSmelt(furnaceEntry, barId),
-        dim: !Object.entries(def.inputs).every(([id, n]) => count(id) >= n),
-      }));
-    this.menu.open(entries, null);
-  }
-
-  /** Furnace: jewellery casting. */
-  openJewelryMenu(furnaceEntry) {
-    const entries = Object.entries(JEWELRY).map(([rid, def]) => ({
-      label: `Craft ${ITEMS[rid].name} (lvl ${def.req})`,
-      run: () => this.actions.startJewelry(rid),
-    }));
-    this.menu.open(entries, null);
-  }
-
-  /** The anvil interface: bar -> the full smithable list with level gates. */
-  openAnvil() {
-    const count = (id) => this.player.inventory.slots.reduce(
-      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
-    const metals = Object.entries(METAL_SMITHING).filter(([, p]) => count(p.bar) > 0);
-    if (!metals.length) { this.chat.add('You have no bars to work.'); return; }
-    if (document.pointerLockElement) document.exitPointerLock(); // the anvil wants a cursor
+  /** The shared production panel: every make-station lists what it can make.
+   *  rows: [{ head }] for section headers, or [{ name, meta, can, run }] —
+   *  a locked row still shows so the player can see what they're missing. */
+  openProduction(title, rows) {
+    this.closeShop(); this.closeBank(); this.closeMarket();
+    this.closeAnvil(); // never stack two panels (or two Esc listeners)
+    if (document.pointerLockElement) document.exitPointerLock(); // panels want a cursor
     const panel = document.getElementById('anvil-panel');
+    document.getElementById('anvil-title').textContent = title;
     const body = document.getElementById('anvil-body');
-    const lvl = this.player.skillByName('Smithing').level;
+    // the panel doesn't freeze movement, so a row click must still be AT the
+    // station — otherwise you could open the rack and tan from across the realm
+    const anchor = { x: this.player.pos.x, z: this.player.pos.z, plane: this.player.plane };
     body.innerHTML = '';
-    for (const [metal, params] of metals) {
-      const head = document.createElement('div');
-      head.className = 'anvil-metal';
-      head.textContent = `${ITEMS[params.bar].name}s: ${count(params.bar)}`;
-      body.appendChild(head);
-      for (const [shapeId, shape] of Object.entries(SMITHABLES)) {
-        const req = params.reqBase + shape.off;
-        const itemId = `${metal}_${shapeId}`;
-        const row = document.createElement('div');
-        const can = lvl >= req && count(params.bar) >= shape.bars;
-        row.className = 'anvil-row' + (can ? '' : ' locked');
-        row.innerHTML = `<span>${ITEMS[itemId].name}</span>` +
-          `<span class="anvil-meta">${shape.bars} bar${shape.bars > 1 ? 's' : ''} · lvl ${req}</span>`;
-        row.addEventListener('mouseup', (e) => {
-          if (e.button !== 0) return;
-          this.closeAnvil();
-          this.actions.startSmith(metal, shapeId);
-        });
-        body.appendChild(row);
+    for (const r of rows) {
+      if (r.head !== undefined) {
+        const head = document.createElement('div');
+        head.className = 'anvil-metal';
+        head.textContent = r.head;
+        body.appendChild(head);
+        continue;
       }
+      const row = document.createElement('div');
+      row.className = 'anvil-row' + (r.can ? '' : ' locked');
+      row.innerHTML = `<span>${r.name}</span><span class="anvil-meta">${r.meta}</span>`;
+      // 'click' (not mouseup): the press that opened the panel from pointer
+      // lock began on the canvas, so its release can't ghost-fire a row.
+      // Locked rows stay inert — the meta line already says what's missing.
+      if (r.can) row.addEventListener('click', () => {
+        const p = this.player;
+        this.closeAnvil();
+        if (p.plane !== anchor.plane ||
+            Math.hypot(p.pos.x - anchor.x, p.pos.z - anchor.z) > 4) {
+          this.chat.add('You have wandered away from your work.');
+          return;
+        }
+        r.run();
+      });
+      body.appendChild(row);
     }
     panel.classList.remove('hidden');
     this._anvilEsc = (e) => { if (e.code === 'Escape') this.closeAnvil(); };
     window.addEventListener('keydown', this._anvilEsc);
+  }
+
+  _packCount(id) {
+    return this.player.inventory.slots.reduce(
+      (a, s) => a + (s && s.id === id ? (s.count ?? 1) : 0), 0);
+  }
+
+  /** Furnace: choose a bar to smelt. */
+  openSmeltMenu(furnaceEntry) {
+    const lvl = this.player.skillByName('Smithing').level;
+    const rows = Object.entries(SMELTING)
+      .filter(([, def]) => typeof def === 'object')
+      .map(([barId, def]) => {
+        const needs = Object.entries(def.inputs)
+          .map(([id, n]) => `${n} ${ITEMS[id].name.toLowerCase()}`).join(' + ');
+        return {
+          name: ITEMS[barId].name,
+          meta: `${needs} · lvl ${def.req}`,
+          can: lvl >= def.req &&
+            Object.entries(def.inputs).every(([id, n]) => this._packCount(id) >= n),
+          run: () => this.actions.startSmelt(furnaceEntry, barId),
+        };
+      });
+    this.openProduction('FURNACE — SMELTING', rows);
+  }
+
+  /** Furnace: jewellery casting. */
+  openJewelryMenu(furnaceEntry) {
+    const lvl = this.player.skillByName('Crafting').level;
+    const rows = Object.entries(JEWELRY).map(([rid, def]) => {
+      const bits = [`1 ${ITEMS[def.bar].name.toLowerCase()}`];
+      if (def.gem) bits.push(ITEMS[def.gem].name.toLowerCase());
+      return {
+        name: ITEMS[rid].name,
+        meta: `${bits.join(' + ')} · ${ITEMS[def.mould].name.toLowerCase()} · lvl ${def.req}`,
+        can: lvl >= def.req && this._packCount(def.bar) >= 1 &&
+          this._packCount(def.mould) >= 1 && (!def.gem || this._packCount(def.gem) >= 1),
+        run: () => this.actions.startJewelry(rid),
+      };
+    });
+    this.openProduction('FURNACE — JEWELLERY', rows);
+  }
+
+  /** The tanning rack: pick which hides to work. */
+  openTanMenu() {
+    const rows = TANNING.map((t) => ({
+      name: `Tan ${ITEMS[t.input].name.toLowerCase()}`,
+      meta: `have ${this._packCount(t.input)} · ${t.coinCost}c each`,
+      can: this._packCount(t.input) >= 1 && this._packCount('coins') >= t.coinCost,
+      run: () => this.actions.startTan(t.input),
+    }));
+    this.openProduction('TANNING RACK', rows);
+  }
+
+  /** The spinning wheel — one recipe today, but the wheel shows its work. */
+  openSpinMenu() {
+    this.openProduction('SPINNING WHEEL', [{
+      name: `Spin ${ITEMS[SPINNING.input].name.toLowerCase()}`,
+      meta: `have ${this._packCount(SPINNING.input)} · ${ITEMS[SPINNING.output].name.toLowerCase()}`,
+      can: this._packCount(SPINNING.input) >= 1,
+      run: () => this.actions.startSpin(),
+    }]);
+  }
+
+  /** The anvil interface: bar -> the full smithable list with level gates. */
+  openAnvil() {
+    let metals = Object.entries(METAL_SMITHING).filter(([, p]) => this._packCount(p.bar) > 0);
+    // no bars? still show the base tier so the anvil is browsable, not mute
+    if (!metals.length) metals = [['bronze', METAL_SMITHING.bronze]];
+    const lvl = this.player.skillByName('Smithing').level;
+    const rows = [];
+    for (const [metal, params] of metals) {
+      rows.push({ head: `${ITEMS[params.bar].name}s: ${this._packCount(params.bar)}` });
+      for (const [shapeId, shape] of Object.entries(SMITHABLES)) {
+        const req = params.reqBase + shape.off;
+        rows.push({
+          name: ITEMS[`${metal}_${shapeId}`].name,
+          meta: `${shape.bars} bar${shape.bars > 1 ? 's' : ''} · lvl ${req}`,
+          can: lvl >= req && this._packCount(params.bar) >= shape.bars,
+          run: () => this.actions.startSmith(metal, shapeId),
+        });
+      }
+    }
+    this.openProduction('ANVIL — SMITHING', rows);
   }
 
   closeAnvil() {
@@ -1365,11 +1434,14 @@ export class UI {
       if (s && COOKING[s.id]) raws.set(s.id, (raws.get(s.id) ?? 0) + (s.count ?? 1));
     });
     if (!raws.size) { this.chat.add('You have nothing you could cook.'); return; }
-    const entries = [...raws].map(([id, n]) => ({
-      label: `Cook ${ITEMS[id].name}` + (n > 1 ? ` (x${n})` : ''),
+    const lvl = this.player.skillByName('Cooking').level;
+    const rows = [...raws].map(([id, n]) => ({
+      name: `Cook ${ITEMS[id].name}`,
+      meta: `have ${n} · lvl ${COOKING[id].req}`,
+      can: lvl >= COOKING[id].req,
       run: () => this.actions.startCook(fireEntry, id),
     }));
-    this.menu.open(entries, null);
+    this.openProduction(fireEntry.isRange ? 'RANGE — COOKING' : 'FIRE — COOKING', rows);
   }
 
   openItemMenu(slotIndex, e) {

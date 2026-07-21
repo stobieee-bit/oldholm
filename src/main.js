@@ -313,7 +313,6 @@ combat.quests = quests;         // boss deaths advance quests
 combat.npcs = npcs;
 dialogue.quests = quests;       // stage conditions + quest actions
 dialogue.npcsRef = npcs;        // 'unhide:' summons quest characters
-dialogue.actions = actions;     // the tanner's 'tan' verb
 dialogue.combat = combat;       // 'killed' bounty conditions + 'mark' snapshots
 dialogue.slayerRef = slayer;    // Slayer master: assign/turn-in/reward-shop
 actions.quests = quests;        // range + Glyphcraft gates
@@ -386,10 +385,12 @@ const touch = TouchControls.isTouchDevice()
 const online = new Online(player, ui, world);
 ui.online = online; // System-tab Online section + chat input send path
 const chatInput = document.getElementById('chat-input');
+// no Enter key on a phone — promise what the device can deliver
+if (touch && chatInput) chatInput.placeholder = 'Tap here to chat with other wanderers…';
 chatInput?.addEventListener('keydown', (e) => {
   e.stopPropagation();
   if (e.code === 'Escape') { chatInput.blur(); return; }
-  if (e.code !== 'Enter') return;
+  if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
   const msg = chatInput.value.trim();
   chatInput.value = '';
   chatInput.blur(); // hand the keyboard back to the game
@@ -404,6 +405,18 @@ chatInput?.addEventListener('keydown', (e) => {
     return;
   }
   online.sendChat(msg);
+});
+// Enter opens the chat line, as the placeholder has always promised. Dialogue
+// swallows Enter at capture phase while open; menus and other inputs get
+// checked here so Enter never yanks focus out from under them.
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
+  if (!chatInput || !entered || ui.menu.isOpen) return;
+  const ae = document.activeElement;
+  // inputs keep their keys; buttons keep native Enter activation
+  if (ae && ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(ae.tagName)) return;
+  e.preventDefault();
+  chatInput.focus();
 });
 const save = new SaveManager(game);
 

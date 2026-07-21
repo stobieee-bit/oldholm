@@ -1073,7 +1073,7 @@ export class World {
     this.addInteractable({
       kind: 'scenery', name: 'Spinning wheel', meshes: wheelMeshes,
       examine: 'Turns fluff into thread and patience into progress.',
-      actions: [{ label: 'Spin', fn: (ctx) => ctx.actions.startSpin() }],
+      actions: [{ label: 'Spin', fn: (ctx) => ctx.ui.openSpinMenu() }],
     });
 
     // ---- the castle range (ground floor, against the south wall) ----
@@ -1787,7 +1787,7 @@ export class World {
     this.addInteractable({
       kind: 'scenery', name: 'Tanning rack', meshes,
       examine: 'Where hides go to become useful.',
-      actions: [{ label: 'Tan-hides', fn: (ctx) => ctx.actions.startTan() }],
+      actions: [{ label: 'Tan-hides', fn: (ctx) => ctx.ui.openTanMenu() }],
     });
   }
 

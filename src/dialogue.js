@@ -32,7 +32,7 @@ export class Dialogue {
       if (!this.open) return;
       e.stopImmediatePropagation?.();
       if (e.code === 'Escape') this.close();
-      else if (e.code === 'Space' || e.code === 'Enter') this._advanceOrSkip();
+      else if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') this._advanceOrSkip();
       else if (/^Digit[1-9]$/.test(e.code)) this._pick(Number(e.code.slice(5)) - 1);
       e.preventDefault();
     }, true);
@@ -97,7 +97,7 @@ export class Dialogue {
     if (verb === 'openShop') this._deferred = () => this.ui.openShop(this.npc?.def?.shop);
     else if (verb === 'openBank') this._deferred = () => this.ui.openBank();
     else if (verb === 'openMarket') this._deferred = () => this.ui.openMarket();
-    else if (verb === 'tan') this._deferred = () => this.actions?.startTan();
+    else if (verb === 'tan') this._deferred = () => this.ui.openTanMenu();
     else if (verb === 'quest') this.quests?.setStage(a, Number(b));
     else if (verb === 'complete') this.quests?.setStage(a, 100);
     else if (verb === 'give') {
