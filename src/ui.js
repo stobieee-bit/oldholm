@@ -12,6 +12,7 @@ import { BONES } from '../data/prayers.js';
 import { QUESTS, QUEST_ORDER } from '../data/quests.js';
 import { MOBS } from '../data/mobs.js';
 import { BINDS, BIND_LABELS, rebind, keyLabel, bindsSnapshot } from './keybinds.js';
+import { PETS } from '../data/pets.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1453,15 +1454,18 @@ export class UI {
       if (slot.id === 'spade') entries.push({ label: 'Dig here', run: () => this.clues.dig() });
       if (slot.id === 'casket') entries.push({ label: 'Open casket', run: () => this.clues.openCasket(slotIndex) });
     }
-    if (slot.id === 'logs') entries.push({
-      label: 'Fletch',
-      run: () => {
-        this.menu.open(Object.entries(FLETCHING.bows).map(([bowId, r]) => ({
-          label: `${ITEMS[bowId].name} (lvl ${r.req}, ${r.logs} logs)`,
-          run: () => this.actions.startFletchBow(slotIndex, bowId),
-        })), null);
-      },
-    });
+    if (['logs', 'willow_logs', 'yew_logs'].includes(slot.id)) {
+      const bows = Object.entries(FLETCHING.bows).filter(([, r]) => (r.log ?? 'logs') === slot.id);
+      if (bows.length) entries.push({
+        label: 'Fletch',
+        run: () => {
+          this.menu.open(bows.map(([bowId, r]) => ({
+            label: `${ITEMS[bowId].name} (lvl ${r.req}, ${r.logs} log${r.logs > 1 ? 's' : ''})`,
+            run: () => this.actions.startFletchBow(slotIndex, bowId),
+          })), null);
+        },
+      });
+    }
     if (slot.id.endsWith('_arrowtips')) entries.push({
       label: 'Fletch arrows',
       run: () => this.actions.startFletchArrows(slot.id),
@@ -1479,14 +1483,21 @@ export class UI {
         })), null);
       },
     });
-    if (slot.id === 'leather') entries.push({
-      label: 'Craft leather',
-      run: () => {
-        this.menu.open(Object.entries(LEATHER_RECIPES).map(([rid, r]) => ({
-          label: `${ITEMS[rid].name} (lvl ${r.req})`,
-          run: () => this.actions.startCraftLeather(rid),
-        })), null);
-      },
+    if (slot.id === 'leather' || slot.id === 'dragon_leather') {
+      const mine = Object.entries(LEATHER_RECIPES).filter(([, r]) => (r.hide ?? 'leather') === slot.id);
+      entries.push({
+        label: 'Craft ' + def.name.toLowerCase(),
+        run: () => {
+          this.menu.open(mine.map(([rid, r]) => ({
+            label: `${ITEMS[rid].name} (lvl ${r.req})`,
+            run: () => this.actions.startCraftLeather(rid),
+          })), null);
+        },
+      });
+    }
+    if (PETS[slot.id]) entries.push({
+      label: this.pets?.activePet === slot.id ? 'Stow pet' : 'Summon pet',
+      run: () => this.pets?.toggle(slot.id, this),
     });
     this.menu.open([
       ...entries,

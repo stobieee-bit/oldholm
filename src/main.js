@@ -32,6 +32,7 @@ import { Farming } from './farming.js';
 import { Siege } from './siege.js';
 import { Weather } from './weather.js';
 import { Delve } from './delve.js';
+import { Pets } from './pets.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -371,6 +372,9 @@ ui.combatRef = combat;      // the bestiary reads the kill tally
 const delve = new Delve(player, ui, npcs, world);
 game.delve = delve;
 ui.delve = delve; // the Long Stair's Enter action
+const pets = new Pets(player, world);
+game.pets = pets;
+ui.pets = pets; // pack-menu Summon/Stow
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas
 const touch = TouchControls.isTouchDevice()
   ? new TouchControls(canvas, player, interactions, ui) : null;
@@ -610,6 +614,7 @@ function frame(now) {
   world.updateSpinners(dt);
   online.update(dt); // ease fellow wanderers toward their reported spots
   weather.update(dt); // rain falls with the camera
+  pets.update(dt);    // the little companion keeps pace
   interactions.updateHover();
   applyDayTint();
   updateTorchLights(dt);
@@ -641,7 +646,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather, delve,
+  farming, siege, weather, delve, pets,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

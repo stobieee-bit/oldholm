@@ -10,6 +10,7 @@
 // Later phases add: slot, bonuses {stab,slash,crush,magic,ranged x atk/def, str, prayer}, reqs.
 
 import { HERBLORE } from './crafting.js'; // for generating herbs/unf potions
+import { PETS } from './pets.js';         // for generating pet items
 
 export const ITEMS = {
   bucket: {
@@ -1053,6 +1054,60 @@ ITEMS.malgrims_mantle = {
   atk: [0, 0, 0, 6, 0], str: 0, def: [6, 6, 6, 10, 6],
   icon: '<path d="M8 4h8l3 15-7 2-7-2Z" fill="#241a30"/><path d="M8 4c1.5 2 6.5 2 8 0" stroke="#8f2fbf" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2.2" fill="#8f2fbf"/>',
   model: { kind: 'box', color: 0x241a30, w: 0.34, h: 0.05, d: 0.3 },
+};
+
+// ---- Pets: rare companions (data/pets.js; Summon via the pack menu) ----
+for (const [id, pet] of Object.entries(PETS)) {
+  ITEMS[id] = {
+    name: pet.name, examine: pet.examine, value: 0, stackable: false,
+    icon: '<circle cx="12" cy="13" r="6" fill="#c9a232"/><circle cx="9.5" cy="11.5" r="1.2" fill="#2a2624"/><circle cx="14.5" cy="11.5" r="1.2" fill="#2a2624"/><path d="M9 15c1.5 1.5 4.5 1.5 6 0" stroke="#2a2624" stroke-width="1.1" fill="none"/><path d="M7 8l2 2M17 8l-2 2" stroke="#c9a232" stroke-width="2"/>',
+    model: { kind: 'sphere', color: 0xc9a232, r: 0.12 },
+  };
+}
+
+// ---- Dragonhide: hides -> tanned leather -> the ranged armour tier ----
+ITEMS.dragon_hide = {
+  name: 'Dragon hide', examine: 'Scaled, singed, and worth the fight it took.', value: 90, stackable: false,
+  icon: '<path d="M5 5h14l-2 3 2 3-2 3 2 3-2 3H5l2-3-2-3 2-3-2-3Z" fill="#6a8a4a"/><circle cx="10" cy="11" r="1.6" fill="#4a6a34"/><circle cx="15" cy="15" r="1.3" fill="#4a6a34"/>',
+  model: { kind: 'box', color: 0x6a8a4a, w: 0.5, h: 0.05, d: 0.4 },
+};
+ITEMS.dragon_leather = {
+  name: 'Dragon leather', examine: 'Supple now, but it remembers being armour once.', value: 130, stackable: false,
+  icon: '<path d="M5 5h14l-2 3 2 3-2 3 2 3-2 3H5l2-3-2-3 2-3-2-3Z" fill="#5a7a3e"/>',
+  model: { kind: 'box', color: 0x5a7a3e, w: 0.5, h: 0.04, d: 0.4 },
+};
+const DHIDE = [
+  ['dhide_vambraces', "D'hide vambraces", 'gloves', [0, 0, 0, -1, 9], [2, 2, 1, 4, 3], 480,
+    'Dragon-scale bracers. Arrows leave them like grudges.'],
+  ['dhide_chaps', "D'hide chaps", 'legs', [0, 0, 0, -2, 10], [6, 6, 7, 12, 10], 780,
+    'Leg-armour with a lineage.'],
+  ['dhide_body', "D'hide body", 'body', [0, 0, 0, -4, 16], [10, 9, 11, 20, 14], 1300,
+    'The archer’s answer to a platebody.'],
+];
+for (const [id, name, slot, atk, def, value, examine] of DHIDE) {
+  ITEMS[id] = {
+    name, examine, value, stackable: false,
+    slot, reqs: { Ranged: 40, Defence: 40 },
+    atk, str: 0, def,
+    icon: `<path d="M7 4h10l2 6-2 10H9L7 10Z" fill="#5a7a3e"/><path d="M12 4v16" stroke="#00000033" stroke-width="1.2"/><circle cx="10" cy="10" r="0.9" fill="#40592c"/><circle cx="14" cy="13" r="0.9" fill="#40592c"/>`,
+    model: { kind: 'box', color: 0x5a7a3e, w: 0.32, h: 0.09, d: 0.28 },
+  };
+}
+
+// ---- Tiered bows (fletched from willow / yew logs) ----
+ITEMS.willow_bow = {
+  name: 'Willow bow', examine: 'Bends like the tree that grew it, bites harder.', value: 260, stackable: false,
+  slot: 'weapon', speed: 5, styleSet: 'bow', twoHanded: true, reqs: { Ranged: 20 },
+  atk: [0, 0, 0, 0, 16], str: 0, def: [0, 0, 0, 0, 0], bowRange: 9,
+  icon: '<path d="M9 2c7 4 7 16 0 20" fill="none" stroke="#8a9a6a" stroke-width="2.2"/><path d="M9 2v20" stroke="#c9bf98" stroke-width="0.9"/>',
+  model: { kind: 'rod', color: 0x8a9a6a },
+};
+ITEMS.yew_bow = {
+  name: 'Yew bow', examine: 'Old wood, long reach, short arguments.', value: 900, stackable: false,
+  slot: 'weapon', speed: 5, styleSet: 'bow', twoHanded: true, reqs: { Ranged: 40 },
+  atk: [0, 0, 0, 0, 26], str: 0, def: [0, 0, 0, 0, 0], bowRange: 10,
+  icon: '<path d="M9 2c7 4 7 16 0 20" fill="none" stroke="#6a5a38" stroke-width="2.4"/><path d="M9 2v20" stroke="#e8dcc0" stroke-width="0.9"/>',
+  model: { kind: 'rod', color: 0x6a5a38 },
 };
 
 // ---- Farming: seeds for every growable crop (see data/farming.js) ----

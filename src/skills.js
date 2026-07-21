@@ -12,6 +12,7 @@ import {
   HERBLORE, VIAL_OF_WATER,
 } from '../data/crafting.js';
 import { BONES } from '../data/prayers.js';
+import { PET_SKILLING, PET_SKILL_CHANCE } from '../data/pets.js';
 import { GLYPHCRAFT } from '../data/quests.js';
 import { METAL_SMITHING } from '../data/items.js';
 
@@ -91,6 +92,13 @@ export class Actions {
   _grant(skillName, xp) {
     this.player.addXp(skillName, xp, this.ui);
     this.ui.fx.xpDrop([[skillName, xp]]);
+    // gathering pets: a whisper of a chance per action (data/pets.js)
+    const pet = PET_SKILLING[skillName];
+    if (pet && Math.random() < 1 / PET_SKILL_CHANCE && this.player.inventory.add(pet, 1)) {
+      this.ui.chat.add(`Something small has decided it belongs to you — ${ITEMS[pet].name.toLowerCase()}! (Summon it from your pack.)`, 'system');
+      this.ui.audio?.sfx('quest');
+      this.ui.refreshInventory();
+    }
   }
 
   _give(itemId, msg) {
@@ -358,10 +366,12 @@ export class Actions {
   // ---- crafting: tanning, spinning, leather, gems, jewellery ---------------------
 
   startTan() {
-    const haveHide = () => this._countItem(TANNING.input) >= 1 && this._countItem('coins') >= TANNING.coinCost;
-    if (this._countItem(TANNING.input) < 1) { this.ui.chat.add('You have no cowhides to tan.'); return; }
-    if (this._countItem('coins') < TANNING.coinCost) {
-      this.ui.chat.add("The rack's absent owner expects a coin per hide. You are short.");
+    // work the first hide type in the pack (dragon hides take precedence)
+    const job = TANNING.find((t) => this._countItem(t.input) >= 1);
+    if (!job) { this.ui.chat.add('You have no hides to tan.'); return; }
+    const haveHide = () => this._countItem(job.input) >= 1 && this._countItem('coins') >= job.coinCost;
+    if (this._countItem('coins') < job.coinCost) {
+      this.ui.chat.add(`The rack's absent owner expects ${job.coinCost} coin${job.coinCost > 1 ? 's' : ''} per hide. You are short.`);
       return;
     }
     let cadence = 0;
@@ -371,9 +381,9 @@ export class Actions {
       validate: haveHide,
       onTick: () => {
         if (++cadence % 2 !== 0) return;
-        this._takeItems(TANNING.input, 1);
-        this._takeItems('coins', TANNING.coinCost);
-        if (!this._give(TANNING.output, 'You tan the hide into leather.')) return;
+        this._takeItems(job.input, 1);
+        this._takeItems('coins', job.coinCost);
+        if (!this._give(job.output, `You tan the hide into ${ITEMS[job.output].name.toLowerCase()}.`)) return;
         if (!haveHide()) { this.cancel(); }
       },
     });
@@ -404,8 +414,9 @@ export class Actions {
       this.ui.chat.add(`You need a Crafting level of ${def.req} to make ${ITEMS[recipeId].name.toLowerCase()}.`);
       return;
     }
-    const have = () => this._countItem('leather') >= 1 && this._countItem('thread') >= 1;
-    if (!have()) { this.ui.chat.add('You need leather and thread for that.'); return; }
+    const hideId = def.hide ?? 'leather'; // dragonhide pieces consume dragon leather
+    const have = () => this._countItem(hideId) >= 1 && this._countItem('thread') >= 1;
+    if (!have()) { this.ui.chat.add(`You need ${ITEMS[hideId].name.toLowerCase()} and thread for that.`); return; }
     let cadence = 0;
     this._start({
       kind: 'leather',
@@ -413,7 +424,7 @@ export class Actions {
       validate: have,
       onTick: () => {
         if (++cadence % LEATHER_TICKS_PER_ITEM !== 0) return;
-        this._takeItems('leather', 1);
+        this._takeItems(hideId, 1);
         this._takeItems('thread', 1);
         if (!this._give(recipeId, 'You make ' + ITEMS[recipeId].name.toLowerCase() + '.')) return;
         this._grant('Crafting', def.xp);
@@ -563,29 +574,30 @@ export class Actions {
     this.ui.refreshInventory();
   }
 
-  /** Fletch a bow from logs (knife required). */
+  /** Fletch a bow from its log type (knife required). */
   startFletchBow(logSlotIndex, bowId) {
     const def = FLETCHING.bows[bowId];
+    const logId = def.log ?? 'logs';
     const slot = this.player.inventory.slots[logSlotIndex];
-    if (!slot || slot.id !== 'logs') return;
+    if (!slot || slot.id !== logId) return;
     if (!this.findTool('knife')) { this.ui.chat.add('You need a knife to fletch.'); return; }
     const level = this.player.skillByName('Crafting').level;
     if (level < def.req) {
       this.ui.chat.add(`You need a Crafting level of ${def.req} to fletch a ${ITEMS[bowId].name.toLowerCase()}.`);
       return;
     }
-    if (this._countItem('logs') < def.logs) {
-      this.ui.chat.add(`You need ${def.logs} logs for that.`);
+    if (this._countItem(logId) < def.logs) {
+      this.ui.chat.add(`You need ${def.logs} ${ITEMS[logId].name.toLowerCase()} for that.`);
       return;
     }
     let cadence = 0;
     this._start({
       kind: 'fletch',
       startMsg: 'You begin whittling.',
-      validate: () => this._countItem('logs') >= def.logs,
+      validate: () => this._countItem(logId) >= def.logs,
       onTick: () => {
         if (++cadence % 3 !== 0) return;
-        this._takeItems('logs', def.logs);
+        this._takeItems(logId, def.logs);
         if (!this._give(bowId, 'You carve a ' + ITEMS[bowId].name.toLowerCase() + '.')) return;
         this._grant('Crafting', def.xp);
         this.cancel(); // one bow per sitting; wood deserves respect

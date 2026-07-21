@@ -31,3 +31,14 @@ Check items off as they ship; move things between sections freely.
 - [x] Settings & accessibility — graphics High/Low (pixel ratio + sun shadows), colorblind hitsplats (orange square vs ringed dark circle), and click-to-rebind keys (walk/run/menu/map) — all persisted
 
 **Backlog complete.** Everything from the original brainstorm has shipped.
+
+## 🚀 Round 2 (2026-07-21 suggestions, approved)
+- [x] **Cloud saves** — name+PIN backup slot on the server (System → Online); localStorage stays primary
+- [x] **The Delve** — endless dungeon under the Undervault: escalating floors, descend-or-leave spoils chest (pot = 60×floor²), forfeit on death/flee; best floor persisted
+- [x] **Pets** — 6 rare companions (wyrmling, void sprite, rock golem chick, heron, beaver, wild pup) from boss/monster kills and gathering; Summon/Stow from the pack, follower trails you
+- [x] **Dragonhide + Ranged completion** — dragons drop hides → tan → d'hide vambraces/chaps/body; willow + yew bows via Fletching
+- [ ] **Map & QoL bundle** — map icons + legend + flag marker, mouse sensitivity + FOV sliders, bank search + deposit-all
+- [ ] **Multiplayer aliveness** — ghost name labels, player dots on the map, emotes; world-event broadcasts (server)
+- [ ] **Gravestone deaths** — dropped items wait at a gravestone ~5 min instead of scattering
+- [ ] **Combat & boss music** — combat layer + boss stingers on the procedural audio
+- [ ] **Construction / player housing** — the big swing; a personal plane with build hotspots (multi-session)

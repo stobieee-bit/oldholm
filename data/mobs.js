@@ -1360,3 +1360,8 @@ const SEED_DROPS = {
 for (const [mob, seed] of Object.entries(SEED_DROPS)) {
   if (MOBS[mob]) MOBS[mob].drops.push({ item: seed, count: [1, 2], weight: 2 });
 }
+
+// Dragonhide: every chromatic dragon sheds hide for the ranged armour tier.
+for (const mob of ['green_dragon', 'blue_dragon', 'red_dragon', 'black_dragon']) {
+  if (MOBS[mob]) MOBS[mob].drops.push({ item: 'dragon_hide', count: [1, 2], weight: 2 });
+}

@@ -9,6 +9,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MOBS } from '../data/mobs.js';
 import { NPCS } from '../data/npcs.js';
 import { combatLevel } from './combat.js';
+import { PET_DROPS } from '../data/pets.js';
 
 const CHASE_LIMIT = 12;   // BFS search window half-size, tiles
 const LEASH_RADIUS = 10;  // beyond this from spawn, a mob gives up and resets
@@ -18,7 +19,7 @@ const randInt = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
 
 const geoCache = new Map();
 
-function bakeMobGeometry(defId, def) {
+export function bakeMobGeometry(defId, def) {
   if (geoCache.has(defId)) return geoCache.get(defId);
   const parts = [];
   const color = new THREE.Color();
@@ -136,6 +137,13 @@ class Mob {
     if (combat.player.target === this) combat.player.target = null;
     if (combat.kills) combat.kills[this.defId] = (combat.kills[this.defId] ?? 0) + 1;
     this.rollDrops(tickNo);
+    // pets roll independently of the drop table (data/pets.js)
+    const pd = PET_DROPS[this.defId];
+    if (pd && Math.random() < pd.chance && combat.player.inventory.add(pd.pet, 1)) {
+      combat.ui.chat.add('Something crawls from the remains and adopts you — a pet! (Summon it from your pack.)', 'system');
+      combat.audio?.sfx('quest');
+      combat.ui.refreshInventory();
+    }
     const oq = this.def.onDeathQuest; // [questId, fromStage, toStage]
     if (oq && combat.quests && combat.quests.stage(oq[0]) >= oq[1])
       combat.quests.setStage(oq[0], oq[2]);

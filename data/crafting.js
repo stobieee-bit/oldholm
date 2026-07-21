@@ -54,8 +54,12 @@ export const SMITHABLES = {
 };
 export const SMITH_TICKS_PER_ITEM = 4;
 
-// Tanning: cowhide -> leather, one coin per hide (the absent owner insists).
-export const TANNING = { input: 'cowhide', output: 'leather', coinCost: 1 };
+// Tanning: hides -> leathers, coins per hide (the absent owner insists).
+// startTan works the first entry the player is carrying (dragon first).
+export const TANNING = [
+  { input: 'dragon_hide', output: 'dragon_leather', coinCost: 5 },
+  { input: 'cowhide', output: 'leather', coinCost: 1 },
+];
 
 // Leatherwork: needle in pack, one thread per item.
 export const LEATHER_RECIPES = {
@@ -65,6 +69,10 @@ export const LEATHER_RECIPES = {
   leather_vambraces: { req: 11, xp: 22 },
   leather_body:      { req: 14, xp: 25 },
   leather_chaps:     { req: 18, xp: 27 },
+  // dragonhide (consumes dragon_leather instead of leather)
+  dhide_vambraces:   { req: 57, xp: 62, hide: 'dragon_leather' },
+  dhide_chaps:       { req: 60, xp: 74, hide: 'dragon_leather' },
+  dhide_body:        { req: 63, xp: 86, hide: 'dragon_leather' },
 };
 export const LEATHER_TICKS_PER_ITEM = 3;
 
@@ -80,6 +88,8 @@ export const FLETCHING = {
   bows: {
     shortbow: { logs: 1, req: 5, xp: 10 },
     longbow: { logs: 2, req: 10, xp: 20 },
+    willow_bow: { log: 'willow_logs', logs: 1, req: 35, xp: 66 },
+    yew_bow: { log: 'yew_logs', logs: 1, req: 65, xp: 135 },
   },
   arrows: { output: 'bronze_arrow', tip: 'bronze_arrowtips', req: 1, xpEach: 0.5, batch: 10, ticks: 2 },
 };
