@@ -165,9 +165,13 @@ export class Player {
     if (this.menuOpen) { mx = 0; mz = 0; } // keys stay held; motion resumes on close
     const moving = mx !== 0 || mz !== 0;
 
-    // wading: water is passable on the surface, but at a crawl and never at a run
+    // wading: water is passable on the surface, but at a crawl and never at a
+    // run. You only wade when the ground under you actually sits at the
+    // waterline — the bridge deck crosses water-flagged tiles at height 2.05
+    // and must stay dry, full-speed footing.
     this.wading = this.plane === 0
-      && this.world.isWater(Math.floor(this.pos.x), Math.floor(this.pos.z));
+      && this.world.isWater(Math.floor(this.pos.x), Math.floor(this.pos.z))
+      && this.world.getGroundHeight(this.pos.x, this.pos.z, 0) < this.world.def.waterLevel + 0.05;
 
     if (moving) {
       const inv = 1 / Math.hypot(mx, mz);
@@ -212,8 +216,11 @@ export class Player {
     for (let tz = tz0; tz <= tz1; tz++) {
       for (let tx = tx0; tx <= tx1; tx++) {
         if (!this.world.isBlocked(tx, tz, this.plane)) continue;
-        // water tiles are blocked for mobs but wadeable for the player
-        if (this.plane === 0 && this.world.isWater(tx, tz)) continue;
+        // water tiles are blocked for mobs but wadeable for the player — only
+        // where the ground truly sits at the waterline. The bridge parapet
+        // rails are water-flagged tiles at deck height and must stay solid.
+        if (this.plane === 0 && this.world.isWater(tx, tz)
+          && this.world.getGroundHeight(tx + 0.5, tz + 0.5, 0) < this.world.def.waterLevel + 0.05) continue;
         // circle vs tile AABB
         const cx = Math.max(tx, Math.min(x, tx + 1));
         const cz = Math.max(tz, Math.min(z, tz + 1));
