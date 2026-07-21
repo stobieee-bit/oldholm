@@ -41,7 +41,7 @@ function handleHiscores(req, res, body) {
     try { d = JSON.parse(body); } catch (_) { res.statusCode = 400; res.end('{}'); return; }
     const name = cleanName(d.name);
     if (!name) { res.statusCode = 400; res.end('{}'); return; }
-    const total = clampInt(d.total, 16, 99 * 16); // 16 skills, level 1-99 each
+    const total = clampInt(d.total, 16, 99 * 24); // headroom above the current skill count
     const combat = clampInt(d.combat, 1, 126);
     const prev = board.get(name.toLowerCase());
     if (!prev || total >= prev.total) {
