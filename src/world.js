@@ -349,10 +349,16 @@ export class World {
     }
 
     // quest-hidden NPCs + bosses: apply the saved reveal/dead state verbatim.
+    // Entries and mobs pair up ordinally per defId — several hidden shrine
+    // cultists share an id, and each must get its own saved state back.
     if (Array.isArray(hidden)) {
+      const claimed = new Set();
       for (const s of hidden) {
-        const m = npcs.mobs.find((x) => x.defId === s.id);
+        // only startsHidden mobs are snapshotted, so only they may claim an
+        // entry — regular same-id mobs (dungeon cultists) must not absorb one
+        const m = npcs.mobs.find((x) => x.defId === s.id && x.startsHidden && !claimed.has(x));
         if (!m) continue;
+        claimed.add(m);
         m.hiddenNpc = s.hid;
         m.dead = s.dead;
         m.mesh.visible = !s.hid && !s.dead;
@@ -361,6 +367,9 @@ export class World {
         if (!s.hid && !s.dead && m.def.attackable !== false) { m.hp = m.maxHp; m.target = null; }
       }
     }
+    // saves from before the shrine gating carry no cultist entries — a realm
+    // already on Serra's hunt (or past it) must still find the circle out.
+    if ((quests?.stage?.('embers_of_malgrim') ?? 0) >= 1) npcs.unhide('vex_cultist');
   }
 
   /** Remove up to n coins from a player's pack (tolls, fares). */

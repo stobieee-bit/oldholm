@@ -1133,7 +1133,7 @@ export const TREES = {
       intro2: {
         speaker: 'npc', text: 'Cull six of their Vex cultists and bring me three of their sigils from the shrines. Burn the roots before the tree.',
         options: [
-          { label: 'The circle burns out today. I accept.', actions: ['quest:embers_of_malgrim:1', 'mark:vex_cultist'], next: 'accepted' },
+          { label: 'The circle burns out today. I accept.', actions: ['quest:embers_of_malgrim:1', 'mark:vex_cultist', 'unhide:vex_cultist'], next: 'accepted' },
           { label: 'Let me prepare first.', action: 'end' },
         ],
       },

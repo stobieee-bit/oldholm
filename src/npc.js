@@ -477,13 +477,15 @@ export class NPCManager {
     if (i !== -1) this.mobs.splice(i, 1);
   }
 
-  /** Reveal a hidden quest NPC (dialogue action 'unhide:<defId>'). */
+  /** Reveal hidden quest NPCs (dialogue action 'unhide:<defId>'). Reveals
+   *  every hidden mob of that id — shrine groups appear as one event. */
   unhide(defId) {
-    const mob = this.mobs.find((m) => m.defId === defId && m.hiddenNpc);
-    if (!mob) return;
-    mob.hiddenNpc = false;
-    mob.mesh.visible = true;
-    mob.entry.hidden = false;
+    for (const mob of this.mobs) {
+      if (mob.defId !== defId || !mob.hiddenNpc) continue;
+      mob.hiddenNpc = false;
+      mob.mesh.visible = true;
+      mob.entry.hidden = false;
+    }
   }
 
   tick(tickNo, combat) {

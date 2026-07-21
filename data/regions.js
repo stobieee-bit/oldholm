@@ -605,10 +605,11 @@ export const REGIONS = {
       { mob: 'vex_cultist', x: 175.5, z: 148.5, plane: 'sanctum' },
       { mob: 'vex_cultist', x: 181.5, z: 152.5, plane: 'sanctum' },
       { mob: 'malgrim', x: 178.5, z: 150.5, plane: 'sanctum', hidden: true },
-      // cult shrines on the surface (quest: Embers of Malgrim)
-      { mob: 'vex_cultist', x: 133.5, z: 45.5 },   // by the gale altar
-      { mob: 'vex_cultist', x: 111.5, z: 208.5 },  // the manor grounds
-      { mob: 'vex_cultist', x: 87.5, z: 55.5 },    // Holmbridge churchyard
+      // cult shrines on the surface — hidden until Serra's quest reveals the
+      // circle (the churchyard one used to ambush brand-new players otherwise)
+      { mob: 'vex_cultist', x: 133.5, z: 45.5, hidden: true },   // by the gale altar
+      { mob: 'vex_cultist', x: 111.5, z: 208.5, hidden: true },  // the manor grounds
+      { mob: 'vex_cultist', x: 87.5, z: 55.5, hidden: true },    // Holmbridge churchyard
       // the night shift: wraiths pace the roads from 20:00 to 05:00
       { mob: 'night_wraith', x: 160.5, z: 90.5, night: true },   // east highway
       { mob: 'night_wraith', x: 246.5, z: 100.5, night: true },  // south of the crossroads
