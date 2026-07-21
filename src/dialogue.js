@@ -67,6 +67,12 @@ export class Dialogue {
       for (const [id, n] of Object.entries(c.killed))
         if ((tally[id] ?? 0) - (base[id] ?? 0) < n) return false;
     }
+    if (c.slayer) { // 'none' | 'active' | 'done'
+      const s = this.slayerRef;
+      const state = !s?.hasTask() ? 'none' : s.complete() ? 'done' : 'active';
+      if (c.slayer !== state) return false;
+    }
+    if (c.pointsGte !== undefined && (this.slayerRef?.points ?? 0) < c.pointsGte) return false;
     return true;
   }
 
@@ -75,10 +81,15 @@ export class Dialogue {
     return (this.combat?.kills?.[id] ?? 0) - (this.combat?.killBase?.[id] ?? 0);
   }
 
-  /** Substitute live {kills:defId} tokens in node text (bounty progress). */
+  /** Substitute live {kills:defId} and {slayer:...} tokens in node text. */
   _resolveText(t) {
-    if (!t.includes('{kills:')) return t;
-    return t.replace(/\{kills:(\w+)\}/g, (_, d) => String(Math.max(0, this._killed(d))));
+    if (!t.includes('{')) return t;
+    t = t.replace(/\{kills:(\w+)\}/g, (_, d) => String(Math.max(0, this._killed(d))));
+    if (this.slayerRef) t = t.replace(/\{slayer:(\w+)\}/g, (_, k) =>
+      k === 'task' ? this.slayerRef.taskLabel()
+        : k === 'progress' ? this.slayerRef.progressLabel()
+          : k === 'points' ? String(this.slayerRef.points) : '');
+    return t;
   }
 
   _exec(act) {
@@ -110,6 +121,10 @@ export class Dialogue {
     } else if (verb === 'unhide') this.npcsRef?.unhide(a);
     else if (verb === 'mark') { // snapshot kills so a bounty counts from here
       if (this.combat) this.combat.killBase[a] = this.combat.kills[a] ?? 0;
+    } else if (verb === 'slayer') {
+      if (a === 'assign') this.slayerRef?.assign();
+      else if (a === 'turnin') this.slayerRef?.turnIn();
+      else if (a === 'buy') this.slayerRef?.buy(b);
     }
   }
 

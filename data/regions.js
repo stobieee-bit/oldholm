@@ -429,6 +429,7 @@ export const REGIONS = {
       { npc: 'skalvik_jarl', x: 53.5, z: 42.5 },   // by the Skalvik firepit
       { npc: 'skalvik_skald', x: 57.5, z: 41.5 },
       { npc: 'blight_survivor', x: 192.5, z: 32.5 }, // Brinkton, near the signpost
+      { npc: 'slayer_master', x: 290.5, z: 120.5 },  // Corvath square, near the fountain
     ],
 
     // Fishing spots hug the west edge of the channel (x derived from the river).

@@ -52,6 +52,7 @@ export class SaveManager {
       manor: g.world.manorPuzzle ? { ...g.world.manorPuzzle, levers: [...g.world.manorPuzzle.levers] } : null,
       kills: g.combat.kills ?? {},
       killBase: g.combat.killBase ?? {},
+      slayer: g.slayer?.snapshot() ?? null,
     };
   }
 
@@ -109,6 +110,7 @@ export class SaveManager {
     // world gates + quest-npc reconciliation
     g.combat.kills = data.kills ?? {};
     g.combat.killBase = data.killBase ?? {};
+    g.slayer?.restore(data.slayer);
     g.clock.tick = data.when ?? 0;
     g.clock.gameMinutes = data.gameMinutes ?? 600;
     g.world.reconcile(g.quests, g.npcs, {

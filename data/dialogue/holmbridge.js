@@ -1097,6 +1097,60 @@ export const TREES = {
       },
     },
   },
+
+  // ---- Slayer master: assign tasks, track progress, spend points ----
+  slayer_master: {
+    start: [
+      { if: { slayer: 'done' }, node: 'done' },
+      { if: { slayer: 'active' }, node: 'active' },
+      { node: 'idle' },
+    ],
+    nodes: {
+      idle: {
+        speaker: 'npc', text: 'No task, no glory. Want something to kill? You hold {slayer:points} Slayer points.',
+        options: [
+          { label: 'Give me a task.', actions: ['slayer:assign'], next: 'assigned' },
+          { label: 'Show me the rewards.', next: 'shop' },
+          { label: 'Not now.', action: 'end' },
+        ],
+      },
+      assigned: {
+        speaker: 'npc', text: 'Your task: slay {slayer:task}. Off you go — I’ll be counting.',
+        options: [{ label: 'On it.', action: 'end' }],
+      },
+      active: {
+        speaker: 'npc', text: 'Still on the job: {slayer:task}, and you’re at {slayer:progress}. Finish it before you come whining.',
+        options: [
+          { label: 'Show me the rewards.', next: 'shop' },
+          { label: 'I’ll keep at it.', action: 'end' },
+        ],
+      },
+      done: {
+        speaker: 'npc', text: 'Done already — {slayer:task}, all of them. Respect. Claim what you’ve earned.',
+        options: [
+          { label: 'Claim my reward.', actions: ['slayer:turnin'], next: 'claimed' },
+        ],
+      },
+      claimed: {
+        speaker: 'npc', text: 'Banked. You now hold {slayer:points} Slayer points. Another task, or the reward stall?',
+        options: [
+          { label: 'Assign another.', actions: ['slayer:assign'], next: 'assigned' },
+          { label: 'Show me the rewards.', next: 'shop' },
+          { label: 'Later.', action: 'end' },
+        ],
+      },
+      shop: {
+        speaker: 'npc', text: 'You hold {slayer:points} Slayer points. Spend them well — I don’t do refunds.',
+        options: [
+          { label: '2,000 coins — 3 pts', if: { pointsGte: 3 }, actions: ['slayer:buy:coins'], next: 'shop' },
+          { label: '5 prayer potions — 5 pts', if: { pointsGte: 5 }, actions: ['slayer:buy:potions'], next: 'shop' },
+          { label: '3 runite ore — 6 pts', if: { pointsGte: 6 }, actions: ['slayer:buy:ore'], next: 'shop' },
+          { label: 'A combat xp lamp — 9 pts', if: { pointsGte: 9 }, actions: ['slayer:buy:lamp'], next: 'shop' },
+          { label: 'Done browsing.', action: 'end' },
+        ],
+      },
+    },
+  },
 };
 
 // ---- Wave 5: bespoke per-shop greetings. Each NPC's `talk` id (data/npcs.js)

@@ -479,4 +479,12 @@ export const NPCS = {
     },
     chatter: ['Don’t look north. I looked north.', 'The Blight keeps everything you drop. Everything.'],
   },
+
+  // ---- Slayer master (Corvath) ----
+  slayer_master: {
+    ...base, name: 'Slayer master Kr0nk', examine: 'Assigns things to kill, and counts them personally.',
+    talk: 'slayer_master', wanderRadius: 1,
+    model: human(0x8a7a4a, 0x3a3a30, 0x2a2a22, 0x2a2624, 0x1c1a16),
+    chatter: ['No task, no glory.', 'I’ve a list. You’re on it, metaphorically.'],
+  },
 };

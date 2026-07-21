@@ -22,6 +22,7 @@ import { Minimap } from './minimap.js';
 import { SaveManager } from './save.js';
 import { TitleCastle } from './title.js';
 import { Tutorial } from './tutorial.js';
+import { Slayer } from './slayer.js';
 
 export const TICK_MS = 600;
 
@@ -290,6 +291,7 @@ const prayers = new Prayers(player, ui);
 const magic = new Magic(player, ui);
 const dialogue = new Dialogue(player, ui);
 const tutorial = new Tutorial({ player, ui, combat, dialogue });
+const slayer = new Slayer(player, ui, combat);
 const shops = new Shops(player, ui);
 const bank = new Bank(player, ui);
 const quests = new Quests(player, ui);
@@ -301,6 +303,7 @@ dialogue.quests = quests;       // stage conditions + quest actions
 dialogue.npcsRef = npcs;        // 'unhide:' summons quest characters
 dialogue.actions = actions;     // the tanner's 'tan' verb
 dialogue.combat = combat;       // 'killed' bounty conditions + 'mark' snapshots
+dialogue.slayerRef = slayer;    // Slayer master: assign/turn-in/reward-shop
 actions.quests = quests;        // range + Glyphcraft gates
 world.quests = quests;          // world interactions read quest state
 interactions.combat = combat;   // action ctx + nameplate level colors
@@ -338,7 +341,7 @@ interactions.audio = audio;
 const minimap = new Minimap(world, player, npcs);
 
 // The SaveManager reaches into every subsystem through this handle.
-const game = { player, world, clock, bank, quests, prayers, magic, market, combat, npcs, ui };
+const game = { player, world, clock, bank, quests, prayers, magic, market, combat, npcs, ui, slayer };
 const save = new SaveManager(game);
 
 // Restore persisted settings (volume, music toggle) BEFORE the System tab is
@@ -547,7 +550,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market, tutorial,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
