@@ -1098,6 +1098,43 @@ export class UI {
 
   combatLevel() { return this._combatLevelFn(); }
 
+  /** The top-centre target frame: your current foe's name, level and health.
+   *  Pass the engaged mob each frame (or null); a short linger keeps the bar
+   *  up through the killing blow so the empty bar reads as the payoff. */
+  updateTargetBar(mob) {
+    if (!this._tb) {
+      this._tb = {
+        el: document.getElementById('target-bar'),
+        name: document.getElementById('target-name'),
+        lv: document.getElementById('target-lv'),
+        fill: document.getElementById('target-fill'),
+        hp: document.getElementById('target-hp'),
+      };
+    }
+    const tb = this._tb;
+    if (!tb.el) return;
+    const now = performance.now();
+    if (mob) {
+      this._tbMob = mob;
+      if (!mob.dead) this._tbUntil = now + 1600; // refresh the linger while it lives
+    }
+    const show = mob ?? (now < (this._tbUntil ?? 0) ? this._tbMob : null);
+    if (!show) {
+      if (!tb.el.classList.contains('hidden')) tb.el.classList.add('hidden');
+      this._tbMob = null;
+      return;
+    }
+    const hp = Math.max(0, show.hp), max = show.maxHp || 1;
+    tb.el.classList.remove('hidden');
+    tb.el.classList.toggle('boss', !!show.def?.boss);
+    tb.name.childNodes[0].textContent = show.def?.name ?? '???';
+    const diff = (show.cl ?? 1) - this.combatLevel();
+    tb.lv.textContent = `(lv ${show.cl ?? '?'})`;
+    tb.lv.style.color = diff >= 4 ? '#e05a4a' : diff <= -4 ? '#7fdf5f' : '#ffe17d';
+    tb.fill.style.width = Math.round((hp / max) * 100) + '%';
+    tb.hp.textContent = `${hp} / ${max}`;
+  }
+
   setHp(hp, maxHp) {
     const pct = Math.round((hp / maxHp) * 100);
     this.hpFill.style.height = pct + '%';

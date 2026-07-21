@@ -566,6 +566,15 @@ let tickAcc = 0;
 let fpsFrames = 0, fpsLast = performance.now();
 let autosaveAcc = 0;
 
+/** The foe the target frame should show: your engaged target first, else
+ *  whichever living mob is currently coming at you (retaliators, casters). */
+function pickTargetMob() {
+  const t = player.target;
+  if (t && t.hp !== undefined && !t.hiddenNpc) return t;
+  return npcs.mobs.find((m) => m.target === 'player' && !m.dead && !m.hiddenNpc
+    && (m.plane ?? 0) === player.plane) ?? null;
+}
+
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min((now - last) / 1000, 0.1); // clamp huge tab-away deltas
@@ -592,6 +601,7 @@ function frame(now) {
   ui.setRun(player.energy, player.runOn);
   ui.setHp(player.hp, player.maxHp);
   ui.setPrayerOrb(prayers.points, prayers.maxPoints());
+  ui.updateTargetBar(pickTargetMob());
   ui.fx.update(camera);
   minimap.update();
   updateClouds(dt);
@@ -637,6 +647,7 @@ window.__OLDHOLM = {
     updateTorchLights(dt);
     ui.setHp(player.hp, player.maxHp);
     ui.setPrayerOrb(prayers.points, prayers.maxPoints());
+    ui.updateTargetBar(pickTargetMob());
     ui.fx.update(camera);
     minimap.update();
     updateClouds(dt);
