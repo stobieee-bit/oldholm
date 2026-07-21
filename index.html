@@ -350,6 +350,25 @@
   .dlg-opt:hover { color: #fff; background: rgba(201,162,50,0.14); }
   .dlg-continue { color: #a8a184; font-size: 13px; text-align: center; padding: 4px; cursor: pointer; }
 
+  /* new-player tutorial card (top-centre so it clears the dialogue box) */
+  #tutorial {
+    position: fixed; left: 50%; top: 16px; transform: translateX(-50%);
+    width: 460px; max-width: 88vw; z-index: 24;
+    background: rgba(28, 26, 20, 0.97); border: 2px solid #c9a232; border-radius: 5px;
+    padding: 9px 14px 11px; pointer-events: auto; user-select: none;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5); animation: tutIn 0.35s ease;
+  }
+  #tutorial.hidden { display: none; }
+  @keyframes tutIn { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  #tutorial-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid #55503c; padding-bottom: 4px; margin-bottom: 6px;
+  }
+  #tutorial-step { color: #c9a232; font-size: 12px; font-variant: small-caps; letter-spacing: 2px; }
+  #tutorial-skip { color: #a8a184; font-size: 12px; cursor: pointer; }
+  #tutorial-skip:hover { color: #ffe17d; }
+  #tutorial-text { color: #e8dfc0; font-size: 14px; line-height: 1.5; }
+
   /* quest journal (spec §11: red / yellow / green) */
   .quest-row {
     padding: 4px 8px; font-size: 13.5px; cursor: pointer;
@@ -612,6 +631,15 @@
 <body>
   <canvas id="game"></canvas>
   <div id="vignette"></div>
+
+  <!-- new-player tutorial card (shown only on a fresh start) -->
+  <div id="tutorial" class="hidden">
+    <div id="tutorial-head">
+      <span id="tutorial-step">Step 1 of 5</span>
+      <span id="tutorial-skip" title="Dismiss the tutorial">Skip ✕</span>
+    </div>
+    <div id="tutorial-text"></div>
+  </div>
 
   <!-- shared SVG filter: a glossy top-light + drop shadow for every item icon -->
   <svg width="0" height="0" aria-hidden="true" style="position:absolute; pointer-events:none">

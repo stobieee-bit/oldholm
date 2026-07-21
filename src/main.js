@@ -21,6 +21,7 @@ import { Audio } from './audio.js';
 import { Minimap } from './minimap.js';
 import { SaveManager } from './save.js';
 import { TitleCastle } from './title.js';
+import { Tutorial } from './tutorial.js';
 
 export const TICK_MS = 600;
 
@@ -288,6 +289,7 @@ const actions = new Actions(player, world, ui);
 const prayers = new Prayers(player, ui);
 const magic = new Magic(player, ui);
 const dialogue = new Dialogue(player, ui);
+const tutorial = new Tutorial({ player, ui, combat, dialogue });
 const shops = new Shops(player, ui);
 const bank = new Bank(player, ui);
 const quests = new Quests(player, ui);
@@ -362,6 +364,7 @@ clock.on((tick) => {
   combat.tick(tick);       // the player swings first…
   actions.tick(tick);      // …or keeps working…
   npcs.tick(tick, combat); // …then the realm answers
+  tutorial.tick();         // advance the new-player onboarding
 });
 
 // --- pointer lock / cursor mode ----------------------------------------------
@@ -378,6 +381,7 @@ titleCastle.start();
 
 // Offer "Continue" only when there's an autosave to resume.
 const continueBtn = document.getElementById('title-continue');
+const isNewPlayer = !save.hasAuto(); // captured before any save is written
 if (continueBtn && save.hasAuto()) continueBtn.classList.remove('hidden');
 
 function enterWorld(loadAuto) {
@@ -389,6 +393,8 @@ function enterWorld(loadAuto) {
   player.inputEnabled = true;
   if (loadAuto) {
     if (save.loadAuto()) ui.chat.add('Your journey resumes where you left it.', 'system');
+  } else {
+    tutorial.maybeStart(isNewPlayer); // guide brand-new players through the basics
   }
   player.requestLock();
 }
@@ -541,7 +547,7 @@ requestAnimationFrame(frame);
 // Debug/tooling handle (also used by automated playtesting).
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
-  prayers, magic, dialogue, shops, bank, quests, market,
+  prayers, magic, dialogue, shops, bank, quests, market, tutorial,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
