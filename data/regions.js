@@ -593,6 +593,11 @@ export const REGIONS = {
       { mob: 'vex_cultist', x: 133.5, z: 45.5 },   // by the gale altar
       { mob: 'vex_cultist', x: 111.5, z: 208.5 },  // the manor grounds
       { mob: 'vex_cultist', x: 87.5, z: 55.5 },    // Holmbridge churchyard
+      // the night shift: wraiths pace the roads from 20:00 to 05:00
+      { mob: 'night_wraith', x: 160.5, z: 90.5, night: true },   // east highway
+      { mob: 'night_wraith', x: 246.5, z: 100.5, night: true },  // south of the crossroads
+      { mob: 'night_wraith', x: 76.5, z: 170.5, night: true },   // the swamp road
+      { mob: 'night_wraith', x: 262.5, z: 70.5, night: true },   // the Whitehold fork
       // The caldera (quest 10) — Cindermaw, the capstone wyrm.
       { mob: 'cindermaw', x: 306.5, z: 360.5, plane: 'ashkaraCaldera', hidden: true },
     ],

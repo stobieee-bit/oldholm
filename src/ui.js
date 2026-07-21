@@ -10,6 +10,8 @@ import { SPELLS } from '../data/spells.js';
 import { PRAYERS } from '../data/prayers.js';
 import { BONES } from '../data/prayers.js';
 import { QUESTS, QUEST_ORDER } from '../data/quests.js';
+import { MOBS } from '../data/mobs.js';
+import { BINDS, BIND_LABELS, rebind, keyLabel, bindsSnapshot } from './keybinds.js';
 
 // ---------------------------------------------------------------------------
 
@@ -160,7 +162,7 @@ export class FX {
     const el = document.createElement('div'); // anchor: JS translates this
     el.className = 'hitsplat-anchor';
     const body = document.createElement('div'); // the splat: CSS pops this
-    body.className = 'hitsplat ' + (amount > 0 ? 'hs-dmg' : 'hs-zero');
+    body.className = 'hitsplat ' + (amount > 0 ? 'hs-dmg' : 'hs-zero') + (this.colorblind ? ' cb' : '');
     body.textContent = amount;
     el.appendChild(body);
     this.layer.appendChild(el);
@@ -258,6 +260,7 @@ const TABS = [
   { id: 'equipment', label: 'Gear', key: 'F5' },
   { id: 'prayer', label: 'Pray', key: 'F6' },
   { id: 'spellbook', label: 'Magic', key: 'F7' },
+  { id: 'bestiary', label: 'Log', key: 'F9' },
   { id: 'settings', label: 'System', key: 'F8' },
 ];
 
@@ -289,6 +292,7 @@ export class TabPanel {
       equipment: document.getElementById('tab-equipment'),
       prayer: document.getElementById('tab-prayer'),
       spellbook: document.getElementById('tab-spellbook'),
+      bestiary: document.getElementById('tab-bestiary'),
       settings: document.getElementById('tab-settings'),
     };
     this.selectedQuest = QUEST_ORDER[0];
@@ -328,8 +332,11 @@ export class TabPanel {
     head.innerHTML = '<div class="combat-lvl">SYSTEM</div>';
     el.appendChild(head);
 
-    const persist = () => save && audio && save.saveSettings(
-      { volume: audio.volume, music: audio.musicEnabled, sound: audio.enabled });
+    const persist = () => save && audio && save.saveSettings({
+      volume: audio.volume, music: audio.musicEnabled, sound: audio.enabled,
+      quality: this.ui.graphicsQuality ?? 'high', colorblind: !!this.ui.fx?.colorblind,
+      binds: bindsSnapshot(),
+    });
 
     // sound on/off
     const soundRow = document.createElement('button');
@@ -371,6 +378,61 @@ export class TabPanel {
     note.className = 'sys-note';
     note.textContent = 'The realm autosaves every half-minute and when you leave.';
     el.appendChild(note);
+
+    // ---- graphics + accessibility -------------------------------------------
+    const persistAll = () => save && save.saveSettings({
+      volume: audio?.volume ?? 0.6, music: audio?.musicEnabled ?? true, sound: audio?.enabled ?? true,
+      quality: this.ui.graphicsQuality ?? 'high', colorblind: !!this.ui.fx?.colorblind,
+      binds: bindsSnapshot(),
+    });
+
+    const gfxRow = document.createElement('button');
+    gfxRow.className = 'sys-toggle';
+    const drawGfx = () => { gfxRow.textContent = 'Graphics: ' + ((this.ui.graphicsQuality ?? 'high') === 'high' ? 'High' : 'Low (fast)'); };
+    drawGfx();
+    gfxRow.addEventListener('click', () => {
+      const q = (this.ui.graphicsQuality ?? 'high') === 'high' ? 'low' : 'high';
+      this.ui.graphics?.set(q);
+      drawGfx(); persistAll();
+    });
+    el.appendChild(gfxRow);
+
+    const cbRow = document.createElement('button');
+    cbRow.className = 'sys-toggle';
+    const drawCb = () => { cbRow.textContent = 'Colorblind hitsplats: ' + (this.ui.fx?.colorblind ? 'On' : 'Off');
+      cbRow.classList.toggle('off', !this.ui.fx?.colorblind); };
+    drawCb();
+    cbRow.addEventListener('click', () => {
+      if (this.ui.fx) this.ui.fx.colorblind = !this.ui.fx.colorblind;
+      drawCb(); persistAll();
+    });
+    el.appendChild(cbRow);
+
+    // ---- keybinds: click a row, press the new key ----------------------------
+    const kbHead = document.createElement('div');
+    kbHead.className = 'combat-head';
+    kbHead.innerHTML = '<div class="combat-lvl">KEYS</div>';
+    el.appendChild(kbHead);
+    for (const action of Object.keys(BINDS)) {
+      const row = document.createElement('button');
+      row.className = 'sys-toggle';
+      const draw = (listening) => {
+        row.textContent = `${BIND_LABELS[action]}: ${listening ? 'press a key…' : keyLabel(BINDS[action][0])}`;
+      };
+      draw(false);
+      row.addEventListener('click', () => {
+        draw(true);
+        const capture = (e) => {
+          e.preventDefault(); e.stopPropagation();
+          window.removeEventListener('keydown', capture, true);
+          if (e.code !== 'Escape') rebind(action, e.code);
+          this.renderSettings(); // repaint every row (a key may have moved)
+          persistAll();
+        };
+        window.addEventListener('keydown', capture, true);
+      });
+      el.appendChild(row);
+    }
 
     // ---- online: wanderer name + hiscores (quiet when the server is away) ----
     const online = this.ui.online;
@@ -590,6 +652,35 @@ export class TabPanel {
       el.classList.toggle('hidden', pid !== id);
     [...this.strip.children].forEach((b) =>
       b.classList.toggle('active', b.dataset.tab === id));
+    if (id === 'bestiary') this.renderBestiary(); // kills move; render fresh
+  }
+
+  /** The collection log: every attackable species, its level, and your tally. */
+  renderBestiary() {
+    const el = this.pages.bestiary;
+    if (!el) return;
+    el.innerHTML = '';
+    const kills = this.ui.combatRef?.kills ?? {};
+    const cl = (s) => Math.floor(0.25 * (s.def + s.hp) + 0.325 * (s.att + s.str));
+    const rows = Object.entries(MOBS)
+      .filter(([, d]) => d.attackable !== false)
+      .map(([id, d]) => ({ id, name: d.name, lv: cl(d.stats), boss: !!d.boss, n: kills[id] ?? 0 }))
+      .sort((a, b) => a.lv - b.lv || a.name.localeCompare(b.name));
+    const slain = rows.filter((r) => r.n > 0).length;
+    const head = document.createElement('div');
+    head.className = 'combat-head';
+    head.innerHTML = `<div class="combat-lvl">BESTIARY — ${slain} / ${rows.length} slain</div>`;
+    el.appendChild(head);
+    for (const r of rows) {
+      const row = document.createElement('div');
+      row.className = 'quest-row ' + (r.n > 0 ? 'quest-done' : 'quest-locked');
+      row.textContent = `${r.n > 0 ? r.name : '???'}${r.boss ? ' ♛' : ''}  (lv ${r.lv})`;
+      const tally = document.createElement('span');
+      tally.style.cssText = 'float:right;opacity:0.8';
+      tally.textContent = r.n > 0 ? `× ${r.n}` : 'unseen';
+      row.appendChild(tally);
+      el.appendChild(row);
+    }
   }
 
   renderSkills() {

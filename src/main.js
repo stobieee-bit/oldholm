@@ -30,6 +30,8 @@ import { Online } from './online.js';
 import { WorldMap } from './map.js';
 import { Farming } from './farming.js';
 import { Siege } from './siege.js';
+import { Weather } from './weather.js';
+import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
 
@@ -362,6 +364,9 @@ ui.farming = farming; // soil-patch Plant/Harvest actions
 const siege = new Siege(player, ui, npcs);
 game.siege = siege;
 dialogue.siegeRef = siege; // Warden Ashe's 'siege:start'
+const weather = new Weather(scene, camera, world, npcs, farming, ui, audio, clock);
+actions.weather = weather;  // rain drowns fresh tinder
+ui.combatRef = combat;      // the bestiary reads the kill tally
 // touch devices get a joystick + drag-look + tap-to-act layer on the canvas
 const touch = TouchControls.isTouchDevice()
   ? new TouchControls(canvas, player, interactions, ui) : null;
@@ -389,6 +394,18 @@ if (settings.volume !== undefined) audio.volume = settings.volume;
 if (settings.music === false) audio.musicEnabled = false;
 if (settings.sound === false) audio.enabled = false;
 
+// graphics quality: High = full DPR + shadows; Low = 1x pixels, no sun shadow
+ui.graphics = {
+  set: (q) => {
+    ui.graphicsQuality = q;
+    renderer.setPixelRatio(q === 'low' ? 1 : Math.min(window.devicePixelRatio, 2));
+    sun.castShadow = q !== 'low';
+  },
+};
+ui.graphics.set(settings.quality === 'low' ? 'low' : 'high');
+if (ui.fx) ui.fx.colorblind = !!settings.colorblind; // accessible hitsplats
+applyBinds(settings.binds);                          // remembered key remaps
+
 ui.bindSaveSystem(save, audio);
 
 ui.showBanner(def.name.toUpperCase());
@@ -409,6 +426,7 @@ clock.on((tick) => {
   online.tick();           // position beacon for fellow wanderers (if connected)
   farming.updateVisuals(); // crops climb their stages
   siege.tick();            // the gate holds, or it doesn't
+  weather.tick(tick);      // rain rolls in; the night shift wakes
   if (tick % 500 === 0) online.submitHiscore(); // refresh the board ~5-minutely
 });
 
@@ -467,7 +485,8 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // DPR can change across monitors
+  renderer.setPixelRatio(ui.graphicsQuality === 'low' ? 1
+    : Math.min(window.devicePixelRatio, 2)); // DPR can change across monitors
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
@@ -566,6 +585,7 @@ function frame(now) {
   world.updateEffects(dt);
   world.updateSpinners(dt);
   online.update(dt); // ease fellow wanderers toward their reported spots
+  weather.update(dt); // rain falls with the camera
   interactions.updateHover();
   applyDayTint();
   updateTorchLights(dt);
@@ -596,7 +616,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege,
+  farming, siege, weather,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

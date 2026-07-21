@@ -175,6 +175,32 @@ export class Audio {
     noise.start(time);
   }
 
+  /** A soft filtered-noise rain bed, toggled by the weather system. */
+  setRain(on) {
+    if (!this.ctx) return;
+    if (on && !this._rain) {
+      const src = this.ctx.createBufferSource();
+      const dur = 2;
+      const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      src.buffer = buf; src.loop = true;
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 900;
+      const g = this.ctx.createGain();
+      g.gain.value = 0;
+      g.gain.linearRampToValueAtTime(0.05, this.ctx.currentTime + 1.5);
+      src.connect(lp); lp.connect(g); g.connect(this.master);
+      src.start();
+      this._rain = { src, g };
+    } else if (!on && this._rain) {
+      const { src, g } = this._rain;
+      this._rain = null;
+      g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.5);
+      setTimeout(() => { try { src.stop(); } catch (_) {} }, 2500);
+    }
+  }
+
   // ---- SFX ------------------------------------------------------------------
 
   _noiseBurst(dur) {

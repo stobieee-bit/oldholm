@@ -443,9 +443,12 @@ export class NPCManager {
   }
 
   spawnAll() {
-    // a spawn entry's own hidden flag counts too (quest bosses set it there)
-    for (const s of this.world.def.spawns ?? [])
-      this.spawnOne(s.mob, MOBS[s.mob], s.x, s.z, this._resolvePlane(s.plane), { hidden: s.hidden });
+    // a spawn entry's own hidden flag counts too (quest bosses set it there);
+    // night: true creatures start hidden and the weather system wakes them
+    for (const s of this.world.def.spawns ?? []) {
+      const m = this.spawnOne(s.mob, MOBS[s.mob], s.x, s.z, this._resolvePlane(s.plane), { hidden: s.hidden || s.night });
+      if (s.night) m.nightOnly = true;
+    }
     for (const s of this.world.def.npcs ?? [])
       this.spawnOne(s.npc, NPCS[s.npc], s.x, s.z, this._resolvePlane(s.plane), { hidden: s.hidden });
   }

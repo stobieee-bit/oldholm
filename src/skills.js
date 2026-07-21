@@ -247,6 +247,7 @@ export class Actions {
     }
     const tx = Math.floor(this.player.pos.x), tz = Math.floor(this.player.pos.z);
     if (this.player.plane !== 0) { this.ui.chat.add('Lighting a fire indoors seems unwise.'); return; }
+    if (this.weather?.raining) { this.ui.chat.add('The rain drowns your tinder before it catches. Wait for a dry sky.'); return; }
     if (this.world.fireAt(tx, tz)) { this.ui.chat.add('There is already a fire here.'); return; }
     const logId = slot.id;
     this._start({

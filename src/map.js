@@ -3,6 +3,8 @@
 // with town labels, bank marks and the player arrow. M (or clicking the
 // minimap) opens it; M / Escape / ✕ closes. Movement freezes while it's open.
 
+import { isBound } from './keybinds.js';
+
 const LABELS = [
   { x: 56, z: 88, t: 'Holmbridge' },
   { x: 296, z: 127, t: 'Corvath' },
@@ -29,7 +31,7 @@ export class WorldMap {
     this.el?.addEventListener('mousedown', (e) => { if (e.target === this.el) this.hide(); });
     window.addEventListener('keydown', (e) => {
       if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName ?? '')) return;
-      if (e.code === 'KeyM' && this.player.inputEnabled && !this.ui.menu.isOpen) {
+      if (isBound('map', e.code) && this.player.inputEnabled && !this.ui.menu.isOpen) {
         e.preventDefault();
         this.open ? this.hide() : this.show();
       } else if (e.code === 'Escape' && this.open) this.hide();

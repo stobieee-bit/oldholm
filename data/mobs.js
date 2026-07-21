@@ -1137,6 +1137,33 @@ export const MOBS = {
     },
   },
 
+  // Night-only: pale things that keep pace along the roads after 20:00.
+  night_wraith: {
+    name: 'Night wraith',
+    examine: 'It has no face, and still you know it is looking at you.',
+    stats: { att: 28, str: 30, def: 26, hp: 44 }, // lv 36
+    bonuses: { att: 8, str: 8, def: 6 },
+    attackType: 'slash',
+    speed: 4, aggroRadius: 6, wanderRadius: 6, respawnTicks: 60,
+    drops: [
+      { item: 'bones', count: 1, weight: 1 },
+      { item: 'coins', count: [8, 34], weight: 3 },
+      { item: 'spirit_glyph', count: [2, 5], weight: 2 },
+      { item: 'ranarr_seed', count: 1, weight: 1 }, { weight: 2 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 1.7,
+      parts: [
+        { kind: 'cyl', rt: 0.16, rb: 0.42, h: 1.35, seg: 8, at: [0, 0.85, 0], color: 0xcfd8dc },
+        { kind: 'sphere', r: 0.16, at: [0, 1.62, 0], color: 0xe4ecf0 },
+        { kind: 'box', size: [0.2, 0.1, 0.1], at: [0, 1.58, 0.1], color: 0x8a98a2 }, // the not-face
+        { kind: 'cyl', rt: 0.04, rb: 0.04, h: 0.5, rotZ: 0.3, at: [-0.26, 1.1, 0.02], color: 0xcfd8dc },
+        { kind: 'cyl', rt: 0.04, rb: 0.04, h: 0.5, rotZ: -0.3, at: [0.26, 1.1, 0.02], color: 0xcfd8dc },
+      ],
+    },
+  },
+
   // The villain of the arc: Malgrim, master of the severed circle.
   malgrim: {
     name: 'Malgrim',

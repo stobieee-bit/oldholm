@@ -25,7 +25,9 @@ Check items off as they ship; move things between sections freely.
 - [x] **Wave-defense minigame** — "hold the gate" at Brinkton (Warden Ashe, after The Blight Cull): 6 escalating Blight waves, coins per wave + a lamp for a full hold; best-wave persisted
 - [x] **World map** *(user request)* — fullscreen map on M / minimap click: baked terrain, town labels, bank marks, player arrow
 
-### Feel & polish (deferred)
-- [ ] Weather + day/night that *affect* play (night-only mobs, rain dampening fires)
-- [ ] In-game **bestiary / collection log**
-- [ ] Settings & accessibility — graphics-quality toggle, colorblind hitsplats, keybind remapping
+### Feel & polish
+- [x] Weather + day/night that *affect* play — rain (particles + audio bed) blocks lighting fires, guts lit fires 2x faster, waters crops ~1.5x; night wraiths (lv 36) pace the roads 20:00–05:00
+- [x] In-game **bestiary / collection log** — new Log tab (F9): every species by level, kill tallies, unseen masked as ???, n/51 slain header
+- [x] Settings & accessibility — graphics High/Low (pixel ratio + sun shadows), colorblind hitsplats (orange square vs ringed dark circle), and click-to-rebind keys (walk/run/menu/map) — all persisted
+
+**Backlog complete.** Everything from the original brainstorm has shipped.

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { ITEMS } from '../data/items.js';
 import { STYLE_SETS, typeIndex } from '../data/styles.js';
 import { XP_TABLE, levelForXp } from './skills.js';
+import { isBound } from './keybinds.js';
 
 export const SKILL_NAMES = [
   'Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer',
@@ -99,21 +100,17 @@ export class Player {
       if (!this.inputEnabled || this.menuOpen) return; // overlay/menu owns the keyboard
       if (e.code === 'Space') e.preventDefault(); // no jumping — this is a civilized game
       if (e.repeat) return;
-      switch (e.code) {
-        case 'KeyW': case 'ArrowUp': this.keys.forward = true; break;
-        case 'KeyS': case 'ArrowDown': this.keys.back = true; break;
-        case 'KeyA': case 'ArrowLeft': this.keys.left = true; break;
-        case 'KeyD': case 'ArrowRight': this.keys.right = true; break;
-        case 'ShiftLeft': case 'ShiftRight': this.runOn = !this.runOn; break;
-      }
+      if (isBound('forward', e.code)) this.keys.forward = true;
+      else if (isBound('back', e.code)) this.keys.back = true;
+      else if (isBound('left', e.code)) this.keys.left = true;
+      else if (isBound('right', e.code)) this.keys.right = true;
+      else if (isBound('run', e.code)) this.runOn = !this.runOn;
     });
     window.addEventListener('keyup', (e) => { // always processed: releasing is always safe
-      switch (e.code) {
-        case 'KeyW': case 'ArrowUp': this.keys.forward = false; break;
-        case 'KeyS': case 'ArrowDown': this.keys.back = false; break;
-        case 'KeyA': case 'ArrowLeft': this.keys.left = false; break;
-        case 'KeyD': case 'ArrowRight': this.keys.right = false; break;
-      }
+      if (isBound('forward', e.code)) this.keys.forward = false;
+      else if (isBound('back', e.code)) this.keys.back = false;
+      else if (isBound('left', e.code)) this.keys.left = false;
+      else if (isBound('right', e.code)) this.keys.right = false;
     });
     // keyups are lost when focus leaves (Alt-Tab, pointer-lock exit, tab switch)
     window.addEventListener('blur', () => this.clearKeys());

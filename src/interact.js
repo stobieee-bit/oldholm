@@ -4,6 +4,7 @@
 // Every interactable gets an implicit Examine entry. Reach is ~4 tiles.
 
 import * as THREE from 'three';
+import { isBound } from './keybinds.js';
 
 const REACH = 4.2; // world units from the eye to the intersection point
 
@@ -57,7 +58,7 @@ export class Interactions {
     window.addEventListener('keydown', (e) => {
       if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName ?? '')) return; // typing, not playing
       if (!this.player.inputEnabled || this.ui.menu.isOpen || e.repeat) return;
-      if (e.code === 'KeyE') this.openMenuFor(this.pickAtPointer());
+      if (isBound('interact', e.code)) this.openMenuFor(this.pickAtPointer());
     });
   }
 
