@@ -606,12 +606,15 @@ let fpsFrames = 0, fpsLast = performance.now();
 let autosaveAcc = 0;
 
 /** The foe the target frame should show: your engaged target first, else
- *  whichever living mob is currently coming at you (retaliators, casters). */
+ *  whichever living mob is currently coming at you (retaliators, casters).
+ *  Range-gated: walking away from a fight lets the bar go — a foe you left
+ *  across the map (or that still "targets" you from afar) doesn't pin it. */
 function pickTargetMob() {
+  const near = (m, r) => (m.plane ?? 0) === player.plane
+    && Math.hypot(m.mesh.position.x - player.pos.x, m.mesh.position.z - player.pos.z) <= r;
   const t = player.target;
-  if (t && t.hp !== undefined && !t.hiddenNpc) return t;
-  return npcs.mobs.find((m) => m.target === 'player' && !m.dead && !m.hiddenNpc
-    && (m.plane ?? 0) === player.plane) ?? null;
+  if (t && t.hp !== undefined && !t.hiddenNpc && !t.dead && near(t, 15)) return t;
+  return npcs.mobs.find((m) => m.target === 'player' && !m.dead && !m.hiddenNpc && near(m, 12)) ?? null;
 }
 
 function frame(now) {
