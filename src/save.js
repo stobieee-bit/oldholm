@@ -154,7 +154,7 @@ export class SaveManager {
       return this.apply(JSON.parse(raw));
     } catch (_) { return false; }
   }
-  has(key) { return !!localStorage.getItem(key); }
+  has(key) { try { return !!localStorage.getItem(key); } catch (_) { return false; } }
   meta(key) {
     try {
       const d = JSON.parse(localStorage.getItem(key));
@@ -173,7 +173,9 @@ export class SaveManager {
   hasAuto() { return this.has(AUTO_KEY); }
 
   clearAll() {
-    for (const k of [AUTO_KEY, SLOT_KEY(0), SLOT_KEY(1), SLOT_KEY(2)]) localStorage.removeItem(k);
+    try {
+      for (const k of [AUTO_KEY, SLOT_KEY(0), SLOT_KEY(1), SLOT_KEY(2)]) localStorage.removeItem(k);
+    } catch (_) {}
   }
 
   // ---- export / import ------------------------------------------------------

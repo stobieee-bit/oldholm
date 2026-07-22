@@ -180,7 +180,9 @@ export class Dialogue {
     this.textEl.textContent = this._text;
     this.optsEl.innerHTML = '';
     this._visibleOptions = (this.node.options ?? []).filter((o) => this._cond(o.if));
-    if (this.node.options) {
+    // a node whose options are ALL condition-gated must still offer the
+    // continue row — otherwise touch players (no Esc) are soft-locked
+    if (this.node.options && this._visibleOptions.length) {
       this._visibleOptions.forEach((opt, i) => {
         const row = document.createElement('div');
         row.className = 'dlg-opt';
@@ -201,7 +203,7 @@ export class Dialogue {
 
   _advanceOrSkip() {
     if (this._typing) { this._finishTyping(); return; }
-    if (!this.node.options) {
+    if (!this.node.options || !this._visibleOptions?.length) {
       if (this.node.next) this._show(this.node.next);
       else this.close();
     }

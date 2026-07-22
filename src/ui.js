@@ -435,29 +435,41 @@ export class TabPanel {
     el.appendChild(cbRow);
 
     // ---- keybinds: click a row, press the new key ----------------------------
-    const kbHead = document.createElement('div');
-    kbHead.className = 'combat-head';
-    kbHead.innerHTML = '<div class="combat-lvl">KEYS</div>';
-    el.appendChild(kbHead);
-    for (const action of Object.keys(BINDS)) {
-      const row = document.createElement('button');
-      row.className = 'sys-toggle';
-      const draw = (listening) => {
-        row.textContent = `${BIND_LABELS[action]}: ${listening ? 'press a key…' : keyLabel(BINDS[action][0])}`;
-      };
-      draw(false);
-      row.addEventListener('click', () => {
-        draw(true);
-        const capture = (e) => {
-          e.preventDefault(); e.stopPropagation();
-          window.removeEventListener('keydown', capture, true);
-          if (e.code !== 'Escape') rebind(action, e.code);
-          this.renderSettings(); // repaint every row (a key may have moved)
-          persistAll();
+    // touch-only devices skip this section: with no keyboard, a tapped row
+    // would arm a capture that later eats the first soft-keyboard keystroke
+    const isTouch = 'ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0;
+    if (!isTouch) {
+      const kbHead = document.createElement('div');
+      kbHead.className = 'combat-head';
+      kbHead.innerHTML = '<div class="combat-lvl">KEYS</div>';
+      el.appendChild(kbHead);
+      for (const action of Object.keys(BINDS)) {
+        const row = document.createElement('button');
+        row.className = 'sys-toggle';
+        const draw = (listening) => {
+          row.textContent = `${BIND_LABELS[action]}: ${listening ? 'press a key…' : keyLabel(BINDS[action][0])}`;
         };
-        window.addEventListener('keydown', capture, true);
-      });
-      el.appendChild(row);
+        draw(false);
+        row.addEventListener('click', () => {
+          draw(true);
+          const capture = (e) => {
+            // a keystroke aimed at a text field cancels the rebind instead of
+            // being swallowed (hybrid touch+keyboard devices hit this)
+            if (/^(INPUT|TEXTAREA)$/.test(e.target?.tagName ?? '')) {
+              window.removeEventListener('keydown', capture, true);
+              draw(false);
+              return;
+            }
+            e.preventDefault(); e.stopPropagation();
+            window.removeEventListener('keydown', capture, true);
+            if (e.code !== 'Escape') rebind(action, e.code);
+            this.renderSettings(); // repaint every row (a key may have moved)
+            persistAll();
+          };
+          window.addEventListener('keydown', capture, true);
+        });
+        el.appendChild(row);
+      }
     }
 
     // ---- online: wanderer name + hiscores (quiet when the server is away) ----
@@ -711,6 +723,14 @@ export class TabPanel {
   }
 
   show(id) {
+    // re-selecting the open tab tucks the panel away to its tab strip —
+    // essential on phones, where the panel covers most of the world view
+    const page = this.pages[id];
+    if (this.active === id && page && !page.classList.contains('hidden')) {
+      page.classList.add('hidden');
+      [...this.strip.children].forEach((b) => b.classList.remove('active'));
+      return;
+    }
     this.active = id;
     for (const [pid, el] of Object.entries(this.pages))
       el.classList.toggle('hidden', pid !== id);
@@ -876,6 +896,10 @@ export class UI {
     this.levelBanner = document.getElementById('level-banner');
     this.deathFade = document.getElementById('death-fade');
     this.hurtFade = document.getElementById('hurt-fade');
+    // orb taps: run toggles (the classic), and it's the only way phones run
+    this.runOrb?.addEventListener('mousedown', () => {
+      if (this.player.inputEnabled) this.player.runOn = !this.player.runOn;
+    });
     document.getElementById('anvil-close').addEventListener('click', () => this.closeAnvil());
     document.getElementById('shop-close').addEventListener('click', () => this.closeShop());
     document.getElementById('bank-close').addEventListener('click', () => this.closeBank());
@@ -1612,6 +1636,14 @@ export class UI {
       return;
     }
     const entries = [];
+    if (def.slot || def.heals) entries.push({
+      label: 'Inspect ' + def.name, // stats + deltas, reachable without hover
+      run: () => {
+        this.showItemTip(def, innerWidth / 2, innerHeight * 0.25);
+        clearTimeout(this._tipT);
+        this._tipT = setTimeout(() => this.hideItemTip(), 5000);
+      },
+    });
     if (def.slot) entries.push({
       label: (def.slot === 'weapon' ? 'Wield ' : 'Wear ') + def.name,
       run: () => this.player.equip(slotIndex, this),

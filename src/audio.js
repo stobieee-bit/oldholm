@@ -59,7 +59,7 @@ export class Audio {
 
   /** Create the context on the first user gesture (browsers require this). */
   init() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    if (this.ctx) { if (this.ctx.state !== 'running') this.ctx.resume(); return; } // iOS uses 'interrupted' too
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) { this.enabled = false; return; }
     this.ctx = new AC();

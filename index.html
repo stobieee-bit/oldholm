@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>OLDHOLM</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -155,6 +155,37 @@
     pointer-events: auto; user-select: none;
   }
   #ctx-menu.hidden { display: none; }
+
+  /* mobile playability: tappable orbs/minimap, panels that fit a phone, and
+     comfortable tap targets on coarse pointers */
+  #run-orb { pointer-events: auto; cursor: pointer; }
+  #minimap-wrap { pointer-events: auto; cursor: pointer; }
+  #anvil-panel, #shop-panel, #bank-panel, #market-panel, #save-panel { max-width: 94vw; }
+  #quest-fanfare { min-width: min(380px, 90vw); max-width: 94vw; }
+  @media (pointer: coarse) {
+    #chatbox { height: 84px; max-width: 38vw; }
+    .ctx-row { padding: 11px 14px; }
+    .tab-btn { padding: 12px 0 11px; }
+    .anvil-row { padding: 10px 14px; }
+    .dlg-opt { padding: 9px 6px; }
+    .panel-close { padding: 8px 12px; font-size: 18px; }
+  }
+  @media (max-width: 700px) and (orientation: portrait) {
+    #target-bar { left: auto; right: 10px; transform: none; max-width: 55vw; }
+    #side-panel { width: 232px; }
+  }
+  @media (pointer: coarse) and (max-height: 700px) {
+    /* short screens: orbs form a bottom row so the side panel can't bury them */
+    #hp-orb { bottom: 18px; right: 82px; }
+    #hp-label { bottom: 76px; right: 82px; }
+    #prayer-orb { bottom: 18px; right: 146px; }
+    #prayer-label { bottom: 76px; right: 146px; }
+  }
+  @supports (padding: env(safe-area-inset-left)) {
+    #chatbox { left: calc(10px + env(safe-area-inset-left)); bottom: calc(10px + env(safe-area-inset-bottom)); }
+    #minimap-wrap { left: calc(10px + env(safe-area-inset-left)); }
+    #side-panel { right: calc(10px + env(safe-area-inset-right)); }
+  }
   #ctx-menu.centered { left: 50%; top: 52%; transform: translate(-50%, 0); }
   #ctx-menu-header {
     padding: 5px 10px; font-size: 12px; letter-spacing: 2px; color: #c9a232;
@@ -354,9 +385,12 @@
     width: 110px; background: rgba(20,18,14,0.8); border: 1px solid #55503c;
     color: #e8dfc0; font-family: inherit; font-size: 12px; padding: 2px 6px; border-radius: 3px;
   }
-  #ask-x {
-    display: flex; gap: 8px; align-items: center; padding: 6px 10px;
-    border-top: 1px solid #55503c; color: #ffe17d; font-size: 13px;
+  #ask-x { /* floats free: bank AND market prompts share it (it used to be
+    trapped inside the bank panel, so market offers silently did nothing) */
+    position: fixed; left: 50%; top: 58%; transform: translateX(-50%); z-index: 30;
+    background: rgba(28, 26, 20, 0.97); border: 2px solid #6a6248; border-radius: 5px;
+    display: flex; gap: 8px; align-items: center; padding: 10px 14px;
+    color: #ffe17d; font-size: 13px; pointer-events: auto;
   }
   #ask-x.hidden { display: none; }
   #ask-x-input {
@@ -843,7 +877,6 @@
   <div id="bank-panel" class="hidden">
     <div id="anvil-head"><span>BANK OF ALDERA</span><input id="bank-search" placeholder="search…" autocomplete="off"><span id="bank-close" class="panel-close">✕</span></div>
     <div id="bank-body" class="panel-body"></div>
-    <div id="ask-x" class="hidden"><span id="ask-x-label"></span><input id="ask-x-input" type="number" min="1"></div>
     <div class="panel-hint">Click vault items to withdraw · click your pack to deposit
       <button id="bank-deposit-all" class="sys-btn" style="float:right;margin:-2px 0">Deposit pack</button>
       <button id="bank-deposit-loot" class="sys-btn" style="float:right;margin:-2px 6px 0 0">Keep tools</button></div>
@@ -856,9 +889,10 @@
     <div id="market-offers" class="panel-body"></div>
     <div class="anvil-metal">COLLECTION BOX</div>
     <div id="market-collect" class="panel-body"></div>
-    <div id="ask-x2" class="hidden"></div>
     <div class="panel-hint">Click your pack to post a sell offer · click an offer to cancel it</div>
   </div>
+
+  <div id="ask-x" class="hidden"><span id="ask-x-label"></span><input id="ask-x-input" type="number" min="1"></div>
 
   <div id="save-panel" class="hidden">
     <div id="anvil-head"><span>SAVE &amp; LOAD</span><span id="save-close" class="panel-close">✕</span></div>

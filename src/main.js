@@ -408,8 +408,9 @@ const chatInput = document.getElementById('chat-input');
 if (touch && chatInput) chatInput.placeholder = 'Tap here to chat with other wanderers…';
 chatInput?.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.code === 'Escape') { chatInput.blur(); return; }
-  if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
+  if (e.key === 'Escape' || e.code === 'Escape') { chatInput.blur(); return; }
+  // e.key: mobile soft keyboards often report an empty e.code for Enter
+  if (e.key !== 'Enter' && e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
   const msg = chatInput.value.trim();
   chatInput.value = '';
   chatInput.blur(); // hand the keyboard back to the game
@@ -454,7 +455,11 @@ ui.graphics = {
     sun.castShadow = q !== 'low';
   },
 };
-ui.graphics.set(settings.quality === 'low' ? 'low' : 'high');
+// touch-first devices default to Low (phone GPUs vs 2x DPR + soft shadows);
+// a saved System-tab choice always wins, and touchscreen laptops stay High
+const defaultQuality = (touch && matchMedia('(pointer: coarse)').matches) ? 'low' : 'high';
+ui.graphics.set(settings.quality === 'low' ? 'low'
+  : settings.quality === 'high' ? 'high' : defaultQuality);
 ui.graphics.setFov = (v) => {
   camera.fov = Math.max(55, Math.min(100, v));
   camera.updateProjectionMatrix();
@@ -770,7 +775,8 @@ window.addEventListener('beforeunload', () => { if (entered) save.autosave(); })
 // The reliable one: mobile browsers and background-tab kills never fire
 // beforeunload, but they do flip visibility. Save the moment we're hidden.
 document.addEventListener('visibilitychange', () => {
-  if (!entered || document.visibilityState !== 'hidden') return;
+  if (!entered) return;
+  if (document.visibilityState === 'visible') { audio.init(); return; } // iOS suspends the context on app-switch
   save.autosave();
   if (online.name() && /^\d{4,8}$/.test(online.pin())) online.saveToCloud();
 });

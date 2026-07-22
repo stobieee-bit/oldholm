@@ -42,6 +42,9 @@ export class TouchControls {
   _start(e) {
     if (!this.player.inputEnabled) return;
     e.preventDefault();
+    // a canvas tap while the context menu is open dismisses it (there is no
+    // Esc key on a phone; without this the player stands rooted in the menu)
+    if (this.ui.menu.isOpen) { this.ui.menu.close(); return; }
     for (const t of e.changedTouches) {
       if (t.clientX < window.innerWidth * 0.4 && !this.stick) {
         this.stick = { id: t.identifier, ox: t.clientX, oy: t.clientY };
