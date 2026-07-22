@@ -22,7 +22,8 @@ const POSES = {
 const SHIELD_POSE = { rot: [1.45, -0.35, 0.05], pos: [0.05, 0, 0], s: 0.45 };
 
 const RIGHT_AT = [0.3, -0.26, -0.55];
-const LEFT_AT = [-0.3, -0.32, -0.58];
+const LEFT_AT = [-0.27, -0.28, -0.55];
+const SKIN = 0xc9a27a;
 
 export class Viewmodel {
   constructor(camera, player, world, actions) {
@@ -34,13 +35,58 @@ export class Viewmodel {
     camera.add(this.right, this.left);
     this.right.position.set(...RIGHT_AT);
     this.left.position.set(...LEFT_AT);
+    // held items live in their own holders so rebuilding a weapon or shield
+    // never sweeps away the permanent fixtures (arms, the nocked arrow)
+    this.rightHold = new THREE.Group();
+    this.right.add(this.rightHold);
+    this.leftHold = new THREE.Group();
+    this.left.add(this.leftHold);
+    // forearms: one shared material so gloves recolor everything at once
+    this._armMat = new THREE.MeshLambertMaterial({ color: SKIN, flatShading: true });
+    this.rightArm = this._buildArm(1);
+    this.right.add(this.rightArm);
+    this.leftArm = this._buildArm(-1);
+    this.leftArm.visible = false; // shown while a shield needs holding
+    this.left.add(this.leftArm);
+    // the nocked arrow, shown while a bow with ammo is in hand
+    this._nock = this._buildNock();
+    this._nock.visible = false;
+    this.right.add(this._nock);
     this._id = undefined;
     this._sid = undefined;
+    this._gid = undefined;
+    this._aid = undefined;
     this._swing = 0;
+    this._renock = 0;
     this._dur = 0.22;
     this._mode = 'melee';
     this._bobT = 0;
     this._sway = 0;
+  }
+
+  /** A forearm reaching from off the bottom edge up to the hand. */
+  _buildArm(side) {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.46, 0.085), this._armMat);
+    arm.position.set(0.05 * side, -0.16, 0.1);
+    arm.rotation.set(0.55, 0, -0.3 * side);
+    return arm;
+  }
+
+  /** A modest arrow lying nocked across the bow, tip forward. */
+  _buildNock() {
+    const g = new THREE.Group();
+    this._nockShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.5, 5),
+      new THREE.MeshLambertMaterial({ color: 0x8a6a42, flatShading: true }));
+    this._nockTip = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.07, 5),
+      new THREE.MeshLambertMaterial({ color: 0xb5854b, flatShading: true }));
+    this._nockTip.position.y = 0.28;
+    const fletch = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.07, 0.006),
+      new THREE.MeshLambertMaterial({ color: 0xe8e2d0, flatShading: true }));
+    fletch.position.y = -0.23;
+    g.add(this._nockShaft, this._nockTip, fletch);
+    g.position.set(-0.14, -0.02, -0.1);
+    g.rotation.x = -1.42; // shaft points forward, tip slightly raised
+    return g;
   }
 
   /** Combat tells us a blow just left the player's hands. */
@@ -48,6 +94,7 @@ export class Viewmodel {
     this._mode = mode;
     this._swing = 1;
     this._dur = mode === 'melee' ? 0.24 : 0.32;
+    if (mode === 'ranged') this._renock = 0.4; // the arrow is away; reach for the next
   }
 
   _toolAction() {
@@ -84,9 +131,9 @@ export class Viewmodel {
       mesh.position.set(...pose.pos);
       mesh.scale.setScalar(pose.s);
     } else {
-      // bare knuckles: a modest fist
-      mesh = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.08, 0.13),
-        new THREE.MeshLambertMaterial({ color: 0xc9a27a, flatShading: true }));
+      // bare knuckles: a modest fist, gloved when gloves are worn
+      mesh = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.065, 0.1), this._armMat);
+      mesh.position.set(0.01, -0.05, 0.02);
       mesh.rotation.set(0.2, 0.3, 0);
     }
     group.add(mesh);
@@ -97,13 +144,28 @@ export class Viewmodel {
     const p = this.player;
     // hand contents follow equipment + the active tool
     const disp = this._display();
-    if (disp.id !== this._id) { this._id = disp.id; this._rebuild(this.right, disp.def); }
+    if (disp.id !== this._id) { this._id = disp.id; this._rebuild(this.rightHold, disp.def); }
     const sid = p.equipment.shield ?? null;
     if (sid !== this._sid) {
       this._sid = sid;
-      this._dispose(this.left);
-      if (sid) this._rebuild(this.left, ITEMS[sid], SHIELD_POSE);
+      this._dispose(this.leftHold);
+      if (sid) this._rebuild(this.leftHold, ITEMS[sid], SHIELD_POSE);
+      this.leftArm.visible = !!sid; // the arm only rises when it has work
     }
+    // gloves recolor both forearms and the bare fists via the shared material
+    const gid = p.equipment.gloves ?? null;
+    if (gid !== this._gid) {
+      this._gid = gid;
+      this._armMat.color.setHex(gid ? (ITEMS[gid].model?.color ?? SKIN) : SKIN);
+    }
+    // the nocked arrow: shown on a bow with ammo, briefly away after each shot
+    this._renock = Math.max(0, this._renock - dt);
+    const ammo = p.equipment.ammo ?? null;
+    if (ammo !== this._aid) {
+      this._aid = ammo;
+      if (ammo && ITEMS[ammo]?.model?.color) this._nockTip.material.color.setHex(ITEMS[ammo].model.color);
+    }
+    this._nock.visible = disp.def?.styleSet === 'bow' && !!ammo && this._renock === 0;
     // walk bob: scaled by real ground speed so wading and running read right
     const moved = Math.hypot(p.pos.x - (this._lx ?? p.pos.x), p.pos.z - (this._lz ?? p.pos.z));
     this._lx = p.pos.x; this._lz = p.pos.z;
