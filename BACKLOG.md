@@ -43,3 +43,12 @@ Check items off as they ship; move things between sections freely.
 - [x] **Combat & boss music** — war-drum pulse under the region theme while something wants you dead; doubled and deepened for bosses
 - [x] **Construction / player housing** — the Hearthstead: a real cottage on the east road (146,91) with five build hotspots (hearth/workbench/strongbox/trophy/nexus), the 19th skill, and Renovate as the repeatable grind
 - [ ] *(server, later)* world-event broadcasts — realm-wide hour events (double slayer points etc.)
+
+## Round 3 (2026-07-21, approved subset)
+
+- [x] **Collection log + titles** — Log tab sub-tab: 5 pages (boss kills, pets, casket pulls, Delve floors, skill capes); completing a page grants a title worn in chat and over your ghost (server relays it)
+- [x] **QoL bundle 3** — bank "Keep tools" deposit, Skills-tab session xp + xp/h ledger, inventory tooltips with stat deltas vs worn gear
+- [x] **Thieving (20th skill)** — 4 pickpocket tiers across 24 marks, 3 market stalls (guards may storm over), 2 sewer wall safes; fail = stun + damage
+- [x] **Rebuild Brinkton** — Construction capstone quest (16th): 4 board-driven stages raise the well, Cottage Row, Ashguard barracks and the Beacon Hall; town repopulates and persists
+
+Declined this round (still available): world events (server), special attacks, Hearthstead II.
