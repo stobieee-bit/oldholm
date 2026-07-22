@@ -109,6 +109,10 @@ class Mob {
     this._to = { ...this._from };
     this._t = 1;
     this._faceY = 0;
+    // desynchronised idle life: without random phases every creature in a
+    // pasture breathes and bobs in perfect unison, like a choir of robots
+    this._breathe = Math.random() * Math.PI * 2;
+    this._phase = Math.random() * Math.PI * 2;
   }
 
   stats() {

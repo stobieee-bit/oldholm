@@ -63,6 +63,9 @@ export class Pets {
     }
     m.y = this.world.getGroundHeight(m.x, m.z, this.player.plane)
       + Math.abs(Math.sin(this._bob)) * 0.06; // a happy little gait-hop
+    // and gentle breathing at heel — a statue-still pet reads as a toy
+    this._breathe = (this._breathe ?? Math.random() * Math.PI * 2) + dt * 2.4;
+    this.mesh.scale.y = 1 + Math.sin(this._breathe) * 0.025;
   }
 
   snapshot() { return { activePet: this.activePet }; }

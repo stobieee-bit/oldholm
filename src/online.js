@@ -156,7 +156,10 @@ export class Online {
       const k = Math.min(1, dt * 6);
       pos.x += (g.tx - pos.x) * k;
       pos.z += (g.tz - pos.z) * k;
-      pos.y = this.world.getGroundHeight(pos.x, pos.z, g.plane ?? 0);
+      // spirits hover: a slow bob just above the grass, each to its own beat
+      g._hover = (g._hover ?? Math.random() * Math.PI * 2) + dt * 1.7;
+      pos.y = this.world.getGroundHeight(pos.x, pos.z, g.plane ?? 0)
+        + 0.03 + Math.sin(g._hover) * 0.03;
       g.group.visible = g.plane === (typeof this.player.plane === 'number' ? this.player.plane : 1);
     }
   }
