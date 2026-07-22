@@ -393,6 +393,10 @@
     color: #ffe17d; font-size: 13px; pointer-events: auto;
   }
   #ask-x.hidden { display: none; }
+  #bank-loadouts {
+    display: flex; gap: 6px; padding: 5px 10px 2px; border-top: 1px solid #55503c;
+  }
+  #bank-loadouts .sys-btn { margin: 0; flex: 1; font-size: 11.5px; padding: 5px 4px; }
   #ask-x-input {
     width: 90px; background: rgba(20,18,14,0.8); border: 1px solid #c9a232;
     color: #ffe17d; font-family: inherit; font-size: 13px; padding: 2px 6px; border-radius: 3px;
@@ -877,6 +881,7 @@
   <div id="bank-panel" class="hidden">
     <div id="anvil-head"><span>BANK OF ALDERA</span><input id="bank-search" placeholder="search…" autocomplete="off"><span id="bank-close" class="panel-close">✕</span></div>
     <div id="bank-body" class="panel-body"></div>
+    <div id="bank-loadouts"></div>
     <div class="panel-hint">Click vault items to withdraw · click your pack to deposit
       <button id="bank-deposit-all" class="sys-btn" style="float:right;margin:-2px 0">Deposit pack</button>
       <button id="bank-deposit-loot" class="sys-btn" style="float:right;margin:-2px 6px 0 0">Keep tools</button></div>

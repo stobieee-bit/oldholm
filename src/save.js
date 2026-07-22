@@ -33,6 +33,7 @@ export class SaveManager {
         autoRetaliate: p.autoRetaliate, boosts: p.boosts,
       },
       bank: [...g.bank.vault.entries()],
+      bankLoadouts: g.bank.loadouts ?? [null, null, null],
       quests: g.quests.stages,
       prayers: { points: g.prayers.points, active: [...g.prayers.active] },
       magic: { autocast: g.magic.autocast },
@@ -105,6 +106,7 @@ export class SaveManager {
     p.target = null;
     // bank
     g.bank.vault = new Map(data.bank);
+    g.bank.loadouts = Array.isArray(data.bankLoadouts) ? data.bankLoadouts : [null, null, null];
     // quests
     for (const [id, st] of Object.entries(data.quests)) g.quests.stages[id] = st;
     // prayers / magic

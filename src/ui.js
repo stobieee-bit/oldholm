@@ -1161,6 +1161,24 @@ export class UI {
 
   refreshBank() {
     if (!this.bankOpen) return;
+    // gear presets: wear / save / forget, one button per slot
+    const lrow = document.getElementById('bank-loadouts');
+    if (lrow && this.bank) {
+      lrow.innerHTML = '';
+      for (let i = 0; i < 3; i++) {
+        const b = document.createElement('button');
+        b.className = 'sys-btn';
+        b.textContent = this.bank.loadoutLabel(i);
+        b.addEventListener('click', (e) => {
+          this.menu.open([
+            { label: 'Wear ' + this.bank.loadoutLabel(i), run: () => this.bank.applyLoadout(i) },
+            { label: 'Save current gear here', run: () => this.bank.saveLoadout(i) },
+            { label: 'Forget this loadout', run: () => this.bank.clearLoadout(i) },
+          ], { x: e.clientX, y: e.clientY }, e);
+        });
+        lrow.appendChild(b);
+      }
+    }
     const filter = document.getElementById('bank-search').value ?? '';
     const body = document.getElementById('bank-body');
     body.innerHTML = '';
