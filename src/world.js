@@ -12,6 +12,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ITEMS } from '../data/items.js';
 import { TREES, ROCKS, FISHING, FIREMAKING } from '../data/resources.js';
 import { HOUSE_PLOT } from '../data/house.js';
+import { STALLS } from '../data/thieving.js';
 
 export const FLAG_BLOCKED = 1;
 export const FLAG_WATER = 2;
@@ -144,6 +145,7 @@ export class World {
     this._buildShortcuts();
     this._buildDelve();
     this._buildHouse();
+    this._buildThievery(); // after _buildSewers: the safes live down there
     this._buildTomb();
     this._buildCaldera();
     this._buildManorInterior();
@@ -2344,6 +2346,41 @@ export class World {
       let entry;
       entry = this.addInteractable({ kind: 'house', name: id, meshes: [m], examine: '', actions: [] });
       this.houseSpots.push({ id, entry, mesh: m });
+    }
+  }
+
+  /** Thievery furniture: market stalls beside their owners, wall safes in
+   *  the sewers ring. src/thieving.js runs the stealing itself. */
+  _buildThievery() {
+    for (const s of STALLS) {
+      const y = this.getGroundHeight(s.x, s.z);
+      const counter = this._addBox(1.3, 0.85, 0.9, s.x, y + 0.42, s.z,
+        new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true }));
+      const wares = this._addBox(1.1, 0.16, 0.7, s.x, y + 0.93, s.z,
+        new THREE.MeshLambertMaterial({ color: s.color, flatShading: true }));
+      this.addInteractable({
+        kind: 'stall', name: s.name, meshes: [counter, wares],
+        examine: `Unattended goods. Well — briefly unattended. (Thieving ${s.req})`,
+        actions: [{ label: 'Steal-from', fn: (ctx) => ctx.ui.thieving?.stealStall(s, ctx) }],
+      });
+    }
+    // two wall safes recessed into the sewers' outer wall
+    const sw = this.def.sewers;
+    if (sw && this.sewersPlane !== undefined) {
+      const by = -8;
+      const spots = [
+        { key: 'safe_n', x: (sw.x0 + sw.x1) / 2, z: sw.z0 + 0.7 },
+        { key: 'safe_s', x: (sw.x0 + sw.x1) / 2, z: sw.z1 - 0.7 },
+      ];
+      for (const sp of spots) {
+        const box = this._addBox(0.6, 0.6, 0.35, sp.x, by + 1.5, sp.z,
+          new THREE.MeshLambertMaterial({ color: 0x3a3a40, flatShading: true }));
+        this.addInteractable({
+          kind: 'safe', name: 'Wall safe', meshes: [box],
+          examine: `A stubborn little door in the stone. (Thieving 50)`,
+          actions: [{ label: 'Crack-open', fn: (ctx) => ctx.ui.thieving?.crackSafe(sp.key, sp.x, sp.z, this.sewersPlane, ctx) }],
+        });
+      }
     }
   }
 

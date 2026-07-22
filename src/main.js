@@ -35,6 +35,7 @@ import { Delve } from './delve.js';
 import { Pets } from './pets.js';
 import { House } from './house.js';
 import { Collection } from './collection.js';
+import { Thieving } from './thieving.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -385,6 +386,9 @@ const touch = TouchControls.isTouchDevice()
 // optional online services (hiscores + presence); quiet when the server's away
 const online = new Online(player, ui, world);
 ui.online = online; // System-tab Online section + chat input send path
+const thieving = new Thieving(player, ui, npcs, combat, clock);
+game.thieving = thieving; // stateless beyond xp, but the handle helps tooling
+ui.thieving = thieving;   // Pickpocket / Steal-from / Crack-open actions
 const collection = new Collection({ combat, delve, ui, online });
 game.collection = collection;
 ui.collection = collection;     // Log tab view + the casket hook + titles
@@ -489,6 +493,7 @@ clock.on((tick) => {
     player.addXp('Agility', xp, ui);
     ui.fx.xpDrop([['Agility', xp]]);
   }
+  thieving.tick();       // stuns wear off
   if (tick % 5 === 0) collection.check(); // kills/floors tick pages outside the item hooks
   if (tick % 500 === 0) online.submitHiscore(); // refresh the board ~5-minutely
 });
@@ -717,7 +722,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather, delve, pets, house, collection,
+  farming, siege, weather, delve, pets, house, collection, thieving,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {

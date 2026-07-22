@@ -14,7 +14,7 @@ export const SKILL_NAMES = [
   'Cooking', 'Fishing', 'Mining', 'Smithing', 'Woodcutting', 'Firemaking',
   'Crafting', 'Glyphcraft',
   // append-only (save order is positional)
-  'Herblore', 'Farming', 'Agility', 'Construction', // append-only: save order is positional
+  'Herblore', 'Farming', 'Agility', 'Construction', 'Thieving', // append-only: save order is positional
 ];
 
 /** 28 slots; stackables share a slot. */
@@ -164,7 +164,7 @@ export class Player {
     const k = this.keys;
     let mx = (k.right ? 1 : 0) - (k.left ? 1 : 0);
     let mz = (k.forward ? 1 : 0) - (k.back ? 1 : 0);
-    if (this.menuOpen) { mx = 0; mz = 0; } // keys stay held; motion resumes on close
+    if (this.menuOpen || (this.stunTicks ?? 0) > 0) { mx = 0; mz = 0; } // menus and stuns root the feet
     const moving = mx !== 0 || mz !== 0;
 
     // wading: water is passable on the surface, but at a crawl and never at a

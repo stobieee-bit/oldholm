@@ -10,6 +10,7 @@ import { MOBS } from '../data/mobs.js';
 import { NPCS } from '../data/npcs.js';
 import { combatLevel } from './combat.js';
 import { PET_DROPS } from '../data/pets.js';
+import { PICKPOCKETS } from '../data/thieving.js';
 
 const CHASE_LIMIT = 12;   // BFS search window half-size, tiles
 const LEASH_RADIUS = 10;  // beyond this from spawn, a mob gives up and resets
@@ -441,6 +442,10 @@ export class NPCManager {
       if (def.attackable !== false) actions.push({
         label: 'Attack',
         fn: (ctx) => ctx.combat.playerEngage(mob),
+      });
+      if (PICKPOCKETS[defId]) actions.push({
+        label: 'Pickpocket',
+        fn: (ctx) => ctx.ui.thieving?.pickpocket(mob, ctx),
       });
       mob.entry = this.world.addInteractable({
         kind: 'mob', name: def.name, mob,
