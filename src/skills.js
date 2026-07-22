@@ -485,7 +485,8 @@ export class Actions {
         if (def.gem) this._takeItems(def.gem, 1);
         if (!this._give(recipeId, 'You craft a ' + ITEMS[recipeId].name.toLowerCase() + '.')) return;
         this._grant('Crafting', def.xp);
-        this.cancel(); // one casting at a time; the mould survives
+        // run until the makings run out, like every other production loop
+        if (!have()) { this.ui.chat.add('You are out of makings.'); this.cancel(); }
       },
     });
   }

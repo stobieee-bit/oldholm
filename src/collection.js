@@ -41,6 +41,7 @@ export class Collection {
   onItem(id) {
     if (!this._itemIds.has(id) || this.obtained[id]) return;
     this.obtained[id] = true;
+    this.g.ui.chat.add(`Collection log: ${ITEMS[id]?.name ?? id} recorded (Log tab).`, 'system');
     this.check();
   }
 
@@ -48,6 +49,7 @@ export class Collection {
   onCasket(id) {
     if (this.casket[id]) return;
     this.casket[id] = true;
+    this.g.ui.chat.add(`Collection log: ${ITEMS[id]?.name ?? id} recorded (Log tab).`, 'system');
     this.check();
   }
 

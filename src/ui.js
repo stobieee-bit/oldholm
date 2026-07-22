@@ -12,6 +12,7 @@ import { BONES } from '../data/prayers.js';
 import { QUESTS, QUEST_ORDER } from '../data/quests.js';
 import { MOBS } from '../data/mobs.js';
 import { BINDS, BIND_LABELS, rebind, keyLabel, bindsSnapshot } from './keybinds.js';
+import { XP_TABLE } from './skills.js';
 import { PETS } from '../data/pets.js';
 
 // ---------------------------------------------------------------------------
@@ -803,7 +804,8 @@ export class TabPanel {
       total += s.level;
       const row = document.createElement('div');
       row.className = 'skill-row';
-      row.title = Math.floor(s.xp) + ' xp';
+      row.title = Math.floor(s.xp).toLocaleString() + ' xp'
+        + (s.level < 99 ? ' · ' + Math.ceil(XP_TABLE[s.level + 1] - s.xp).toLocaleString() + ' to ' + (s.level + 1) : ' (max)');
       row.innerHTML = `<span class="skill-name">${s.name}</span><span class="skill-lvl">${s.level}</span>`;
       el.appendChild(row);
     }
@@ -1158,6 +1160,7 @@ export class UI {
           { label: 'Withdraw 10', run: () => this.bank.withdraw(id, 10) },
           { label: 'Withdraw All', run: () => this.bank.withdraw(id, this.bank.count(id)) },
           { label: 'Withdraw X…', run: () => this.askAmount('Withdraw how many?', (x) => this.bank.withdraw(id, x)) },
+          { label: 'Examine ' + ITEMS[id].name, run: () => this.chat.add(ITEMS[id].examine, 'examine') },
         ], { x: e.clientX, y: e.clientY }, e);
       });
       body.appendChild(row);
@@ -1601,6 +1604,7 @@ export class UI {
       this.menu.open([
         { label: 'Deposit 1', run: () => this.bank.deposit(slotIndex, 1) },
         { label: 'Deposit 5', run: () => this.bank.deposit(slotIndex, 5) },
+        { label: 'Deposit 10', run: () => this.bank.deposit(slotIndex, 10) },
         { label: 'Deposit All (' + inPack + ')', run: () => this.bank.deposit(slotIndex, inPack) },
         { label: 'Deposit X…', run: () => this.askAmount('Deposit how many?', (x) => this.bank.deposit(slotIndex, x)) },
         { label: 'Examine ' + def.name, run: () => this.chat.add(def.examine, 'examine') },
@@ -1624,10 +1628,20 @@ export class UI {
       label: 'Light fire',
       run: () => this.actions.startLight(slotIndex),
     });
-    if (GEMS[slot.id]) entries.push({
-      label: 'Cut ' + def.name,
-      run: () => this.actions.cutGem(slotIndex),
-    });
+    if (GEMS[slot.id]) {
+      entries.push({
+        label: 'Cut ' + def.name,
+        run: () => this.actions.cutGem(slotIndex),
+      });
+      entries.push({
+        label: 'Cut all ' + def.name.toLowerCase() + 's',
+        run: () => { // cutGem re-validates chisel + level per stone
+          this.player.inventory.slots.forEach((s, i) => {
+            if (s && s.id === slot.id) this.actions.cutGem(i);
+          });
+        },
+      });
+    }
     if (slot.id === STRINGING.input) entries.push({
       label: 'String ' + def.name,
       run: () => this.actions.stringAmulet(slotIndex),

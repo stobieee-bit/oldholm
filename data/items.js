@@ -954,6 +954,9 @@ const CAPE_HUE = {
   Ranged: 0x4a8f3a, Magic: 0x6a4a8a, Prayer: 0xe8e0c0, Cooking: 0x8a5a3a,
   Fishing: 0x2a7a9a, Mining: 0x6a6a72, Smithing: 0x8a8a92, Woodcutting: 0x5a7a3a,
   Firemaking: 0xe07a2a, Crafting: 0xb5854b, Glyphcraft: 0x9aa8c2,
+  // append-only skills get capes too — a missing key here crashes at 99
+  Herblore: 0x2a8a5a, Farming: 0x58a03a, Agility: 0x2a4a9a,
+  Construction: 0xb08a52, Thieving: 0x5a3a6a,
 };
 for (const [skill, hex] of Object.entries(CAPE_HUE)) {
   const css = '#' + hex.toString(16).padStart(6, '0');

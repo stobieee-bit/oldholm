@@ -173,6 +173,7 @@ export class Combat {
 
   tick(tickNo) {
     const p = this.player;
+    this._lastTick = tickNo; // fallback timestamp for tickless playerDie callers
     if (p.attackCooldown > 0) p.attackCooldown--;
 
     const t = p.target;
@@ -370,6 +371,7 @@ export class Combat {
 
   /** Spec §3.4: keep the 3 most valuable stacks, drop the rest where you fell. */
   playerDie(tickNo) {
+    tickNo ??= this._lastTick ?? 0; // NaN despawn timers would never expire
     const p = this.player;
     const deathX = p.pos.x, deathZ = p.pos.z, deathPlane = p.plane;
 
@@ -400,6 +402,7 @@ export class Combat {
     p.target = null;
     p.hp = p.maxHp;
     p.runOn = false;
+    p.stunTicks = 0; // death is disorienting enough without arriving rooted
     this.npcs.dropAggroOnPlayer();
     const sp = this.world.def.spawn;
     p.setPosition(sp.x, sp.z, sp.yaw, 0);

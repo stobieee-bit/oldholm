@@ -94,9 +94,11 @@ export const REGIONS = {
 
     trees: { count: 520, oaks: 34, willows: 20, minSpacing: 2 },
     treeClusters: [
-      { type: 'yew', x: 194, z: 34, count: 7, radius: 8 },      // Brinkton's yews
-      { type: 'willow', x: 95, z: 221, count: 8, radius: 9 },   // Murkwell's weepers
-      { type: 'tree', x: 306, z: 348, count: 16, radius: 17 },  // Ashkara jungle
+      // cluster centers sit OUTSIDE town rectangles: the town tree-exclusion
+      // silently deleted every yew in the game when they overlapped Brinkton
+      { type: 'yew', x: 194, z: 47, count: 7, radius: 5 },      // south of Brinkton's bounds
+      { type: 'willow', x: 95, z: 235, count: 8, radius: 5 },   // below Murkwell's walls
+      { type: 'tree', x: 306, z: 372, count: 16, radius: 12 },  // Ashkara jungle, clear of the desert box
     ],
 
     // Mining outcrop southwest of the castle. rocks: [ore, dx, dz] tile offsets.
@@ -611,7 +613,7 @@ export const REGIONS = {
       { mob: 'vex_cultist', x: 111.5, z: 208.5, hidden: true },  // the manor grounds
       { mob: 'vex_cultist', x: 87.5, z: 55.5, hidden: true },    // Holmbridge churchyard
       // the night shift: wraiths pace the roads from 20:00 to 05:00
-      { mob: 'night_wraith', x: 160.5, z: 90.5, night: true },   // east highway
+      { mob: 'night_wraith', x: 170.5, z: 90.5, night: true },   // east highway (clear of the Hearthstead's door)
       { mob: 'night_wraith', x: 246.5, z: 100.5, night: true },  // south of the crossroads
       { mob: 'night_wraith', x: 76.5, z: 170.5, night: true },   // the swamp road
       { mob: 'night_wraith', x: 262.5, z: 70.5, night: true },   // the Whitehold fork

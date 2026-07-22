@@ -2470,8 +2470,15 @@ export class World {
                 return;
               }
               ctx.player.setPosition(tx, tz, undefined, 0);
-              ctx.player.addXp('Agility', s.req * 2, ctx.ui);
-              ctx.ui.fx?.xpDrop?.([['Agility', s.req * 2]]);
+              // the crossing stays free; the xp does not — ping-ponging a
+              // shortcut was ~8x the intended passive Agility rate
+              const key = 'sc:' + s.name;
+              this._scXpAt ??= {};
+              if (this._tick >= (this._scXpAt[key] ?? 0)) {
+                this._scXpAt[key] = this._tick + 10; // one payout per 6s per shortcut
+                ctx.player.addXp('Agility', s.req * 2, ctx.ui);
+                ctx.ui.fx?.xpDrop?.([['Agility', s.req * 2]]);
+              }
               ctx.ui.audio?.sfx('chop');
               ctx.ui.chat.add(`You take the ${s.name.toLowerCase()} across.`);
             },

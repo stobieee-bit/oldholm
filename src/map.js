@@ -4,6 +4,8 @@
 // minimap) opens it; M / Escape / ✕ closes. Movement freezes while it's open.
 
 import { isBound } from './keybinds.js';
+import { HOUSE_PLOT } from '../data/house.js';
+import { STALLS } from '../data/thieving.js';
 
 const LABELS = [
   { x: 56, z: 88, t: 'Holmbridge' },
@@ -101,6 +103,9 @@ export class WorldMap {
     for (const s of d.shortcuts ?? []) { mark(s.ax, s.az, '⇄', '#ffe17d', 11); mark(s.bx, s.bz, '⇄', '#ffe17d', 11); }
     if (d.undervault) mark(d.undervault.entrance.x, d.undervault.entrance.z, '▼', '#9a6ad8', 13);
     for (const n of d.npcs ?? []) if (n.npc === 'slayer_master') mark(n.x, n.z, '☠', '#e8e4da', 11);
+    mark((HOUSE_PLOT.x0 + HOUSE_PLOT.x1) / 2, (HOUSE_PLOT.z0 + HOUSE_PLOT.z1) / 2, '⌂', '#e8c87a', 14);
+    for (const s of STALLS) mark(s.x, s.z, '☘', '#d8b25f', 11);
+    if (d.tanningRack) mark(d.tanningRack.x, d.tanningRack.z, '◫', '#c98f5f', 11);
     // fellow wanderers (white), your flag (gold), your grave (red skull)
     for (const g of this.ui.online?.ghosts?.values?.() ?? []) {
       ctx.fillStyle = '#ffffff';

@@ -16,6 +16,7 @@ export class Thieving {
     this.clock = clock;
     this.cooldowns = new Map(); // stall/safe key -> tick it restocks
     this._nextAt = 0;           // global attempt gate (no click-spam)
+    this.guards = [];           // summoned guards: capped, expiring, culled
   }
 
   _lvl() { return this.player.skillByName('Thieving').level; }
@@ -24,14 +25,19 @@ export class Thieving {
   _gate() {
     if ((this.player.stunTicks ?? 0) > 0) return false; // still seeing stars
     if (this.clock.tick < this._nextAt) return false;
-    this._nextAt = this.clock.tick + 2;
+    this._nextAt = this.clock.tick + 3; // 1.8s a try — light fingers, not a hose
     return true;
   }
   _rollCount([lo, hi]) { return lo + Math.floor(Math.random() * (hi - lo + 1)); }
 
   pickpocket(mob, ctx) {
     const tier = TIERS[PICKPOCKETS[mob.defId]];
-    if (!tier || mob.dead || mob.hiddenNpc) return;
+    if (!tier || mob.hiddenNpc) return;
+    if (mob.dead) { ctx.ui.chat.add('Rather beyond robbing now.'); return; }
+    if (mob.target === 'player' || this.player.target === mob) {
+      ctx.ui.chat.add(`The ${tier.label} is rather too busy fighting to be robbed.`);
+      return;
+    }
     if (this._lvl() < tier.req) {
       ctx.ui.chat.add(`You need a Thieving level of ${tier.req} to pick a ${tier.label}'s pocket.`);
       return;
@@ -116,16 +122,32 @@ export class Thieving {
     ctx.ui.hurtFlash(dmg);
     p.viewKick?.(dmg);
     ctx.ui.setHp(p.hp, p.maxHp);
-    if (p.hp <= 0) this.combat.playerDie();
+    if (p.hp <= 0) this.combat.playerDie(this.clock.tick);
   }
 
   _summonGuard(x, z, ctx) {
+    if (this.guards.filter((g) => !g.dead).length >= 2) return; // the watch is stretched thin
     const g = this.npcs.spawnOne('guard', MOBS.guard, x + 1, z + 1, 0, { temporary: true });
     g.target = 'player';
+    g._expireAt = this.clock.tick + 150; // ~90s, then he gives up and goes home
+    this.guards.push(g);
     ctx.ui.chat.add('A guard storms over — "THIEF!"', 'system');
   }
 
   tick() {
     if ((this.player.stunTicks ?? 0) > 0) this.player.stunTicks--;
+    // summoned guards never linger: dead ones are cleared (after the topple
+    // plays out), bored ones go home when their patience expires
+    if (this.guards.length) {
+      const t = this.clock.tick;
+      for (const g of this.guards) {
+        if (g.dead && g._deadAt === undefined) g._deadAt = t;
+        if ((g._deadAt !== undefined && t >= g._deadAt + 3) || (!g.dead && t >= g._expireAt)) {
+          g._cull = true;
+          this.npcs.remove(g);
+        }
+      }
+      this.guards = this.guards.filter((g) => !g._cull);
+    }
   }
 }

@@ -32,16 +32,17 @@ export const HOTSPOTS = {
   },
   nexus: {
     name: 'Yew portal nexus', req: 60, wood: ['yew_logs', 12], coins: 8000, xp: 3200,
-    unlocks: 'Free teleports to Holmbridge, Corvath and Whitehold',
+    unlocks: 'Free teleports to Holmbridge, Corvath, Whitehold and Brinkton',
     examine: 'A ring of yew humming with borrowed sky.',
     spot: 'A scorched circle where something impossible could stand.',
   },
 };
 
-export const RENOVATE_DIVISOR = 6; // renovate xp = build xp / 6, for 2 logs
+export const RENOVATE_DIVISOR = 12; // renovate xp = build xp / 12, for 2 logs (tick-gated in src/house.js)
 
 export const NEXUS_DESTS = [
   { label: 'Holmbridge', x: 67.5, z: 88.5 },
   { label: 'Corvath', x: 296.5, z: 130.5 },
   { label: 'Whitehold', x: 288.5, z: 46.5 },
+  { label: 'Brinkton', x: 194.5, z: 30.5 },
 ];

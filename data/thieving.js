@@ -16,24 +16,27 @@ export const PICKPOCKETS = {
   guildmaster: 'elite', skalvik_jarl: 'elite', collector: 'elite',
 };
 
+// Coin ranges are deliberately modest: the balance audit showed the original
+// ranges printed 530k/hr at cap — ~12x the deepest-risk earner in the game.
+// Thieving stays the best pure-coin skill, but by a lead, not a landslide.
 export const TIERS = {
   villager: {
-    req: 1, xp: 8, stun: 3, dmg: 1, coins: [3, 15], label: 'villager',
+    req: 1, xp: 8, stun: 3, dmg: 1, coins: [2, 6], label: 'villager',
     extra: [{ item: 'wheat_seed', chance: 0.08 }],
   },
   trader: {
-    req: 20, xp: 28, stun: 4, dmg: 2, coins: [15, 60], label: 'trader',
+    req: 20, xp: 28, stun: 4, dmg: 2, coins: [4, 14], label: 'trader',
     extra: [{ item: 'guam_seed', chance: 0.08 }, { item: 'tarromin_seed', chance: 0.05 },
       { item: 'bread', chance: 0.06 }],
   },
   guard: {
-    req: 40, xp: 50, stun: 4, dmg: 3, coins: [30, 120], label: 'guard',
+    req: 40, xp: 50, stun: 5, dmg: 3, coins: [8, 26], label: 'guard',
     extra: [{ item: 'harralander_seed', chance: 0.06 }, { item: 'iron_bar', chance: 0.04 }],
   },
   elite: {
-    req: 60, xp: 90, stun: 5, dmg: 4, coins: [80, 320], label: 'noble',
-    extra: [{ item: 'uncut_sapphire', chance: 0.07 }, { item: 'ranarr_seed', chance: 0.05 },
-      { item: 'uncut_emerald', chance: 0.04 }, { item: 'uncut_ruby', chance: 0.02 }],
+    req: 60, xp: 90, stun: 6, dmg: 4, coins: [12, 40], label: 'noble',
+    extra: [{ item: 'uncut_sapphire', chance: 0.03 }, { item: 'ranarr_seed', chance: 0.02 },
+      { item: 'uncut_emerald', chance: 0.02 }, { item: 'uncut_ruby', chance: 0.01 }],
   },
 };
 
@@ -50,6 +53,6 @@ export const STALLS = [
 
 // Wall safes in the Corvath sewers ring (positions relative to its rect).
 export const SAFE = {
-  req: 50, xp: 70, cooldown: 25, coins: [60, 240], failDmg: [2, 4],
+  req: 50, xp: 70, cooldown: 35, coins: [30, 90], failDmg: [2, 4],
   gems: [{ item: 'uncut_sapphire', chance: 0.2 }, { item: 'uncut_emerald', chance: 0.08 }],
 };

@@ -24,6 +24,7 @@ export class Inventory {
   }
 
   add(id, count = 1) {
+    if (!ITEMS[id]) return false; // a missing item def must never crash the pack
     if (ITEMS[id].stackable) {
       const slot = this.slots.find((s) => s && s.id === id);
       if (slot) { slot.count += count; this.onAdd?.(id); return true; }

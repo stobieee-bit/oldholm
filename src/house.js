@@ -59,6 +59,10 @@ export class House {
   renovate(id, ctx) {
     const h = HOTSPOTS[id];
     if (!h || !this.built[id]) return;
+    // same cadence as the anvil and stove — polish takes time, not clicks
+    const t = this.g.clock?.tick ?? 0;
+    if (t < (this._nextAt ?? 0)) return;
+    this._nextAt = t + 3;
     const [wood] = h.wood;
     if (this._count(wood) < 2) { ctx.ui.chat.add(`Renovating takes 2 ${ITEMS[wood].name.toLowerCase()}.`); return; }
     this._take(wood, 2);
