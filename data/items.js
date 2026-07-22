@@ -1059,6 +1059,32 @@ ITEMS.malgrims_mantle = {
   model: { kind: 'box', color: 0x241a30, w: 0.34, h: 0.05, d: 0.3 },
 };
 
+// ---- The Blightheart's hoard: the first true chase uniques (quest-gated boss) ----
+ITEMS.heart_of_ash = {
+  name: 'Heart of ash', examine: 'Still warm. Possibly still beating. Best not to ask.',
+  value: 30000, vendorValue: 2000, stackable: false,
+  slot: 'neck', reqs: { Attack: 70 },
+  atk: [8, 8, 8, 8, 8], str: 5, def: [3, 3, 3, 6, 3],
+  icon: '<path d="M12 20c-4-3.5-7-6-7-9.5C5 7.5 7 6 9 6c1.5 0 2.5.8 3 2 .5-1.2 1.5-2 3-2 2 0 4 1.5 4 4.5 0 3.5-3 6-7 9.5Z" fill="#ff7a2a"/><circle cx="12" cy="11" r="2.4" fill="#ffd23a"/>',
+  model: { kind: 'sphere', color: 0xff7a2a, r: 0.11 },
+};
+ITEMS.ashen_band = {
+  name: 'Ashen band', examine: 'A ring of fused cinder. It hums when the Blight is near.',
+  value: 24000, vendorValue: 1500, stackable: false,
+  slot: 'ring', reqs: {},
+  atk: [5, 5, 5, 5, 5], str: 5, def: [0, 0, 0, 0, 0],
+  icon: '<circle cx="12" cy="13" r="6" fill="none" stroke="#3a3632" stroke-width="2.6"/><circle cx="12" cy="7.6" r="2" fill="#ff7a2a"/>',
+  model: { kind: 'cylinder', color: 0x3a3632, rTop: 0.06, rBot: 0.06, h: 0.03 },
+};
+ITEMS.blightplate = {
+  name: 'Blightplate', examine: 'Armour quenched in the Heart’s own fire. The ash respects it.',
+  value: 60000, vendorValue: 4000, stackable: false,
+  slot: 'body', reqs: { Defence: 70 },
+  atk: [0, 0, 0, 0, 0], str: 2, def: [76, 72, 54, 16, 72],
+  icon: '<path d="M7 4h10l2 6-2 10H9L7 10Z" fill="#2a2624"/><path d="M12 4v16" stroke="#ff7a2a" stroke-width="1.2"/><circle cx="12" cy="11" r="2.2" fill="#ff7a2a"/>',
+  model: { kind: 'box', color: 0x2a2624, w: 0.34, h: 0.1, d: 0.3 },
+};
+
 // ---- Pets: rare companions (data/pets.js; Summon via the pack menu) ----
 for (const [id, pet] of Object.entries(PETS)) {
   ITEMS[id] = {

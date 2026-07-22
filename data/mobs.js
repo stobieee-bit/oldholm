@@ -1285,6 +1285,73 @@ export const MOBS = {
     },
   },
 
+  // ---- The Blight's Heart: the endgame setpiece (quest-gated, farmable) ----
+  blightheart: {
+    name: 'The Blightheart',
+    examine: 'The ember the Blight beats around. It has noticed you.',
+    stats: { att: 75, str: 80, def: 70, hp: 240 }, // ~lv 127
+    bonuses: { att: 24, str: 24, def: 22 },
+    attackType: 'magic', attackRange: 6, projectileColor: 0xff7a2a,
+    boss: true, enrage: 0.5, specialChance: 0.12,
+    ashWave: { r: 2.6, dmg: 22, warnTicks: 2, chance: 0.22 }, // telegraphed ground slam — move!
+    adds: { at: [0.66, 0.33], mob: 'blight_echo', n: 2 },     // echoes tear loose at thresholds
+    rageAfter: 200, // ~2 minutes of fighting ignites the core: +40% damage
+    onDeathQuest: ['the_blights_heart', 1, 100],
+    speed: 4, aggroRadius: 9, wanderRadius: 2, respawnTicks: 300,
+    drops: [
+      { item: 'big_bones', count: 1, weight: 1 },
+      { item: 'coins', count: [300, 700], weight: 8 },
+      { item: 'rune_bar', count: [1, 2], weight: 4 },
+      { item: 'ash_glass', count: [2, 4], weight: 4 },
+      { item: 'runite_ore', count: [1, 2], weight: 3 },
+      { item: 'heart_of_ash', count: 1, weight: 1 },
+      { item: 'ashen_band', count: 1, weight: 1 },
+      { item: 'blightplate', count: 1, weight: 1 },
+      { weight: 3 },
+    ],
+    alwaysDrops: 1,
+    model: {
+      height: 2.6,
+      parts: [
+        // a hulk of fused ash around a burning core
+        { kind: 'cyl', rt: 0.55, rb: 0.8, h: 1.7, seg: 9, at: [0, 0.95, 0], color: 0x2a2624 },   // ash bulk
+        { kind: 'sphere', r: 0.34, detail: 0, at: [0, 1.25, -0.3], color: 0xff7a2a },            // the Heart, exposed
+        { kind: 'sphere', r: 0.2, detail: 0, at: [0, 1.25, -0.38], color: 0xffd23a },            // white-hot center
+        { kind: 'sphere', r: 0.62, scale: [1.15, 0.85, 1], at: [0, 1.95, 0.05], color: 0x241a12 }, // hunched shoulders
+        { kind: 'sphere', r: 0.3, scale: [0.95, 1.05, 0.95], at: [0, 2.32, -0.12], color: 0x2a2624 }, // low head
+        { kind: 'sphere', r: 0.055, detail: 0, at: [-0.11, 2.36, -0.38], color: 0xffd23a },      // ember eyes
+        { kind: 'sphere', r: 0.055, detail: 0, at: [0.11, 2.36, -0.38], color: 0xffd23a },
+        { kind: 'cyl', rt: 0.14, rb: 0.18, h: 1.1, rotZ: 0.3, at: [-0.72, 1.5, 0], color: 0x241a12 }, // slab arms
+        { kind: 'cyl', rt: 0.14, rb: 0.18, h: 1.1, rotZ: -0.3, at: [0.72, 1.5, 0], color: 0x241a12 },
+        { kind: 'sphere', r: 0.2, at: [-0.88, 0.9, 0.05], color: 0x3a1810 },                     // cinder fists
+        { kind: 'sphere', r: 0.2, at: [0.88, 0.9, 0.05], color: 0x3a1810 },
+        // cinder crown
+        { kind: 'cone', r: 0.07, h: 0.3, at: [-0.2, 2.56, -0.05], color: 0xff7a2a },
+        { kind: 'cone', r: 0.07, h: 0.34, at: [0, 2.62, 0.05], color: 0xd86a2a },
+        { kind: 'cone', r: 0.07, h: 0.3, at: [0.2, 2.56, -0.05], color: 0xff7a2a },
+      ],
+    },
+  },
+  blight_echo: {
+    name: 'Blight echo',
+    examine: 'A death that keeps happening, loosed from the Heart.',
+    stats: { att: 36, str: 36, def: 30, hp: 40 }, // ~lv 41
+    bonuses: { att: 10, str: 10, def: 8 },
+    attackType: 'slash',
+    speed: 5, aggroRadius: 10, wanderRadius: 2, respawnTicks: 999,
+    drops: [{ item: 'ashes', count: 1, weight: 1 }],
+    alwaysDrops: 1,
+    model: {
+      height: 1.7,
+      parts: [
+        { kind: 'cyl', rt: 0.14, rb: 0.4, h: 1.4, seg: 8, at: [0, 0.8, 0], color: 0x3a3632 },
+        { kind: 'sphere', r: 0.16, at: [0, 1.6, 0], color: 0x2a2624 },
+        { kind: 'sphere', r: 0.04, detail: 0, at: [-0.06, 1.62, -0.12], color: 0xff7a2a },
+        { kind: 'sphere', r: 0.04, detail: 0, at: [0.06, 1.62, -0.12], color: 0xff7a2a },
+      ],
+    },
+  },
+
   // ---- Phase 11: quest bosses ----
   ravenmoor: {
     name: 'Lord Ravenmoor',

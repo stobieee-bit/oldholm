@@ -71,6 +71,7 @@ export class Combat {
     this.kills = {};     // defId -> lifetime count (saved)
     this.killBase = {};  // defId -> kill count snapshot at a bounty's start (saved)
     this._regen = 0;
+    this._hazards = [];  // telegraphed ground strikes (the Blightheart's ash waves)
     this._ray = new THREE.Raycaster();
   }
 
@@ -174,6 +175,25 @@ export class Combat {
   tick(tickNo) {
     const p = this.player;
     this._lastTick = tickNo; // fallback timestamp for tickless playerDie callers
+    // telegraphed hazards resolve: standing in the ring when it strikes hurts
+    if (this._hazards.length) {
+      for (const h of this._hazards) {
+        if (tickNo < h.at) continue;
+        h.done = true;
+        this.world.removeTelegraph(h.tele);
+        this.world.spawnBurst({ x: h.x, y: h.y + 0.25, z: h.z }, 0xff7a2a,
+          { count: 14, speed: 3.2, size: 0.07, additive: true, flashColor: 0xffd23a, flashSize: 0.9 });
+        if (p.plane === h.plane && Math.hypot(p.pos.x - h.x, p.pos.z - h.z) <= h.r) {
+          p.hp = Math.max(0, p.hp - h.dmg);
+          this.ui.fx.hitsplat(() => ({ screen: true }), h.dmg);
+          this.ui.hurtFlash(h.dmg);
+          p.viewKick(h.dmg);
+          this.ui.chat.add('The ash erupts beneath you!', 'system');
+          if (p.hp <= 0) { this._hazards = this._hazards.filter((x) => !x.done); this.playerDie(tickNo); return; }
+        }
+      }
+      this._hazards = this._hazards.filter((h) => !h.done);
+    }
     if (p.attackCooldown > 0) p.attackCooldown--;
 
     const t = p.target;
@@ -312,10 +332,11 @@ export class Combat {
    *  occasional telegraphed heavy blows and once-only phase snarls. */
   _bossOutgoing(mob, def, dmg) {
     const pct = mob.maxHp ? mob.hp / mob.maxHp : 1;
-    if (pct > 0.9) { mob._p1 = false; mob._p2 = false; }            // reset on a fresh fight
+    if (pct > 0.9) { mob._p1 = false; mob._p2 = false; mob._addsDone?.clear(); } // reset on a fresh fight
     if (pct <= 0.5 && !mob._p1) { mob._p1 = true; this.ui.chat.add(`${def.name} snarls and presses the attack!`, 'system'); }
     if (pct <= 0.25 && !mob._p2) { mob._p2 = true; this.ui.chat.add(`${def.name} is cornered — and utterly furious!`, 'system'); this.audio?.sfx('quest'); }
     let out = Math.round(dmg * (1 + (1 - pct) * (def.enrage ?? 0.45))); // up to +45% at 0 hp
+    if (mob._raged) out = Math.round(out * 1.4); // the ignited core burns hotter
     if (Math.random() < (def.specialChance ?? 0.15)) {
       out = Math.round(out * 1.7);
       this.ui.chat.add(`${def.name} lands a crushing blow!`, 'system');
@@ -329,6 +350,19 @@ export class Combat {
     const def = MOBS[mob.defId];
     const vsType = def.attackType ?? 'crush';
     mob.lungeAttack?.(); // a visible forward strike
+
+    // The Blightheart slams the ground where you stand — telegraphed. MOVE.
+    if (def.ashWave && Math.random() < def.ashWave.chance * (mob._raged ? 1.5 : 1)) {
+      const tele = this.world.addTelegraph(p.pos.x, p.pos.z, def.ashWave.r, p.plane);
+      this._hazards.push({
+        x: p.pos.x, z: p.pos.z, y: tele.y, r: def.ashWave.r, dmg: def.ashWave.dmg,
+        plane: p.plane, at: tickNo + def.ashWave.warnTicks, tele,
+      });
+      this.audio?.sfx('dragonfire');
+      this.ui.chat.add('The ash RINGS underfoot — move!', 'system');
+      if (p.autoRetaliate && !p.target) p.target = mob;
+      return;
+    }
 
     // Cindermaw's dragonfire: lethal (40) unless an anti-flame shield is worn.
     if (def.dragonfire && Math.random() < 0.28) {

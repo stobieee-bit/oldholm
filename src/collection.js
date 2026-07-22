@@ -11,7 +11,7 @@ import { MOBS } from '../data/mobs.js';
 import { ITEMS } from '../data/items.js';
 
 const BOSS_KILLS = ['ravenmoor', 'zarkhul', 'cindermaw', 'malgrim',
-  'green_dragon', 'blue_dragon', 'red_dragon', 'black_dragon'];
+  'green_dragon', 'blue_dragon', 'red_dragon', 'black_dragon', 'blightheart'];
 const FLOORS = [5, 10, 15, 20, 30, 44];
 
 export class Collection {

@@ -199,6 +199,18 @@ QUESTS.rebuild_brinkton = {
   rewardFn: [['xp', 'Construction', 4000]],
 };
 
+// ---- The epilogue: the Blight has a heart, and it can be stopped ----
+QUESTS.the_blights_heart = {
+  name: "The Blight's Heart",
+  qp: 3,
+  start: 'Warden Ashe hears something in the deep ash — a beat. (Requires The Last Circle.)',
+  journal: {
+    1: 'Deep in the Blight, at the circle of cinders, the Blightheart waits. Destroy it. Bring fire-proof nerve and a full belly — the ash keeps what falls.',
+  },
+  rewards: ['4,000 coins', '8,000 Hitpoints xp', 'The Blightheart remains — and its hoard with it'],
+  rewardFn: [['item', 'coins', 4000], ['xp', 'Hitpoints', 8000]],
+};
+
 export const QUEST_ORDER = [
   'cooks_calamity', 'unquiet_grave', 'beads_of_the_magus', 'severed_circle', 'matter_of_colors',
   'poultrified_professor', 'lord_of_murkwell', 'squires_blunder', 'shadow_over_corvath', 'wyrm_of_ashkara',
@@ -208,6 +220,8 @@ export const QUEST_ORDER = [
   'embers_of_malgrim', 'the_black_stair', 'the_last_circle',
   // Round 3
   'rebuild_brinkton',
+  // Round 4
+  'the_blights_heart',
 ];
 
 // The Champions' Guild opens its door at this many quest points (spec §11).

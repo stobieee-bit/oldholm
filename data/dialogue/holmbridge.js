@@ -1005,6 +1005,9 @@ export const TREES = {
     start: [
       { if: { quest: 'blight_cull', is: 0 }, node: 's0' },
       { if: { quest: 'blight_cull', gte: 1, lt: 100 }, node: 'turnin' },
+      { if: { quest: 'the_blights_heart', gte: 100 }, node: 'bh_done' },
+      { if: { quest: 'the_blights_heart', gte: 1 }, node: 'bh_mid' },
+      { if: { quest: 'the_last_circle', gte: 100 }, node: 'bh_offer' },
       { node: 'done' },
     ],
     nodes: {
@@ -1038,6 +1041,33 @@ export const TREES = {
         options: [
           { label: 'Sound the horn.', actions: ['siege:start', 'end'] },
           { label: 'Another day.', action: 'end' },
+        ],
+      },
+      bh_offer: {
+        speaker: 'npc', text: 'Since Malgrim fell, I hear it on still nights. A beat, deep in the ash. Slow. Patient. The Blight isn’t a wound, wanderer — it’s a body, and somewhere out there it keeps a heart. I marked a circle of cinders on no map I’ll ever file. Go and stop it beating.',
+        options: [
+          { label: 'Point me at the circle. I’ll do the rest.', actions: ['quest:the_blights_heart:1', 'unhide:blightheart'], next: 'bh_go' },
+          { label: 'The gate needs holding? I’m ready.', next: 'siege_brief' },
+          { label: 'Some hearts should keep beating. Not this one. But not today.', action: 'end' },
+        ],
+      },
+      bh_go: {
+        speaker: 'npc', text: 'Deep east, past everything that wants you dead. It slams the ground — MOVE when the ash rings. It tears its echoes loose when it bleeds. And if you take too long, the very air ignites. Eat first. Come back after.',
+        options: [{ label: 'One heartbeat. Then none.', action: 'end' }],
+      },
+      bh_mid: {
+        speaker: 'npc', text: 'Still beating. I can hear it — or I’ve stopped sleeping, one of the two. The circle of cinders, deep east. Move when the ash rings, mind the echoes, and don’t linger.',
+        options: [
+          { label: 'On my way.', action: 'end' },
+          { label: 'The gate needs holding? I’m ready.', next: 'siege_brief' },
+        ],
+      },
+      bh_done: {
+        speaker: 'npc', text: 'The nights are quiet now. Properly quiet — I’d forgotten what that was. Whatever grows back out there will grow back around the hole you left in it. Brinkton owes you twice.',
+        options: [
+          { label: 'It still drops treasure, Warden.', next: 'bh_go' },
+          { label: 'The gate needs holding? I’m ready.', next: 'siege_brief' },
+          { label: 'Sleep well, Ashe.', action: 'end' },
         ],
       },
     },

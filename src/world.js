@@ -146,6 +146,7 @@ export class World {
     this._buildDelve();
     this._buildHouse();
     this._buildThievery(); // after _buildSewers: the safes live down there
+    this._buildBlightArena();
     this._buildTomb();
     this._buildCaldera();
     this._buildManorInterior();
@@ -2409,6 +2410,40 @@ export class World {
         },
       }],
     });
+  }
+
+  /** A flat warning ring on the ground — the Blightheart's ash-wave telegraph. */
+  addTelegraph(x, z, r, plane = 0) {
+    const y = this.getGroundHeight(x, z, plane);
+    const mesh = new THREE.Mesh(
+      new THREE.RingGeometry(r * 0.55, r, 20),
+      new THREE.MeshBasicMaterial({ color: 0xff7a2a, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(x, y + 0.06, z);
+    this.group.add(mesh);
+    return { mesh, y };
+  }
+
+  removeTelegraph(t) {
+    this.group.remove(t.mesh);
+    t.mesh.geometry.dispose();
+    t.mesh.material.dispose();
+  }
+
+  /** The circle of cinders: the Blightheart's arena, deep in the ash. */
+  _buildBlightArena() {
+    const cx = 357.5, cz = 132.5, R = 7;
+    const rock = new THREE.MeshLambertMaterial({ color: 0x241a12, flatShading: true });
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R;
+      const y = this.getGroundHeight(x, z);
+      const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55 + (i % 3) * 0.2, 0), rock);
+      m.position.set(x, y + 0.3, z);
+      m.rotation.y = i * 1.7;
+      this.group.add(m);
+      if (i % 3 === 0) this._addTorch(x, y + 1.1, z, { post: 0.9, strength: 1.1 }); // ember braziers
+    }
   }
 
   /** The Hearthstead: the player's cottage on the east road. The shell is a

@@ -607,6 +607,8 @@ export const REGIONS = {
       { mob: 'vex_cultist', x: 175.5, z: 148.5, plane: 'sanctum' },
       { mob: 'vex_cultist', x: 181.5, z: 152.5, plane: 'sanctum' },
       { mob: 'malgrim', x: 178.5, z: 150.5, plane: 'sanctum', hidden: true },
+      // the Blightheart: revealed by Warden Ashe's epilogue quest
+      { mob: 'blightheart', x: 357.5, z: 132.5, hidden: true },
       // cult shrines on the surface — hidden until Serra's quest reveals the
       // circle (the churchyard one used to ambush brand-new players otherwise)
       { mob: 'vex_cultist', x: 133.5, z: 45.5, hidden: true },   // by the gale altar

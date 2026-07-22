@@ -135,6 +135,24 @@ class Mob {
     this.hp = Math.max(0, this.hp - dmg);
     this.lastCombatTick = tickNo;
     if (dmg > 0) { this._hitFlash = 1; this._flinch = 1; } // white flash + recoil squash
+    // bosses tear their echoes loose at health thresholds (def.adds)
+    const ad = this.def.adds;
+    if (ad && this.hp > 0 && combat?.npcs) {
+      this._addsDone ??= new Set();
+      const frac = this.hp / this.maxHp;
+      for (const t of ad.at) {
+        if (frac > t || this._addsDone.has(t)) continue;
+        this._addsDone.add(t);
+        for (let i = 0; i < ad.n; i++) {
+          const e = combat.npcs.spawnOne(ad.mob, MOBS[ad.mob],
+            this.tile.x + (i * 2 - 1) * 1.5, this.tile.z + 1.2, this.plane, { temporary: true });
+          e.target = 'player';
+          e._cullOnDeath = true; // summoned adds are swept shortly after they fall
+        }
+        combat.ui.chat.add('Echoes tear loose from the ash!', 'system');
+        combat.audio?.sfx('quest');
+      }
+    }
     if (this.hp <= 0) {
       // some foes cannot die without a specific item in hand (spec §7: Ravenmoor + stake)
       const need = this.def.needsItemToKill;
@@ -193,6 +211,9 @@ class Mob {
   respawn() {
     this.dead = false;
     this.hp = this.maxHp;
+    this._addsDone = null;   // a fresh fight earns fresh echoes
+    this._fightTicks = 0;
+    this._raged = false;
     this.tile = { ...this.spawnTile };
     this.returning = false;
     this._from = { x: this.tile.x + 0.5, z: this.tile.z + 0.5 };
@@ -272,6 +293,21 @@ class Mob {
       this.mesh.scale.setScalar(1); // the wool grows back
     }
     if (this.cooldown > 0) this.cooldown--;
+
+    // soft enrage: a fight that runs past def.rageAfter ticks ignites the core
+    if (this.def.rageAfter) {
+      if (this.target === 'player') {
+        this._fightTicks = (this._fightTicks ?? 0) + 1;
+        if (!this._raged && this._fightTicks >= this.def.rageAfter) {
+          this._raged = true;
+          combat.ui.chat.add(`${this.def.name}'s core IGNITES — the very air burns!`, 'system');
+          combat.audio?.sfx('dragonfire');
+        }
+      } else if (this._fightTicks) {
+        this._fightTicks = 0;
+        this._raged = false;
+      }
+    }
 
     const player = combat.player;
     const pTile = { x: Math.floor(player.pos.x), z: Math.floor(player.pos.z) };
@@ -517,6 +553,10 @@ export class NPCManager {
 
   tick(tickNo, combat) {
     for (const m of this.mobs) m.tick(tickNo, combat);
+    // summoned adds never linger: flagged temporaries are culled after death
+    const cull = this.mobs.filter((m) =>
+      m._cullOnDeath && m.dead && (m._cullAt ??= tickNo + 4) <= tickNo);
+    for (const m of cull) this.remove(m);
   }
 
   updateVisuals(dt, playerPos) {
