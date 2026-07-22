@@ -38,6 +38,7 @@ import { Collection } from './collection.js';
 import { Thieving } from './thieving.js';
 import { Brinkton } from './brinkton.js';
 import { Viewmodel } from './viewmodel.js';
+import { Critters } from './critters.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -376,6 +377,7 @@ game.siege = siege;
 dialogue.siegeRef = siege; // Warden Ashe's 'siege:start'
 const weather = new Weather(scene, camera, world, npcs, farming, ui, audio, clock, player);
 actions.weather = weather;  // rain drowns fresh tinder
+const critters = new Critters(world, weather); // butterflies, fireflies, sparrows, rats
 ui.combatRef = combat;      // the bestiary reads the kill tally
 const delve = new Delve(player, ui, npcs, world);
 game.delve = delve;
@@ -705,6 +707,7 @@ function frame(now) {
   world.updateSpinners(dt);
   online.update(dt); // ease fellow wanderers toward their reported spots
   weather.update(dt); // rain falls with the camera
+  critters.update(dt, player.pos, player.plane); // the small lives go about theirs
   pets.update(dt);    // the little companion keeps pace
   interactions.updateHover();
   applyDayTint();
@@ -737,7 +740,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather, delve, pets, house, collection, thieving, brinkton, viewmodel,
+  farming, siege, weather, delve, pets, house, collection, thieving, brinkton, viewmodel, critters,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
@@ -749,6 +752,7 @@ window.__OLDHOLM = {
       }
       player.update(dt);
       viewmodel.update(dt);
+      critters.update(dt, player.pos, player.plane);
       npcs.updateVisuals(dt, player.pos);
       world.updateProjectiles(dt);
       world.updateEffects(dt);
