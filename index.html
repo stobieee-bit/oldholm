@@ -599,6 +599,18 @@
   .sys-toggle.off { color: #8a7f57; }
   .sys-btn { color: #ffe17d; border-color: #6a6248; margin-top: 10px; }
   .sys-btn.sys-btn-on { border-color: #c9a232; background: rgba(201, 162, 50, 0.14); }
+
+  /* item tooltip: stats + deltas vs what's worn */
+  #item-tip {
+    position: fixed; z-index: 40; pointer-events: none; max-width: 230px;
+    background: rgba(24, 22, 16, 0.96); border: 1px solid #6a6248; border-radius: 4px;
+    padding: 7px 10px; font-size: 12.5px; line-height: 1.5; color: #e8dfc0;
+  }
+  #item-tip.hidden { display: none; }
+  #item-tip b { color: #ffe17d; }
+  .tip-up { color: #8fc97a; }
+  .tip-down { color: #d97a6a; }
+  .tip-dim { color: #a8a184; font-size: 11.5px; }
   .sys-slider { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-size: 12.5px; color: #a8a184; }
   .sys-slider input { flex: 1; accent-color: #c9a232; }
   .sys-note { margin-top: 10px; font-size: 11px; color: #a8a184; line-height: 1.5; text-align: center; }
@@ -814,6 +826,8 @@
 
   <div id="fx-layer"></div>
 
+  <div id="item-tip" class="hidden"></div>
+
   <div id="anvil-panel" class="hidden">
     <div id="anvil-head"><span id="anvil-title">SMITHING</span><span id="anvil-close">✕</span></div>
     <div id="anvil-body"></div>
@@ -830,7 +844,8 @@
     <div id="bank-body" class="panel-body"></div>
     <div id="ask-x" class="hidden"><span id="ask-x-label"></span><input id="ask-x-input" type="number" min="1"></div>
     <div class="panel-hint">Click vault items to withdraw · click your pack to deposit
-      <button id="bank-deposit-all" class="sys-btn" style="float:right;margin:-2px 0">Deposit pack</button></div>
+      <button id="bank-deposit-all" class="sys-btn" style="float:right;margin:-2px 0">Deposit pack</button>
+      <button id="bank-deposit-loot" class="sys-btn" style="float:right;margin:-2px 6px 0 0">Keep tools</button></div>
   </div>
 
   <div id="market-panel" class="hidden">

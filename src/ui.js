@@ -811,6 +811,17 @@ export class TabPanel {
     tot.className = 'skill-total';
     tot.textContent = 'Total level: ' + total;
     el.appendChild(tot);
+    // the session ledger: what this sitting has earned, and at what pace
+    const p = this.player;
+    p.sessionStart ??= performance.now();
+    const gained = Math.floor(p.sessionXp ?? 0);
+    if (gained > 0) {
+      const hrs = Math.max((performance.now() - p.sessionStart) / 3600000, 1 / 60);
+      const sess = document.createElement('div');
+      sess.className = 'skill-total';
+      sess.textContent = `Session: +${gained.toLocaleString()} xp · ${Math.round(gained / hrs).toLocaleString()} xp/h`;
+      el.appendChild(sess);
+    }
   }
 
   renderInventory() {
@@ -821,12 +832,15 @@ export class TabPanel {
       cell.className = 'inv-slot';
       if (slot) {
         const def = ITEMS[slot.id];
-        cell.title = def.name;
         cell.innerHTML = itemIconSVG(def) +
           (def.stackable ? `<span class="inv-count">${fmtCount(slot.count)}</span>` : '');
         cell.addEventListener('mousedown', (e) => {
+          this.ui.hideItemTip();
           if (e.button === 0 || e.button === 2) this.ui.openItemMenu(i, e);
         });
+        cell.addEventListener('mouseenter', (e) => this.ui.showItemTip(def, e.clientX, e.clientY));
+        cell.addEventListener('mousemove', (e) => this.ui.moveItemTip(e.clientX, e.clientY));
+        cell.addEventListener('mouseleave', () => this.ui.hideItemTip());
       }
       el.appendChild(cell);
     });
@@ -864,7 +878,56 @@ export class UI {
     document.getElementById('shop-close').addEventListener('click', () => this.closeShop());
     document.getElementById('bank-close').addEventListener('click', () => this.closeBank());
     document.getElementById('bank-deposit-all')?.addEventListener('click', () => this.bank?.depositAll());
+    document.getElementById('bank-deposit-loot')?.addEventListener('click', () => this.bank?.depositAllButTools());
     document.getElementById('bank-search').addEventListener('input', () => this.refreshBank());
+  }
+
+  /** Item tooltip: the item's combat stats with deltas against what's worn
+   *  in the same slot — green up, red down. Non-gear shows name/heals only. */
+  showItemTip(def, x, y) {
+    const tip = document.getElementById('item-tip');
+    if (!tip) return;
+    const delta = (d) => d === 0 ? ''
+      : ` <span class="${d > 0 ? 'tip-up' : 'tip-down'}">(${d > 0 ? '+' : ''}${d})</span>`;
+    const rows = [`<b>${def.name}</b>`];
+    if (def.slot) {
+      const wornId = this.player.equipment[def.slot];
+      const worn = wornId ? ITEMS[wornId] : null;
+      const styles = ['Stab', 'Slash', 'Crush', 'Magic', 'Ranged'];
+      const atk = def.atk ?? [0, 0, 0, 0, 0];
+      const wAtk = worn?.atk ?? [0, 0, 0, 0, 0];
+      for (let i = 0; i < 5; i++) {
+        if (!atk[i] && !wAtk[i]) continue;
+        rows.push(`${styles[i]} ${atk[i]}${delta(atk[i] - wAtk[i])}`);
+      }
+      const sum = (a) => (a ?? [0, 0, 0, 0, 0]).reduce((t, v) => t + v, 0);
+      const dd = sum(def.def), wd = sum(worn?.def);
+      if (dd || wd) rows.push(`Defence ${dd}${delta(dd - wd)}`);
+      const st = def.str ?? 0, wst = worn?.str ?? 0;
+      if (st || wst) rows.push(`Strength ${st}${delta(st - wst)}`);
+      const rs = def.rangedStr ?? 0, wrs = worn?.rangedStr ?? 0;
+      if (rs || wrs) rows.push(`Ranged str ${rs}${delta(rs - wrs)}`);
+      if (def.speed) rows.push(`Speed ${def.speed}`);
+      rows.push(`<span class="tip-dim">${worn ? 'vs ' + worn.name.toLowerCase() : 'nothing worn there'}</span>`);
+      if (def.reqs) rows.push(`<span class="tip-dim">req ${
+        Object.entries(def.reqs).map(([k, v]) => `${k} ${v}`).join(', ')}</span>`);
+    }
+    if (def.heals) rows.push(`Heals ${def.heals}`);
+    tip.innerHTML = rows.join('<br>');
+    tip.classList.remove('hidden');
+    this.moveItemTip(x, y);
+  }
+
+  moveItemTip(x, y) {
+    const tip = document.getElementById('item-tip');
+    if (!tip || tip.classList.contains('hidden')) return;
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.max(6, Math.min(x - r.width - 14, innerWidth - r.width - 6)) + 'px';
+    tip.style.top = Math.max(6, Math.min(y + 12, innerHeight - r.height - 6)) + 'px';
+  }
+
+  hideItemTip() {
+    document.getElementById('item-tip')?.classList.add('hidden');
   }
 
   /** Late-bound refs the item menus / combat displays need. */

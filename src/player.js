@@ -243,6 +243,7 @@ export class Player {
    */
   addXp(name, amount, ui) {
     const s = this.skillByName(name);
+    this.sessionXp = (this.sessionXp ?? 0) + amount; // xp/h tracker (not saved)
     if (s.level >= 99) { s.xp += amount; this._awardCape(name, ui); return 0; }
     s.xp += amount;
     const newLevel = levelForXp(s.xp);

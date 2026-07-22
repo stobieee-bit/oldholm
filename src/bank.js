@@ -56,6 +56,24 @@ export class Bank {
     this.ui.chat.add(moved ? 'The pack empties into the vault.' : 'Your pack has nothing to give.');
   }
 
+  /** Deposit everything except the toolkit — axes, rods, hammers and their
+   *  kin stay in the pack, so a skilling trip can bank loot and keep going. */
+  depositAllButTools() {
+    const slots = this.player.inventory.slots;
+    let moved = 0;
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      if (!s || ITEMS[s.id].tool) continue;
+      if (!this.vault.has(s.id) && this.vault.size >= CAPACITY) continue;
+      this.vault.set(s.id, this.count(s.id) + (s.count ?? 1));
+      slots[i] = null;
+      moved++;
+    }
+    if (moved) { this.ui.refreshInventory(); this.ui.refreshBank(); }
+    this.ui.chat.add(moved ? 'Everything but the toolkit goes into the vault.'
+      : 'Nothing to deposit that is not a tool.');
+  }
+
   withdraw(id, n) {
     const have = this.count(id);
     if (have <= 0) return;
