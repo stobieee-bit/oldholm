@@ -14,7 +14,7 @@
 export function figure(o = {}) {
   const skin = o.skin ?? 0xd8b090, shirt = o.shirt ?? 0x6a7a4a,
     sleeve = o.sleeve ?? shirt, pants = o.pants ?? 0x5a4a33,
-    hair = o.hair ?? 0x6e4f33, boot = o.boot ?? 0x3a2f26;
+    hair = o.hair ?? 0x6e4f33, boot = o.boot ?? 0x3a3632;
   const b = o.build ?? 1, hs = o.headScale ?? 1;
   const parts = [
     // legs (knee taper), boot shafts, boots with a toe box toward +z
@@ -39,8 +39,8 @@ export function figure(o = {}) {
     // eyes a step below them, and a nose bump for the profile
     { kind: 'box', size: [0.055 * hs, 0.024, 0.03], at: [-0.052 * hs, 1.33 + 0.056 * hs, 0.131 * hs], color: hair },
     { kind: 'box', size: [0.055 * hs, 0.024, 0.03], at: [0.052 * hs, 1.33 + 0.056 * hs, 0.131 * hs], color: hair },
-    { kind: 'box', size: [0.03 * hs, 0.024, 0.02], at: [-0.052 * hs, 1.33 + 0.008 * hs, 0.141 * hs], color: 0x201812 },
-    { kind: 'box', size: [0.03 * hs, 0.024, 0.02], at: [0.052 * hs, 1.33 + 0.008 * hs, 0.141 * hs], color: 0x201812 },
+    { kind: 'box', size: [0.03 * hs, 0.024, 0.02], at: [-0.052 * hs, 1.33 + 0.008 * hs, 0.141 * hs], color: 0x241a12 },
+    { kind: 'box', size: [0.03 * hs, 0.024, 0.02], at: [0.052 * hs, 1.33 + 0.008 * hs, 0.141 * hs], color: 0x241a12 },
     { kind: 'box', size: [0.034, 0.05, 0.045], at: [0, 1.33 - 0.024 * hs, 0.142 * hs], color: skin },
     // arms in two segments: upper at the shoulder, forearm drifting forward
     { kind: 'cyl', rt: 0.06, rb: 0.054, h: 0.26, rotZ: 0.16, at: [-0.235 * b, 1.0, 0], color: sleeve },

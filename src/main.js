@@ -67,7 +67,7 @@ const fogBase = new THREE.Color(def.fog.color);
 scene.fog = new THREE.Fog(def.fog.color, def.fog.near, def.fog.far);
 renderer.setClearColor(def.fog.color);
 
-const hemi = new THREE.HemisphereLight(0xdfe6d2, 0x6d7a58, 1.12); // brighter, lighter ground bounce
+const hemi = new THREE.HemisphereLight(0xe4e4cc, 0x6d7a58, 1.12); // warm sky bounce over green ground
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff3da, 1.0);
 sun.position.set(60, 100, 25);
@@ -587,8 +587,8 @@ window.addEventListener('resize', () => {
 const TINTS = [ // [dayFraction, fogTint, sunColor, sunIntensity, hemiIntensity]
   [0.00, 0x8090c4, 0xbcc8ee, 0.55, 0.66], // deep night: cool + moody
   [0.22, 0xf0c088, 0xffc678, 0.90, 0.88], // dawn: golden
-  [0.34, 0xfff6e6, 0xfff2d6, 1.00, 1.00], // morning
-  [0.60, 0xffffff, 0xfff3da, 1.00, 1.00], // afternoon
+  [0.34, 0xfff4e0, 0xffefc8, 1.00, 1.00], // morning: honeyed
+  [0.60, 0xfffaf0, 0xffefcd, 1.00, 1.00], // afternoon: warm, not clinical white
   [0.80, 0xf2ac6e, 0xff9c50, 0.88, 0.86], // dusk: warm orange
   [0.92, 0x8090c4, 0xbcc8ee, 0.55, 0.66], // nightfall
 ].map(([t, f, s, si, hi]) => ({ t, fog: new THREE.Color(f), sun: new THREE.Color(s), si, hi }));

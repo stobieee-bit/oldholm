@@ -65,18 +65,18 @@ export const MOBS = {
     model: {
       height: 0.62,
       parts: [
-        { kind: 'box', size: [0.34, 0.3, 0.42], at: [0, 0.3, 0], color: 0xe8e4da },
-        { kind: 'box', size: [0.18, 0.18, 0.18], at: [0, 0.56, -0.22], color: 0xe8e4da },
-        { kind: 'cone', r: 0.05, h: 0.12, at: [0, 0.56, -0.34], rotX: -1.57, color: 0xd8a03a },
+        { kind: 'box', size: [0.34, 0.3, 0.42], at: [0, 0.3, 0], color: 0xe8e2d0 },
+        { kind: 'box', size: [0.18, 0.18, 0.18], at: [0, 0.56, -0.22], color: 0xe8e2d0 },
+        { kind: 'cone', r: 0.05, h: 0.12, at: [0, 0.56, -0.34], rotX: -1.57, color: 0xd8b13a },
         { kind: 'box', size: [0.05, 0.08, 0.05], at: [0, 0.6, -0.16], color: 0xc84b38 },
-        { kind: 'box', size: [0.04, 0.16, 0.04], at: [-0.08, 0.08, 0], color: 0xd8a03a },
-        { kind: 'box', size: [0.04, 0.16, 0.04], at: [0.08, 0.08, 0], color: 0xd8a03a },
+        { kind: 'box', size: [0.04, 0.16, 0.04], at: [-0.08, 0.08, 0], color: 0xd8b13a },
+        { kind: 'box', size: [0.04, 0.16, 0.04], at: [0.08, 0.08, 0], color: 0xd8b13a },
         // silhouette: comb ridge, wattle, fanned tail, folded wings
         { kind: 'box', size: [0.035, 0.09, 0.15], at: [0, 0.68, -0.22], color: 0xc84b38 },
         { kind: 'box', size: [0.035, 0.07, 0.04], at: [0, 0.47, -0.31], color: 0xc84b38 },
-        { kind: 'box', size: [0.07, 0.2, 0.14], rotX: 0.7, at: [0, 0.46, 0.24], color: 0xd9d4c8 },
-        { kind: 'box', size: [0.05, 0.14, 0.3], rotZ: -0.12, at: [-0.19, 0.32, 0.02], color: 0xd9d4c8 },
-        { kind: 'box', size: [0.05, 0.14, 0.3], rotZ: 0.12, at: [0.19, 0.32, 0.02], color: 0xd9d4c8 },
+        { kind: 'box', size: [0.07, 0.2, 0.14], rotX: 0.7, at: [0, 0.46, 0.24], color: 0xd8ccb8 },
+        { kind: 'box', size: [0.05, 0.14, 0.3], rotZ: -0.12, at: [-0.19, 0.32, 0.02], color: 0xd8ccb8 },
+        { kind: 'box', size: [0.05, 0.14, 0.3], rotZ: 0.12, at: [0.19, 0.32, 0.02], color: 0xd8ccb8 },
       ],
     },
   },
@@ -97,22 +97,22 @@ export const MOBS = {
     model: {
       height: 1.15,
       parts: [
-        { kind: 'cyl', rt: 0.35, rb: 0.35, h: 1.12, seg: 12, rotX: 1.5708, at: [0, 0.74, 0.02], color: 0xe6e2d8 }, // barrel body
+        { kind: 'cyl', rt: 0.35, rb: 0.35, h: 1.12, seg: 12, rotX: 1.5708, at: [0, 0.74, 0.02], color: 0xe8e2d0 }, // barrel body
         { kind: 'sphere', r: 0.19, scale: [1.2, 1, 1.3], at: [0.13, 0.86, 0.22], color: 0x4a4038 }, // brown patch
         { kind: 'sphere', r: 0.16, scale: [1.2, 1, 1.3], at: [-0.16, 0.66, -0.2], color: 0x4a4038 },
-        { kind: 'sphere', r: 0.24, scale: [1, 0.95, 1.05], at: [0, 0.9, -0.62], color: 0x6b5744 }, // head
-        { kind: 'box', size: [0.22, 0.18, 0.18], at: [0, 0.8, -0.86], color: 0xd8b5a0 }, // muzzle
-        { kind: 'cone', r: 0.05, h: 0.16, rotZ: -0.7, at: [0.15, 1.06, -0.58], color: 0xcfc8b8 }, // horns
-        { kind: 'cone', r: 0.05, h: 0.16, rotZ: 0.7, at: [-0.15, 1.06, -0.58], color: 0xcfc8b8 },
-        { kind: 'box', size: [0.14, 0.06, 0.1], rotZ: 0.5, at: [0.24, 0.94, -0.6], color: 0x6b5744 }, // ears
-        { kind: 'box', size: [0.14, 0.06, 0.1], rotZ: -0.5, at: [-0.24, 0.94, -0.6], color: 0x6b5744 },
+        { kind: 'sphere', r: 0.24, scale: [1, 0.95, 1.05], at: [0, 0.9, -0.62], color: 0x6a5a48 }, // head
+        { kind: 'box', size: [0.22, 0.18, 0.18], at: [0, 0.8, -0.86], color: 0xd8b090 }, // muzzle
+        { kind: 'cone', r: 0.05, h: 0.16, rotZ: -0.7, at: [0.15, 1.06, -0.58], color: 0xd8ccb8 }, // horns
+        { kind: 'cone', r: 0.05, h: 0.16, rotZ: 0.7, at: [-0.15, 1.06, -0.58], color: 0xd8ccb8 },
+        { kind: 'box', size: [0.14, 0.06, 0.1], rotZ: 0.5, at: [0.24, 0.94, -0.6], color: 0x6a5a48 }, // ears
+        { kind: 'box', size: [0.14, 0.06, 0.1], rotZ: -0.5, at: [-0.24, 0.94, -0.6], color: 0x6a5a48 },
         { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [-0.22, 0.23, 0.42], color: 0xdad6cc },
         { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [0.22, 0.23, 0.42], color: 0xdad6cc },
         { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [-0.22, 0.23, -0.4], color: 0xdad6cc },
         { kind: 'cyl', rt: 0.08, rb: 0.06, h: 0.46, at: [0.22, 0.23, -0.4], color: 0xdad6cc },
         // silhouette: udder and a tufted tail
         { kind: 'sphere', r: 0.1, scale: [1, 0.75, 1], at: [0, 0.42, 0.16], color: 0xe0b0b0 },
-        { kind: 'cyl', rt: 0.025, rb: 0.02, h: 0.42, rotX: 0.25, at: [0, 0.7, 0.62], color: 0xe6e2d8 },
+        { kind: 'cyl', rt: 0.025, rb: 0.02, h: 0.42, rotX: 0.25, at: [0, 0.7, 0.62], color: 0xe8e2d0 },
         { kind: 'sphere', r: 0.045, at: [0, 0.5, 0.68], color: 0x4a4038 },
       ],
     },
@@ -132,9 +132,9 @@ export const MOBS = {
       parts: [
         { kind: 'box', size: [0.36, 0.32, 0.7], at: [0, 0.22, 0], color: 0x6e6258 },
         { kind: 'box', size: [0.22, 0.2, 0.3], at: [0, 0.3, -0.46], color: 0x6e6258 },
-        { kind: 'cone', r: 0.05, h: 0.4, at: [0, 0.2, 0.52], rotX: 1.57, color: 0x9a8577 },
-        { kind: 'box', size: [0.08, 0.1, 0.03], at: [-0.09, 0.44, -0.5], color: 0x9a8577 },
-        { kind: 'box', size: [0.08, 0.1, 0.03], at: [0.09, 0.44, -0.5], color: 0x9a8577 },
+        { kind: 'cone', r: 0.05, h: 0.4, at: [0, 0.2, 0.52], rotX: 1.57, color: 0x8a8078 },
+        { kind: 'box', size: [0.08, 0.1, 0.03], at: [-0.09, 0.44, -0.5], color: 0x8a8078 },
+        { kind: 'box', size: [0.08, 0.1, 0.03], at: [0.09, 0.44, -0.5], color: 0x8a8078 },
         // silhouette: pointed snout, buck teeth, haunches, a hunched back
         { kind: 'cone', r: 0.07, h: 0.2, rotX: -1.57, at: [0, 0.26, -0.68], color: 0x6e6258 },
         { kind: 'box', size: [0.06, 0.07, 0.025], at: [0, 0.16, -0.6], color: 0xe8e2d0 },
@@ -163,7 +163,7 @@ export const MOBS = {
     model: {
       height: 1.05,
       parts: [
-        ...figure({ scale: 0.66, headScale: 1.55, build: 1.1, skin: 0x6f8f3f, shirt: 0x7a4f3a, sleeve: 0x6f8f3f, pants: 0x5e4a33, boot: 0x4a3a28, bald: true }),
+        ...figure({ scale: 0.66, headScale: 1.55, build: 1.1, skin: 0x6f8f3f, shirt: 0x6e4f33, sleeve: 0x6f8f3f, pants: 0x6e4f33, boot: 0x4a3520, bald: true }),
         { kind: 'cone', r: 0.045, h: 0.17, seg: 5, rotZ: -1.5, at: [0.155, 0.9, -0.02], color: 0x6f8f3f }, // right ear
         { kind: 'cone', r: 0.045, h: 0.17, seg: 5, rotZ: 1.5, at: [-0.155, 0.9, -0.02], color: 0x6f8f3f },  // left ear
       ],
@@ -188,7 +188,7 @@ export const MOBS = {
     model: {
       height: 1.2,
       parts: [
-        ...figure({ scale: 0.76, headScale: 1.5, build: 1.2, skin: 0x6f8f3f, shirt: 0x8f3f34, sleeve: 0x6f8f3f, pants: 0x5e4a33, boot: 0x4a3a28, bald: true }),
+        ...figure({ scale: 0.76, headScale: 1.5, build: 1.2, skin: 0x6f8f3f, shirt: 0x8f3f34, sleeve: 0x6f8f3f, pants: 0x6e4f33, boot: 0x4a3520, bald: true }),
         { kind: 'cone', r: 0.05, h: 0.19, seg: 5, rotZ: -1.5, at: [0.18, 1.04, -0.02], color: 0x6f8f3f },
         { kind: 'cone', r: 0.05, h: 0.19, seg: 5, rotZ: 1.5, at: [-0.18, 1.04, -0.02], color: 0x6f8f3f },
       ],
@@ -210,20 +210,20 @@ export const MOBS = {
       height: 0.75,
       parts: [
         // a cloud of faceted wool clumps
-        { kind: 'sphere', r: 0.3, detail: 0, at: [0, 0.56, 0.06], color: 0xece8de },
+        { kind: 'sphere', r: 0.3, detail: 0, at: [0, 0.56, 0.06], color: 0xe8e2d0 },
         { kind: 'sphere', r: 0.25, detail: 0, at: [0.22, 0.62, 0.2], color: 0xf2efe6 },
-        { kind: 'sphere', r: 0.24, detail: 0, at: [-0.22, 0.6, -0.02], color: 0xe4e0d4 },
-        { kind: 'sphere', r: 0.22, detail: 0, at: [0.02, 0.6, -0.26], color: 0xf0ede2 },
-        { kind: 'sphere', r: 0.2, detail: 0, at: [-0.16, 0.5, 0.24], color: 0xe8e4d8 },
+        { kind: 'sphere', r: 0.24, detail: 0, at: [-0.22, 0.6, -0.02], color: 0xe8e2d0 },
+        { kind: 'sphere', r: 0.22, detail: 0, at: [0.02, 0.6, -0.26], color: 0xf2efe6 },
+        { kind: 'sphere', r: 0.2, detail: 0, at: [-0.16, 0.5, 0.24], color: 0xe8e2d0 },
         // black head + face + legs
-        { kind: 'sphere', r: 0.16, at: [0, 0.56, -0.46], color: 0x322e2a },
-        { kind: 'box', size: [0.16, 0.14, 0.16], at: [0, 0.5, -0.58], color: 0x282420 },
-        { kind: 'box', size: [0.07, 0.06, 0.1], rotZ: 0.5, at: [0.14, 0.66, -0.42], color: 0x322e2a }, // ears
-        { kind: 'box', size: [0.07, 0.06, 0.1], rotZ: -0.5, at: [-0.14, 0.66, -0.42], color: 0x322e2a },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.16, 0.15, 0.22], color: 0x322e2a },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.16, 0.15, 0.22], color: 0x322e2a },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.16, 0.15, -0.24], color: 0x322e2a },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.16, 0.15, -0.24], color: 0x322e2a },
+        { kind: 'sphere', r: 0.16, at: [0, 0.56, -0.46], color: 0x3a3632 },
+        { kind: 'box', size: [0.16, 0.14, 0.16], at: [0, 0.5, -0.58], color: 0x2a2624 },
+        { kind: 'box', size: [0.07, 0.06, 0.1], rotZ: 0.5, at: [0.14, 0.66, -0.42], color: 0x3a3632 }, // ears
+        { kind: 'box', size: [0.07, 0.06, 0.1], rotZ: -0.5, at: [-0.14, 0.66, -0.42], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.16, 0.15, 0.22], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.16, 0.15, 0.22], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.16, 0.15, -0.24], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.16, 0.15, -0.24], color: 0x3a3632 },
       ],
     },
   },
@@ -241,8 +241,8 @@ export const MOBS = {
     model: {
       height: 1.62,
       parts: [
-        ...figure({ skin: 0xd8b090, shirt: 0x8a8a92, pants: 0x5a5a62, hair: 0x3a3632, boot: 0x4a4a52 }),
-        { kind: 'sphere', r: 0.17, scale: [1.06, 0.74, 1.06], at: [0, 1.42, 0], color: 0x9a9aa2 }, // helm
+        ...figure({ skin: 0xd8b090, shirt: 0x8a8a92, pants: 0x5a5468, hair: 0x3a3632, boot: 0x4a4a52 }),
+        { kind: 'sphere', r: 0.17, scale: [1.06, 0.74, 1.06], at: [0, 1.42, 0], color: 0x9aa8a2 }, // helm
         { kind: 'cyl', rt: 0.026, rb: 0.026, h: 0.98, rotX: 0.16, at: [0.31, 0.98, 0.03], color: 0x6e4f33 }, // spear shaft
         { kind: 'cone', r: 0.06, h: 0.19, seg: 6, rotX: 0.16, at: [0.324, 1.48, -0.04], color: 0xc4c4cc }, // spear tip
       ],
@@ -259,7 +259,7 @@ export const MOBS = {
     alwaysDrops: 1,
     model: {
       height: 1.58,
-      parts: figure({ skin: 0xe8e2d0, shirt: 0xdcd4c0, sleeve: 0xd0c8b4, pants: 0xd0c8b4, boot: 0xc4bca8, bald: true, build: 0.82 }),
+      parts: figure({ skin: 0xe8e2d0, shirt: 0xd8ccb8, sleeve: 0xd8ccb8, pants: 0xd8ccb8, boot: 0xc4bca8, bald: true, build: 0.82 }),
     },
   },
   zombie: {
@@ -274,8 +274,8 @@ export const MOBS = {
     model: {
       height: 1.55,
       parts: [
-        ...figure({ skin: 0x7a8a62, shirt: 0x6a7a5a, sleeve: 0x64735a, pants: 0x4a4a3a, boot: 0x33342a, hair: 0x46523a }),
-        { kind: 'box', size: [0.1, 0.06, 0.16], at: [-0.07, 1.3, 0.13], color: 0x3a4632 }, // sunken cheek shadow
+        ...figure({ skin: 0x7a8a62, shirt: 0x6a7a4a, sleeve: 0x64735a, pants: 0x5a4a33, boot: 0x3a3632, hair: 0x46523a }),
+        { kind: 'box', size: [0.1, 0.06, 0.16], at: [-0.07, 1.3, 0.13], color: 0x3a3632 }, // sunken cheek shadow
       ],
     },
   },
@@ -291,9 +291,9 @@ export const MOBS = {
     model: {
       height: 1.6,
       parts: [
-        ...figure({ skin: 0xd8b090, shirt: 0x3a3632, sleeve: 0x322e2a, pants: 0x2a2a30, boot: 0x1c1a18, hair: 0x241f1c }),
-        { kind: 'box', size: [0.31, 0.09, 0.31], at: [0, 1.35, 0], color: 0x24201d }, // eye mask
-        { kind: 'cone', r: 0.24, h: 0.22, seg: 12, scale: [1, 0.5, 1], at: [0, 1.5, 0], color: 0x24201d }, // tricorn-ish hat
+        ...figure({ skin: 0xd8b090, shirt: 0x3a3632, sleeve: 0x3a3632, pants: 0x2a2624, boot: 0x241a12, hair: 0x2a2624 }),
+        { kind: 'box', size: [0.31, 0.09, 0.31], at: [0, 1.35, 0], color: 0x2a2624 }, // eye mask
+        { kind: 'cone', r: 0.24, h: 0.22, seg: 12, scale: [1, 0.5, 1], at: [0, 1.5, 0], color: 0x2a2624 }, // tricorn-ish hat
       ],
     },
   },
@@ -309,8 +309,8 @@ export const MOBS = {
     model: {
       height: 1.2,
       parts: [
-        { kind: 'cyl', rt: 0.4, rb: 0.36, h: 1.15, seg: 12, rotX: 1.5708, at: [0, 0.78, 0.08], color: 0x5a4128 }, // barrel body
-        { kind: 'sphere', r: 0.3, scale: [1, 0.95, 0.95], at: [0, 1.0, -0.66], color: 0x5a4128 }, // head
+        { kind: 'cyl', rt: 0.4, rb: 0.36, h: 1.15, seg: 12, rotX: 1.5708, at: [0, 0.78, 0.08], color: 0x5a4a33 }, // barrel body
+        { kind: 'sphere', r: 0.3, scale: [1, 0.95, 0.95], at: [0, 1.0, -0.66], color: 0x5a4a33 }, // head
         { kind: 'box', size: [0.22, 0.16, 0.16], at: [0, 0.92, -0.9], color: 0x4a3520 }, // snout
         { kind: 'sphere', r: 0.08, at: [-0.15, 1.24, -0.66], color: 0x4a3520 }, // ears
         { kind: 'sphere', r: 0.08, at: [0.15, 1.24, -0.66], color: 0x4a3520 },
@@ -319,7 +319,7 @@ export const MOBS = {
         { kind: 'cyl', rt: 0.13, rb: 0.11, h: 0.5, at: [-0.26, 0.26, -0.4], color: 0x4a3520 },
         { kind: 'cyl', rt: 0.13, rb: 0.11, h: 0.5, at: [0.26, 0.26, -0.4], color: 0x4a3520 },
         // silhouette: shoulder hump, black nose, fore-claws, a stub tail
-        { kind: 'sphere', r: 0.26, scale: [1.15, 0.8, 1], at: [0, 1.04, -0.22], color: 0x5a4128 },
+        { kind: 'sphere', r: 0.26, scale: [1.15, 0.8, 1], at: [0, 1.04, -0.22], color: 0x5a4a33 },
         { kind: 'box', size: [0.1, 0.08, 0.05], at: [0, 0.96, -0.99], color: 0x241a12 },
         { kind: 'box', size: [0.17, 0.05, 0.09], at: [-0.26, 0.03, -0.47], color: 0xd8ccb8 },
         { kind: 'box', size: [0.17, 0.05, 0.09], at: [0.26, 0.03, -0.47], color: 0xd8ccb8 },
@@ -343,7 +343,7 @@ export const MOBS = {
     model: {
       height: 2.4,
       parts: [
-        ...figure({ scale: 1.5, build: 1.3, skin: 0xc9a27a, shirt: 0xb08d6a, sleeve: 0xb08d6a, pants: 0x8a6a4a, hair: 0x6a5038, boot: 0x5a4530 }),
+        ...figure({ scale: 1.5, build: 1.3, skin: 0xc9a27a, shirt: 0xb08d6a, sleeve: 0xb08d6a, pants: 0x8a6a42, hair: 0x6e4f33, boot: 0x5a4a33 }),
         { kind: 'cyl', rt: 0.17, rb: 0.09, h: 1.05, rotX: 0.5, rotZ: 0.28, at: [0.66, 1.5, 0.28], color: 0x6e4f33 }, // club
       ],
     },
@@ -364,9 +364,9 @@ export const MOBS = {
     model: {
       height: 2.6,
       parts: [
-        ...figure({ scale: 1.62, build: 1.4, skin: 0x5a7a45, shirt: 0x4a6a3a, sleeve: 0x4a6a3a, pants: 0x3a5530, hair: 0x3a5028, boot: 0x2e4525 }),
-        { kind: 'sphere', r: 0.2, scale: [1.2, 0.7, 1], at: [-0.5, 1.7, -0.05], color: 0x6a8a4a }, // moss clump
-        { kind: 'sphere', r: 0.18, scale: [1.2, 0.7, 1], at: [0.52, 1.62, -0.05], color: 0x6a8a4a },
+        ...figure({ scale: 1.62, build: 1.4, skin: 0x5f7f3a, shirt: 0x4a6a3a, sleeve: 0x4a6a3a, pants: 0x3a4a2a, hair: 0x3a4a2a, boot: 0x3a4a2a }),
+        { kind: 'sphere', r: 0.2, scale: [1.2, 0.7, 1], at: [-0.5, 1.7, -0.05], color: 0x6f8f3f }, // moss clump
+        { kind: 'sphere', r: 0.18, scale: [1.2, 0.7, 1], at: [0.52, 1.62, -0.05], color: 0x6f8f3f },
       ],
     },
   },
@@ -381,7 +381,7 @@ export const MOBS = {
     alwaysDrops: 1,
     model: {
       height: 1.6,
-      parts: figure({ skin: 0x8a8a76, shirt: 0x7a7a6a, sleeve: 0x74746a, pants: 0x5a5a4e, boot: 0x46463c, hair: 0x66665a, build: 0.9, headScale: 0.96 }),
+      parts: figure({ skin: 0x8a8078, shirt: 0x7a8a62, sleeve: 0x6a6a72, pants: 0x6a5a48, boot: 0x4a4038, hair: 0x6e6258, build: 0.9, headScale: 0.96 }),
     },
   },
   barbarian: {
@@ -396,7 +396,7 @@ export const MOBS = {
     model: {
       height: 1.62,
       parts: [
-        ...figure({ skin: 0xd8b090, shirt: 0x8a6a42, sleeve: 0xd8b090, pants: 0x5a4a33, hair: 0xb5542a, boot: 0x4a3a28, build: 1.12 }),
+        ...figure({ skin: 0xd8b090, shirt: 0x8a6a42, sleeve: 0xd8b090, pants: 0x5a4a33, hair: 0xb5542a, boot: 0x4a3520, build: 1.12 }),
         { kind: 'sphere', r: 0.15, scale: [1.05, 1.0, 0.75], at: [0, 1.2, 0.09], color: 0xb5542a }, // big beard
       ],
     },
@@ -435,7 +435,7 @@ export const MOBS = {
     stats: { att: 12, str: 14, def: 16, hp: 32 }, // combat level 20 per the formula
     bonuses: { att: 6, str: 4, def: 8 },
     attackType: 'magic',
-    attackRange: 6, projectileColor: 0x8f3fbf, // casts weak bolts (spec §7)
+    attackRange: 6, projectileColor: 0x8f2fbf, // casts weak bolts (spec §7)
     speed: 5, aggroRadius: 6, wanderRadius: 2, respawnTicks: 80,
     drops: [
       { item: 'bones', count: 1, weight: 1 },
@@ -448,9 +448,9 @@ export const MOBS = {
       height: 1.6,
       parts: [
         { kind: 'cyl', rt: 0.15, rb: 0.34, h: 1.15, seg: 10, at: [0, 0.72, 0], color: 0x3a2a4a }, // robe
-        { kind: 'sphere', r: 0.15, at: [0, 1.36, 0.02], color: 0x2a1f38 }, // hooded head
-        { kind: 'cone', r: 0.21, h: 0.36, seg: 8, at: [0, 1.55, 0], color: 0x2a1f38 }, // hood peak
-        { kind: 'box', size: [0.19, 0.12, 0.12], at: [0, 1.33, 0.13], color: 0x120c1a }, // shadowed face
+        { kind: 'sphere', r: 0.15, at: [0, 1.36, 0.02], color: 0x2a2a3a }, // hooded head
+        { kind: 'cone', r: 0.21, h: 0.36, seg: 8, at: [0, 1.55, 0], color: 0x2a2a3a }, // hood peak
+        { kind: 'box', size: [0.19, 0.12, 0.12], at: [0, 1.33, 0.13], color: 0x16121e }, // shadowed face
         { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.52, rotZ: 0.18, at: [-0.24, 0.92, 0.04], color: 0x3a2a4a }, // sleeves
         { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.52, rotZ: -0.18, at: [0.24, 0.92, 0.04], color: 0x3a2a4a },
         { kind: 'sphere', r: 0.05, at: [-0.27, 0.66, 0.06], color: 0xc9a27a }, // hands
@@ -471,20 +471,20 @@ export const MOBS = {
     model: {
       height: 0.34,
       parts: [
-        { kind: 'ball', r: 0.18, at: [0, 0.2, 0.04], color: 0x2e2a26 },
-        { kind: 'ball', r: 0.11, at: [0, 0.18, -0.2], color: 0x2e2a26 },
+        { kind: 'ball', r: 0.18, at: [0, 0.2, 0.04], color: 0x2a2624 },
+        { kind: 'ball', r: 0.11, at: [0, 0.18, -0.2], color: 0x2a2624 },
         // eight arched legs (the old straight bars read as a hairbrush),
         // a pair of red eyes, and fangs
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.55, rotZ: 1.05, at: [-0.17, 0.14, 0.12], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.2, rotZ: 1.05, at: [-0.18, 0.14, 0.03], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.2, rotZ: 1.05, at: [-0.18, 0.14, -0.05], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.55, rotZ: 1.05, at: [-0.17, 0.14, -0.14], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.55, rotZ: -1.05, at: [0.17, 0.14, 0.12], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.2, rotZ: -1.05, at: [0.18, 0.14, 0.03], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.2, rotZ: -1.05, at: [0.18, 0.14, -0.05], color: 0x1e1b18 },
-        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.55, rotZ: -1.05, at: [0.17, 0.14, -0.14], color: 0x1e1b18 },
-        { kind: 'sphere', r: 0.022, at: [-0.045, 0.23, -0.29], color: 0xc23a2a },
-        { kind: 'sphere', r: 0.022, at: [0.045, 0.23, -0.29], color: 0xc23a2a },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.55, rotZ: 1.05, at: [-0.17, 0.14, 0.12], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.2, rotZ: 1.05, at: [-0.18, 0.14, 0.03], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.2, rotZ: 1.05, at: [-0.18, 0.14, -0.05], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.55, rotZ: 1.05, at: [-0.17, 0.14, -0.14], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.55, rotZ: -1.05, at: [0.17, 0.14, 0.12], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: -0.2, rotZ: -1.05, at: [0.18, 0.14, 0.03], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.2, rotZ: -1.05, at: [0.18, 0.14, -0.05], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.014, rb: 0.009, h: 0.3, rotY: 0.55, rotZ: -1.05, at: [0.17, 0.14, -0.14], color: 0x241a12 },
+        { kind: 'sphere', r: 0.022, at: [-0.045, 0.23, -0.29], color: 0xc23a3a },
+        { kind: 'sphere', r: 0.022, at: [0.045, 0.23, -0.29], color: 0xc23a3a },
         { kind: 'cone', r: 0.018, h: 0.07, rotX: 2.7, at: [-0.04, 0.12, -0.29], color: 0xd8ccb8 },
         { kind: 'cone', r: 0.018, h: 0.07, rotX: 2.7, at: [0.04, 0.12, -0.29], color: 0xd8ccb8 },
       ],
@@ -504,21 +504,21 @@ export const MOBS = {
     model: {
       height: 0.7,
       parts: [
-        { kind: 'ball', r: 0.36, at: [0, 0.4, 0.08], color: 0x3a2a22 },
-        { kind: 'ball', r: 0.22, at: [0, 0.36, -0.4], color: 0x4a3428 },
+        { kind: 'ball', r: 0.36, at: [0, 0.4, 0.08], color: 0x2a2624 },
+        { kind: 'ball', r: 0.22, at: [0, 0.36, -0.4], color: 0x4a3520 },
         // eight arched legs, a four-eye cluster, and proper fangs
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.55, rotZ: 0.95, at: [-0.34, 0.28, 0.26], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.2, rotZ: 0.95, at: [-0.36, 0.28, 0.08], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.2, rotZ: 0.95, at: [-0.36, 0.28, -0.1], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.55, rotZ: 0.95, at: [-0.34, 0.28, -0.28], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.55, rotZ: -0.95, at: [0.34, 0.28, 0.26], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.2, rotZ: -0.95, at: [0.36, 0.28, 0.08], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.2, rotZ: -0.95, at: [0.36, 0.28, -0.1], color: 0x2a1e18 },
-        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.55, rotZ: -0.95, at: [0.34, 0.28, -0.28], color: 0x2a1e18 },
-        { kind: 'sphere', r: 0.05, at: [-0.09, 0.46, -0.59], color: 0xc23a2a },
-        { kind: 'sphere', r: 0.05, at: [0.09, 0.46, -0.59], color: 0xc23a2a },
-        { kind: 'sphere', r: 0.035, at: [-0.17, 0.42, -0.56], color: 0x8f2a20 },
-        { kind: 'sphere', r: 0.035, at: [0.17, 0.42, -0.56], color: 0x8f2a20 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.55, rotZ: 0.95, at: [-0.34, 0.28, 0.26], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.2, rotZ: 0.95, at: [-0.36, 0.28, 0.08], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.2, rotZ: 0.95, at: [-0.36, 0.28, -0.1], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.55, rotZ: 0.95, at: [-0.34, 0.28, -0.28], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.55, rotZ: -0.95, at: [0.34, 0.28, 0.26], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: -0.2, rotZ: -0.95, at: [0.36, 0.28, 0.08], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.2, rotZ: -0.95, at: [0.36, 0.28, -0.1], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.032, rb: 0.02, h: 0.62, rotY: 0.55, rotZ: -0.95, at: [0.34, 0.28, -0.28], color: 0x2a2624 },
+        { kind: 'sphere', r: 0.05, at: [-0.09, 0.46, -0.59], color: 0xc23a3a },
+        { kind: 'sphere', r: 0.05, at: [0.09, 0.46, -0.59], color: 0xc23a3a },
+        { kind: 'sphere', r: 0.035, at: [-0.17, 0.42, -0.56], color: 0x8a2020 },
+        { kind: 'sphere', r: 0.035, at: [0.17, 0.42, -0.56], color: 0x8a2020 },
         { kind: 'cone', r: 0.04, h: 0.16, rotX: 2.8, at: [-0.08, 0.22, -0.58], color: 0xd8ccb8 },
         { kind: 'cone', r: 0.04, h: 0.16, rotX: 2.8, at: [0.08, 0.22, -0.58], color: 0xd8ccb8 },
       ],
@@ -563,7 +563,7 @@ export const MOBS = {
     model: {
       height: 1.2,
       parts: [
-        { kind: 'box', size: [0.7, 0.6, 1.5], at: [0, 0.6, 0], color: 0x4a5a3a },
+        { kind: 'box', size: [0.7, 0.6, 1.5], at: [0, 0.6, 0], color: 0x4a6a3a },
         { kind: 'box', size: [0.4, 0.4, 0.6], at: [0, 0.7, -0.9], color: 0x5a6a45 },
         { kind: 'cone', r: 0.1, h: 0.4, at: [0, 0.6, -1.3], rotX: -1.57, color: 0x3a4a2a },
         { kind: 'box', size: [0.16, 0.4, 0.16], at: [-0.3, 0.25, 0.5], color: 0x3a4a2a },
@@ -594,7 +594,7 @@ export const MOBS = {
       height: 1.7,
       parts: [
         { kind: 'box', size: [0.44, 0.9, 0.28], at: [0, 0.9, 0], color: 0x2a2a3a },
-        { kind: 'box', size: [0.3, 0.32, 0.3], at: [0, 1.5, 0], color: 0x3a3a52 },
+        { kind: 'box', size: [0.3, 0.32, 0.3], at: [0, 1.5, 0], color: 0x3a2a4a },
         { kind: 'box', size: [0.08, 0.09, 0.04], at: [-0.08, 1.52, 0.14], color: 0xc23a5a },
         { kind: 'box', size: [0.08, 0.09, 0.04], at: [0.08, 1.52, 0.14], color: 0xc23a5a },
         { kind: 'box', size: [0.12, 0.7, 0.14], at: [-0.3, 0.9, 0], color: 0x2a2a3a },
@@ -623,13 +623,13 @@ export const MOBS = {
       height: 2.0,
       parts: [
         { kind: 'box', size: [0.6, 1.0, 0.4], at: [0, 1.1, 0], color: 0x5a2a2a },
-        { kind: 'box', size: [0.4, 0.4, 0.4], at: [0, 1.8, 0], color: 0x7a3020 },
-        { kind: 'cone', r: 0.1, h: 0.34, at: [-0.16, 2.15, 0], color: 0x2a1414 },
-        { kind: 'cone', r: 0.1, h: 0.34, at: [0.16, 2.15, 0], color: 0x2a1414 },
+        { kind: 'box', size: [0.4, 0.4, 0.4], at: [0, 1.8, 0], color: 0x7a2c1a },
+        { kind: 'cone', r: 0.1, h: 0.34, at: [-0.16, 2.15, 0], color: 0x241a12 },
+        { kind: 'cone', r: 0.1, h: 0.34, at: [0.16, 2.15, 0], color: 0x241a12 },
         { kind: 'box', size: [0.18, 0.9, 0.2], at: [-0.42, 1.05, 0], color: 0x5a2a2a },
         { kind: 'box', size: [0.18, 0.9, 0.2], at: [0.42, 1.05, 0], color: 0x5a2a2a },
-        { kind: 'box', size: [0.24, 0.7, 0.26], at: [-0.18, 0.35, 0], color: 0x3a1818 },
-        { kind: 'box', size: [0.24, 0.7, 0.26], at: [0.18, 0.35, 0], color: 0x3a1818 },
+        { kind: 'box', size: [0.24, 0.7, 0.26], at: [-0.18, 0.35, 0], color: 0x3a1810 },
+        { kind: 'box', size: [0.24, 0.7, 0.26], at: [0.18, 0.35, 0], color: 0x3a1810 },
       ],
     },
   },
@@ -648,12 +648,12 @@ export const MOBS = {
     model: {
       height: 0.72,
       parts: [
-        { kind: 'sphere', r: 0.34, scale: [1.25, 0.85, 1], at: [0, 0.34, 0], color: 0x5a8a3a },
-        { kind: 'box', size: [0.52, 0.14, 0.28], at: [0, 0.2, -0.3], color: 0x6a9a4a }, // wide mouth
-        { kind: 'sphere', r: 0.11, at: [-0.17, 0.54, -0.26], color: 0xe8e4c0 }, // eyes
-        { kind: 'sphere', r: 0.11, at: [0.17, 0.54, -0.26], color: 0xe8e4c0 },
-        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.17, 0.56, -0.34], color: 0x1a1a1a },
-        { kind: 'sphere', r: 0.05, detail: 0, at: [0.17, 0.56, -0.34], color: 0x1a1a1a },
+        { kind: 'sphere', r: 0.34, scale: [1.25, 0.85, 1], at: [0, 0.34, 0], color: 0x5f7f3a },
+        { kind: 'box', size: [0.52, 0.14, 0.28], at: [0, 0.2, -0.3], color: 0x6f8f3f }, // wide mouth
+        { kind: 'sphere', r: 0.11, at: [-0.17, 0.54, -0.26], color: 0xe8e2d0 }, // eyes
+        { kind: 'sphere', r: 0.11, at: [0.17, 0.54, -0.26], color: 0xe8e2d0 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.17, 0.56, -0.34], color: 0x241a12 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.17, 0.56, -0.34], color: 0x241a12 },
         { kind: 'box', size: [0.13, 0.13, 0.34], rotX: 0.45, at: [-0.3, 0.13, 0.3], color: 0x4a7a2a }, // hind legs
         { kind: 'box', size: [0.13, 0.13, 0.34], rotX: 0.45, at: [0.3, 0.13, 0.3], color: 0x4a7a2a },
         // silhouette: throat sac, splayed front feet, a couple of warts
@@ -677,8 +677,8 @@ export const MOBS = {
     model: {
       height: 1.55,
       parts: [
-        ...figure({ scale: 0.96, skin: 0xc9a27a, shirt: 0x5a5040, sleeve: 0x4a4636, pants: 0x3a352c, boot: 0x2a2620, hair: 0x2a221c }),
-        { kind: 'cone', r: 0.2, h: 0.32, seg: 8, at: [0, 1.46, 0], color: 0x3a352c }, // grubby hood
+        ...figure({ scale: 0.96, skin: 0xc9a27a, shirt: 0x5a4a33, sleeve: 0x5a4a33, pants: 0x3a3632, boot: 0x2a2624, hair: 0x2a2624 }),
+        { kind: 'cone', r: 0.2, h: 0.32, seg: 8, at: [0, 1.46, 0], color: 0x3a3632 }, // grubby hood
       ],
     },
   },
@@ -694,20 +694,20 @@ export const MOBS = {
     model: {
       height: 0.72,
       parts: [
-        { kind: 'box', size: [0.5, 0.44, 0.96], at: [0, 0.3, 0], color: 0x5a4e44 },
-        { kind: 'box', size: [0.3, 0.28, 0.42], at: [0, 0.42, -0.62], color: 0x5a4e44 },
-        { kind: 'cone', r: 0.06, h: 0.56, at: [0, 0.28, 0.72], rotX: 1.57, color: 0x9a8577 }, // tail
-        { kind: 'box', size: [0.1, 0.13, 0.04], at: [-0.12, 0.6, -0.66], color: 0x9a8577 }, // ears
-        { kind: 'box', size: [0.1, 0.13, 0.04], at: [0.12, 0.6, -0.66], color: 0x9a8577 },
+        { kind: 'box', size: [0.5, 0.44, 0.96], at: [0, 0.3, 0], color: 0x5a4a33 },
+        { kind: 'box', size: [0.3, 0.28, 0.42], at: [0, 0.42, -0.62], color: 0x5a4a33 },
+        { kind: 'cone', r: 0.06, h: 0.56, at: [0, 0.28, 0.72], rotX: 1.57, color: 0x8a8078 }, // tail
+        { kind: 'box', size: [0.1, 0.13, 0.04], at: [-0.12, 0.6, -0.66], color: 0x8a8078 }, // ears
+        { kind: 'box', size: [0.1, 0.13, 0.04], at: [0.12, 0.6, -0.66], color: 0x8a8078 },
         { kind: 'cone', r: 0.11, h: 0.2, seg: 4, at: [0, 0.74, -0.6], color: 0xd8b13a }, // crown
         // silhouette: royal snout, buck teeth, whiskers, haunches, a hunch
-        { kind: 'cone', r: 0.09, h: 0.26, rotX: -1.57, at: [0, 0.38, -0.92], color: 0x5a4e44 },
+        { kind: 'cone', r: 0.09, h: 0.26, rotX: -1.57, at: [0, 0.38, -0.92], color: 0x5a4a33 },
         { kind: 'box', size: [0.08, 0.09, 0.03], at: [0, 0.24, -0.84], color: 0xe8e2d0 },
         { kind: 'box', size: [0.3, 0.012, 0.012], rotY: 0.35, at: [-0.2, 0.4, -0.8], color: 0xd8ccb8 },
         { kind: 'box', size: [0.3, 0.012, 0.012], rotY: -0.35, at: [0.2, 0.4, -0.8], color: 0xd8ccb8 },
-        { kind: 'sphere', r: 0.18, scale: [1, 1.15, 1.3], at: [-0.2, 0.26, 0.22], color: 0x5a4e44 },
-        { kind: 'sphere', r: 0.18, scale: [1, 1.15, 1.3], at: [0.2, 0.26, 0.22], color: 0x5a4e44 },
-        { kind: 'sphere', r: 0.26, scale: [1.05, 0.85, 1.5], at: [0, 0.44, 0.02], color: 0x5a4e44 },
+        { kind: 'sphere', r: 0.18, scale: [1, 1.15, 1.3], at: [-0.2, 0.26, 0.22], color: 0x5a4a33 },
+        { kind: 'sphere', r: 0.18, scale: [1, 1.15, 1.3], at: [0.2, 0.26, 0.22], color: 0x5a4a33 },
+        { kind: 'sphere', r: 0.26, scale: [1.05, 0.85, 1.5], at: [0, 0.44, 0.02], color: 0x5a4a33 },
       ],
     },
   },
@@ -723,7 +723,7 @@ export const MOBS = {
     model: {
       height: 1.42,
       parts: [
-        ...figure({ scale: 0.88, headScale: 1.3, build: 1.22, skin: 0x5f7f3a, shirt: 0x6a4a5a, sleeve: 0x5f7f3a, pants: 0x4a3a2a, boot: 0x3a2e22, bald: true }),
+        ...figure({ scale: 0.88, headScale: 1.3, build: 1.22, skin: 0x5f7f3a, shirt: 0x6a4a5a, sleeve: 0x5f7f3a, pants: 0x4a3520, boot: 0x3a3632, bald: true }),
         { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: -1.5, at: [0.2, 1.18, -0.02], color: 0x5f7f3a },
         { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: 1.5, at: [-0.2, 1.18, -0.02], color: 0x5f7f3a },
       ],
@@ -743,19 +743,19 @@ export const MOBS = {
       parts: [
         { kind: 'cyl', rt: 0.22, rb: 0.2, h: 0.8, seg: 10, rotX: 1.5708, at: [0, 0.52, 0.06], color: 0x6a5a48 },
         { kind: 'box', size: [0.24, 0.24, 0.3], at: [0, 0.6, -0.5], color: 0x6a5a48 }, // head
-        { kind: 'box', size: [0.16, 0.12, 0.18], at: [0, 0.52, -0.68], color: 0x554636 }, // snout
-        { kind: 'cone', r: 0.06, h: 0.14, seg: 4, at: [-0.1, 0.76, -0.48], color: 0x554636 }, // ears
-        { kind: 'cone', r: 0.06, h: 0.14, seg: 4, at: [0.1, 0.76, -0.48], color: 0x554636 },
-        { kind: 'cone', r: 0.05, h: 0.34, rotX: -1.2, at: [0, 0.56, 0.5], color: 0x554636 }, // tail
-        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [-0.15, 0.17, 0.32], color: 0x554636 },
-        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [0.15, 0.17, 0.32], color: 0x554636 },
-        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [-0.15, 0.17, -0.32], color: 0x554636 },
-        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [0.15, 0.17, -0.32], color: 0x554636 },
+        { kind: 'box', size: [0.16, 0.12, 0.18], at: [0, 0.52, -0.68], color: 0x5a4a33 }, // snout
+        { kind: 'cone', r: 0.06, h: 0.14, seg: 4, at: [-0.1, 0.76, -0.48], color: 0x5a4a33 }, // ears
+        { kind: 'cone', r: 0.06, h: 0.14, seg: 4, at: [0.1, 0.76, -0.48], color: 0x5a4a33 },
+        { kind: 'cone', r: 0.05, h: 0.34, rotX: -1.2, at: [0, 0.56, 0.5], color: 0x5a4a33 }, // tail
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [-0.15, 0.17, 0.32], color: 0x5a4a33 },
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [0.15, 0.17, 0.32], color: 0x5a4a33 },
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [-0.15, 0.17, -0.32], color: 0x5a4a33 },
+        { kind: 'cyl', rt: 0.06, rb: 0.05, h: 0.34, at: [0.15, 0.17, -0.32], color: 0x5a4a33 },
         // silhouette: neck ruff, bared fangs, bushy tail tip, hind haunches
         { kind: 'sphere', r: 0.18, scale: [1, 0.95, 0.75], at: [0, 0.58, -0.32], color: 0x6a5a48 },
         { kind: 'cone', r: 0.02, h: 0.07, rotX: 3.14, at: [-0.05, 0.42, -0.76], color: 0xe8e2d0 },
         { kind: 'cone', r: 0.02, h: 0.07, rotX: 3.14, at: [0.05, 0.42, -0.76], color: 0xe8e2d0 },
-        { kind: 'sphere', r: 0.07, at: [0, 0.7, 0.64], color: 0x554636 },
+        { kind: 'sphere', r: 0.07, at: [0, 0.7, 0.64], color: 0x5a4a33 },
         { kind: 'sphere', r: 0.12, scale: [1, 1.2, 1.2], at: [-0.16, 0.3, 0.3], color: 0x6a5a48 },
         { kind: 'sphere', r: 0.12, scale: [1, 1.2, 1.2], at: [0.16, 0.3, 0.3], color: 0x6a5a48 },
       ],
@@ -773,7 +773,7 @@ export const MOBS = {
     model: {
       height: 1.5,
       parts: [
-        ...figure({ scale: 0.94, headScale: 1.35, build: 1.28, skin: 0x5f7f3a, shirt: 0x8f3f34, sleeve: 0x6a6a72, pants: 0x4a3a2a, boot: 0x3a2e22, bald: true }),
+        ...figure({ scale: 0.94, headScale: 1.35, build: 1.28, skin: 0x5f7f3a, shirt: 0x8f3f34, sleeve: 0x6a6a72, pants: 0x4a3520, boot: 0x3a3632, bald: true }),
         { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: -1.5, at: [0.21, 1.24, -0.02], color: 0x5f7f3a },
         { kind: 'cone', r: 0.05, h: 0.2, seg: 5, rotZ: 1.5, at: [-0.21, 1.24, -0.02], color: 0x5f7f3a },
         { kind: 'sphere', r: 0.19, scale: [1.05, 0.78, 1.05], at: [0, 1.32, 0], color: 0x8a8a92 }, // helm
@@ -793,22 +793,22 @@ export const MOBS = {
     model: {
       height: 1.5,
       parts: [
-        { kind: 'cyl', rt: 0.48, rb: 0.44, h: 1.35, seg: 12, rotX: 1.5708, at: [0, 0.92, 0.08], color: 0x3a2a1e },
-        { kind: 'sphere', r: 0.34, scale: [1, 0.95, 0.95], at: [0, 1.2, -0.78], color: 0x3a2a1e },
-        { kind: 'box', size: [0.26, 0.18, 0.18], at: [0, 1.1, -1.06], color: 0x2a1e14 },
-        { kind: 'sphere', r: 0.09, at: [-0.18, 1.48, -0.78], color: 0x2a1e14 },
-        { kind: 'sphere', r: 0.09, at: [0.18, 1.48, -0.78], color: 0x2a1e14 },
-        { kind: 'cone', r: 0.06, h: 0.2, at: [-0.24, 1.3, -0.7], color: 0xcfc8b8 }, // scar tusks
-        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [-0.3, 0.3, 0.5], color: 0x2a1e14 },
-        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [0.3, 0.3, 0.5], color: 0x2a1e14 },
-        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [-0.3, 0.3, -0.46], color: 0x2a1e14 },
-        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [0.3, 0.3, -0.46], color: 0x2a1e14 },
+        { kind: 'cyl', rt: 0.48, rb: 0.44, h: 1.35, seg: 12, rotX: 1.5708, at: [0, 0.92, 0.08], color: 0x2a2624 },
+        { kind: 'sphere', r: 0.34, scale: [1, 0.95, 0.95], at: [0, 1.2, -0.78], color: 0x2a2624 },
+        { kind: 'box', size: [0.26, 0.18, 0.18], at: [0, 1.1, -1.06], color: 0x2a2624 },
+        { kind: 'sphere', r: 0.09, at: [-0.18, 1.48, -0.78], color: 0x2a2624 },
+        { kind: 'sphere', r: 0.09, at: [0.18, 1.48, -0.78], color: 0x2a2624 },
+        { kind: 'cone', r: 0.06, h: 0.2, at: [-0.24, 1.3, -0.7], color: 0xd8ccb8 }, // scar tusks
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [-0.3, 0.3, 0.5], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [0.3, 0.3, 0.5], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [-0.3, 0.3, -0.46], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.16, rb: 0.13, h: 0.6, at: [0.3, 0.3, -0.46], color: 0x2a2624 },
         // silhouette: massive hump, black nose, fore-claws, a stub tail
-        { kind: 'sphere', r: 0.32, scale: [1.15, 0.8, 1], at: [0, 1.24, -0.26], color: 0x3a2a1e },
-        { kind: 'box', size: [0.12, 0.09, 0.05], at: [0, 1.14, -1.16], color: 0x18100a },
+        { kind: 'sphere', r: 0.32, scale: [1.15, 0.8, 1], at: [0, 1.24, -0.26], color: 0x2a2624 },
+        { kind: 'box', size: [0.12, 0.09, 0.05], at: [0, 1.14, -1.16], color: 0x241a12 },
         { kind: 'box', size: [0.2, 0.06, 0.1], at: [-0.3, 0.03, -0.54], color: 0xd8ccb8 },
         { kind: 'box', size: [0.2, 0.06, 0.1], at: [0.3, 0.03, -0.54], color: 0xd8ccb8 },
-        { kind: 'sphere', r: 0.1, at: [0, 1.0, 0.78], color: 0x2a1e14 },
+        { kind: 'sphere', r: 0.1, at: [0, 1.0, 0.78], color: 0x2a2624 },
       ],
     },
   },
@@ -824,7 +824,7 @@ export const MOBS = {
     model: {
       height: 1.58,
       parts: [
-        ...figure({ skin: 0xcfe4ec, shirt: 0xbcd4dc, sleeve: 0xb0c8d4, pants: 0xb0c8d4, boot: 0xa4bcc8, bald: true, build: 0.82 }),
+        ...figure({ skin: 0xc8e8f0, shirt: 0xbfd8cf, sleeve: 0xb0c8d4, pants: 0xb0c8d4, boot: 0xa4bcc8, bald: true, build: 0.82 }),
         { kind: 'cone', r: 0.06, h: 0.22, at: [-0.14, 1.5, -0.02], color: 0xe8f8ff }, // frost horns
         { kind: 'cone', r: 0.06, h: 0.22, at: [0.14, 1.5, -0.02], color: 0xe8f8ff },
       ],
@@ -842,10 +842,10 @@ export const MOBS = {
     model: {
       height: 2.1,
       parts: [
-        ...figure({ scale: 1.3, build: 1.4, headScale: 1.1, skin: 0xa8955a, shirt: 0x7a6a4a, sleeve: 0x7a6a4a, pants: 0x5a4a33, hair: 0x4a3a28, boot: 0x3a2e20, bald: true }),
-        { kind: 'box', size: [0.4, 0.14, 0.18], at: [0, 1.62, 0.1], color: 0x8a7a4a }, // heavy brow
-        { kind: 'cone', r: 0.05, h: 0.14, rotX: 3.14, at: [-0.1, 1.5, 0.14], color: 0xe8e0d0 }, // tusks
-        { kind: 'cone', r: 0.05, h: 0.14, rotX: 3.14, at: [0.1, 1.5, 0.14], color: 0xe8e0d0 },
+        ...figure({ scale: 1.3, build: 1.4, headScale: 1.1, skin: 0xa8955a, shirt: 0x8a6a42, sleeve: 0x8a6a42, pants: 0x5a4a33, hair: 0x4a3520, boot: 0x4a3520, bald: true }),
+        { kind: 'box', size: [0.4, 0.14, 0.18], at: [0, 1.62, 0.1], color: 0x8a6a42 }, // heavy brow
+        { kind: 'cone', r: 0.05, h: 0.14, rotX: 3.14, at: [-0.1, 1.5, 0.14], color: 0xe8e2d0 }, // tusks
+        { kind: 'cone', r: 0.05, h: 0.14, rotX: 3.14, at: [0.1, 1.5, 0.14], color: 0xe8e2d0 },
         { kind: 'cyl', rt: 0.16, rb: 0.1, h: 0.95, rotX: 0.5, rotZ: 0.3, at: [0.6, 1.3, 0.26], color: 0x6e4f33 }, // club
       ],
     },
@@ -862,11 +862,11 @@ export const MOBS = {
     model: {
       height: 2.3,
       parts: [
-        ...figure({ scale: 1.42, build: 1.5, headScale: 1.15, skin: 0x8a8a86, shirt: 0x6a6a64, sleeve: 0x6a6a64, pants: 0x55554e, hair: 0x4a4a44, boot: 0x3a3a34, bald: true }),
-        { kind: 'sphere', r: 0.16, scale: [1, 0.7, 1], at: [-0.34, 1.9, -0.05], color: 0x9a9a92 }, // stony shoulder lumps
-        { kind: 'sphere', r: 0.16, scale: [1, 0.7, 1], at: [0.36, 1.86, -0.05], color: 0x9a9a92 },
-        { kind: 'cone', r: 0.06, h: 0.18, rotX: 3.14, at: [-0.11, 1.62, 0.16], color: 0xe8e0d0 }, // underbite
-        { kind: 'cyl', rt: 0.2, rb: 0.12, h: 1.1, rotX: 0.4, rotZ: 0.32, at: [0.68, 1.4, 0.3], color: 0x5a4a3a }, // tree-trunk club
+        ...figure({ scale: 1.42, build: 1.5, headScale: 1.15, skin: 0x8a8078, shirt: 0x6e6258, sleeve: 0x6e6258, pants: 0x4a4a52, hair: 0x4a4a52, boot: 0x3a3632, bald: true }),
+        { kind: 'sphere', r: 0.16, scale: [1, 0.7, 1], at: [-0.34, 1.9, -0.05], color: 0x99998f }, // stony shoulder lumps
+        { kind: 'sphere', r: 0.16, scale: [1, 0.7, 1], at: [0.36, 1.86, -0.05], color: 0x99998f },
+        { kind: 'cone', r: 0.06, h: 0.18, rotX: 3.14, at: [-0.11, 1.62, 0.16], color: 0xe8e2d0 }, // underbite
+        { kind: 'cyl', rt: 0.2, rb: 0.12, h: 1.1, rotX: 0.4, rotZ: 0.32, at: [0.68, 1.4, 0.3], color: 0x5a4a33 }, // tree-trunk club
       ],
     },
   },
@@ -882,9 +882,9 @@ export const MOBS = {
     model: {
       height: 2.7,
       parts: [
-        ...figure({ scale: 1.7, build: 1.5, skin: 0x4a6a38, shirt: 0x3a5a2e, sleeve: 0x3a5a2e, pants: 0x2e4525, hair: 0x2e4020, boot: 0x243818, bald: true }),
-        { kind: 'sphere', r: 0.24, scale: [1.2, 0.7, 1], at: [-0.55, 1.82, -0.05], color: 0x6a8a4a }, // moss
-        { kind: 'sphere', r: 0.22, scale: [1.2, 0.7, 1], at: [0.56, 1.74, -0.05], color: 0x6a8a4a },
+        ...figure({ scale: 1.7, build: 1.5, skin: 0x4a6a3a, shirt: 0x3a4a2a, sleeve: 0x3a4a2a, pants: 0x3a4a2a, hair: 0x2e4020, boot: 0x2e4020, bald: true }),
+        { kind: 'sphere', r: 0.24, scale: [1.2, 0.7, 1], at: [-0.55, 1.82, -0.05], color: 0x6f8f3f }, // moss
+        { kind: 'sphere', r: 0.22, scale: [1.2, 0.7, 1], at: [0.56, 1.74, -0.05], color: 0x6f8f3f },
         { kind: 'sphere', r: 0.16, scale: [1.1, 0.6, 1], at: [0, 2.42, 0], color: 0x7a9a52 }, // mossy crown
         { kind: 'sphere', r: 0.06, detail: 0, at: [-0.2, 1.8, 0.3], color: 0xd8b13a }, // flowers
         { kind: 'sphere', r: 0.06, detail: 0, at: [0.3, 1.5, 0.34], color: 0xc23a5a },
@@ -903,9 +903,9 @@ export const MOBS = {
     model: {
       height: 2.0,
       parts: [
-        ...figure({ scale: 1.24, build: 1.34, headScale: 1.1, skin: 0xa83a2a, shirt: 0x8a2e1e, sleeve: 0x8a2e1e, pants: 0x6a2216, boot: 0x4a180f, bald: true }),
-        { kind: 'cone', r: 0.09, h: 0.34, seg: 5, rotZ: 0.4, at: [-0.18, 2.02, -0.03], color: 0x2a1010 }, // horns
-        { kind: 'cone', r: 0.09, h: 0.34, seg: 5, rotZ: -0.4, at: [0.18, 2.02, -0.03], color: 0x2a1010 },
+        ...figure({ scale: 1.24, build: 1.34, headScale: 1.1, skin: 0xb03030, shirt: 0x8a2020, sleeve: 0x8a2020, pants: 0x5a1e14, boot: 0x3a1810, bald: true }),
+        { kind: 'cone', r: 0.09, h: 0.34, seg: 5, rotZ: 0.4, at: [-0.18, 2.02, -0.03], color: 0x241a12 }, // horns
+        { kind: 'cone', r: 0.09, h: 0.34, seg: 5, rotZ: -0.4, at: [0.18, 2.02, -0.03], color: 0x241a12 },
         { kind: 'sphere', r: 0.05, detail: 0, at: [-0.1, 1.78, 0.16], color: 0xffd23a }, // eyes
         { kind: 'sphere', r: 0.05, detail: 0, at: [0.1, 1.78, 0.16], color: 0xffd23a },
         // small folded wings
@@ -931,7 +931,7 @@ export const MOBS = {
       { item: 'uncut_emerald', count: 1, weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,
-    model: dragon(0x3a6a34, 0x5a8a44, 0x2e5228),
+    model: dragon(0x4a6a3a, 0x5f7f3a, 0x3a4a2a),
   },
   blue_dragon: {
     name: 'Blue dragon',
@@ -964,7 +964,7 @@ export const MOBS = {
       { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,
-    model: dragon(0x8a2a24, 0xb0402e, 0x5a1a16),
+    model: dragon(0x8a2020, 0xb03030, 0x5a1e14),
   },
   black_dragon: {
     name: 'Black dragon',
@@ -981,7 +981,7 @@ export const MOBS = {
       { item: 'uncut_ruby', count: [1, 2], weight: 2 }, { weight: 2 },
     ],
     alwaysDrops: 1,
-    model: dragon(0x1e1a1e, 0x3a2e34, 0x120e12),
+    model: dragon(0x2a2624, 0x3a3632, 0x120808),
   },
   kalphar_bonelord: {
     name: 'Kalphar the Bonelord',
@@ -1001,12 +1001,12 @@ export const MOBS = {
     model: {
       height: 2.2,
       parts: [
-        ...figure({ scale: 1.32, build: 1.2, skin: 0xe8e2d0, shirt: 0xdcd4c0, sleeve: 0xd0c8b4, pants: 0xd0c8b4, boot: 0xc4bca8, bald: true }),
-        { kind: 'cone', r: 0.24, h: 0.4, seg: 6, scale: [1, 1, 0.6], at: [0, 2.06, 0], color: 0x8a8272 }, // bone crown
-        { kind: 'cone', r: 0.05, h: 0.18, at: [-0.16, 2.24, 0], color: 0x8a8272 },
-        { kind: 'cone', r: 0.05, h: 0.18, at: [0.16, 2.24, 0], color: 0x8a8272 },
-        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.1, 1.86, 0.16], color: 0x8f3fbf }, // soul-lit eyes
-        { kind: 'sphere', r: 0.05, detail: 0, at: [0.1, 1.86, 0.16], color: 0x8f3fbf },
+        ...figure({ scale: 1.32, build: 1.2, skin: 0xe8e2d0, shirt: 0xd8ccb8, sleeve: 0xd8ccb8, pants: 0xd8ccb8, boot: 0xc4bca8, bald: true }),
+        { kind: 'cone', r: 0.24, h: 0.4, seg: 6, scale: [1, 1, 0.6], at: [0, 2.06, 0], color: 0x8a8078 }, // bone crown
+        { kind: 'cone', r: 0.05, h: 0.18, at: [-0.16, 2.24, 0], color: 0x8a8078 },
+        { kind: 'cone', r: 0.05, h: 0.18, at: [0.16, 2.24, 0], color: 0x8a8078 },
+        { kind: 'sphere', r: 0.05, detail: 0, at: [-0.1, 1.86, 0.16], color: 0x8f2fbf }, // soul-lit eyes
+        { kind: 'sphere', r: 0.05, detail: 0, at: [0.1, 1.86, 0.16], color: 0x8f2fbf },
       ],
     },
   },
@@ -1028,24 +1028,24 @@ export const MOBS = {
     model: {
       height: 1.2,
       parts: [
-        { kind: 'ball', r: 0.6, at: [0, 0.66, 0.16], color: 0x4a2a1a },
-        { kind: 'ball', r: 0.34, at: [0, 0.6, -0.6], color: 0x5a3624 },
+        { kind: 'ball', r: 0.6, at: [0, 0.66, 0.16], color: 0x4a3520 },
+        { kind: 'ball', r: 0.34, at: [0, 0.6, -0.6], color: 0x4a3520 },
         { kind: 'sphere', r: 0.06, detail: 0, at: [-0.12, 0.72, -0.82], color: 0xc23a3a }, // eyes
         { kind: 'sphere', r: 0.06, detail: 0, at: [0.12, 0.72, -0.82], color: 0xc23a3a },
         // eight arched legs, bared fangs, and egg-sac bumps on the abdomen
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.55, rotZ: 0.9, at: [-0.56, 0.46, 0.42], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.2, rotZ: 0.9, at: [-0.6, 0.46, 0.14], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.2, rotZ: 0.9, at: [-0.6, 0.46, -0.14], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.55, rotZ: 0.9, at: [-0.56, 0.46, -0.42], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.55, rotZ: -0.9, at: [0.56, 0.46, 0.42], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.2, rotZ: -0.9, at: [0.6, 0.46, 0.14], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.2, rotZ: -0.9, at: [0.6, 0.46, -0.14], color: 0x2a180e },
-        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.55, rotZ: -0.9, at: [0.56, 0.46, -0.42], color: 0x2a180e },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.55, rotZ: 0.9, at: [-0.56, 0.46, 0.42], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.2, rotZ: 0.9, at: [-0.6, 0.46, 0.14], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.2, rotZ: 0.9, at: [-0.6, 0.46, -0.14], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.55, rotZ: 0.9, at: [-0.56, 0.46, -0.42], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.55, rotZ: -0.9, at: [0.56, 0.46, 0.42], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: -0.2, rotZ: -0.9, at: [0.6, 0.46, 0.14], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.2, rotZ: -0.9, at: [0.6, 0.46, -0.14], color: 0x241a12 },
+        { kind: 'cyl', rt: 0.055, rb: 0.034, h: 1.05, rotY: 0.55, rotZ: -0.9, at: [0.56, 0.46, -0.42], color: 0x241a12 },
         { kind: 'cone', r: 0.06, h: 0.24, rotX: 2.8, at: [-0.12, 0.4, -0.86], color: 0xd8ccb8 },
         { kind: 'cone', r: 0.06, h: 0.24, rotX: 2.8, at: [0.12, 0.4, -0.86], color: 0xd8ccb8 },
-        { kind: 'sphere', r: 0.16, at: [-0.3, 0.92, 0.36], color: 0xd8c8a8 },
-        { kind: 'sphere', r: 0.13, at: [0.26, 0.98, 0.24], color: 0xd8c8a8 },
-        { kind: 'sphere', r: 0.11, at: [0, 1.06, 0.5], color: 0xd8c8a8 },
+        { kind: 'sphere', r: 0.16, at: [-0.3, 0.92, 0.36], color: 0xd8ccb8 },
+        { kind: 'sphere', r: 0.13, at: [0.26, 0.98, 0.24], color: 0xd8ccb8 },
+        { kind: 'sphere', r: 0.11, at: [0, 1.06, 0.5], color: 0xd8ccb8 },
       ],
     },
   },
@@ -1067,14 +1067,14 @@ export const MOBS = {
     model: {
       height: 2.5,
       parts: [
-        ...figure({ scale: 1.55, build: 1.44, headScale: 1.12, skin: 0x6a1a1a, shirt: 0x4a1010, sleeve: 0x4a1010, pants: 0x300a0a, boot: 0x1a0606, bald: true }),
-        { kind: 'cone', r: 0.13, h: 0.6, seg: 5, rotZ: 0.5, rotX: -0.2, at: [-0.24, 2.4, -0.04], color: 0x160808 }, // great horns
-        { kind: 'cone', r: 0.13, h: 0.6, seg: 5, rotZ: -0.5, rotX: -0.2, at: [0.24, 2.4, -0.04], color: 0x160808 },
+        ...figure({ scale: 1.55, build: 1.44, headScale: 1.12, skin: 0x5a1e14, shirt: 0x3a1810, sleeve: 0x3a1810, pants: 0x300a0a, boot: 0x120808, bald: true }),
+        { kind: 'cone', r: 0.13, h: 0.6, seg: 5, rotZ: 0.5, rotX: -0.2, at: [-0.24, 2.4, -0.04], color: 0x120808 }, // great horns
+        { kind: 'cone', r: 0.13, h: 0.6, seg: 5, rotZ: -0.5, rotX: -0.2, at: [0.24, 2.4, -0.04], color: 0x120808 },
         { kind: 'sphere', r: 0.06, detail: 0, at: [-0.12, 2.14, 0.2], color: 0xff7a2a }, // eyes
         { kind: 'sphere', r: 0.06, detail: 0, at: [0.12, 2.14, 0.2], color: 0xff7a2a },
-        { kind: 'box', size: [0.1, 0.7, 0.05], at: [0, 1.4, 0.36], color: 0xff6a1a }, // ember chest crack
-        { kind: 'cone', r: 0.6, h: 1.0, seg: 3, scale: [1, 1, 0.07], rotZ: 0.7, rotY: 0.4, at: [-0.6, 1.6, -0.2], color: 0x3a0e0e }, // wings
-        { kind: 'cone', r: 0.6, h: 1.0, seg: 3, scale: [1, 1, 0.07], rotZ: -0.7, rotY: -0.4, at: [0.6, 1.6, -0.2], color: 0x3a0e0e },
+        { kind: 'box', size: [0.1, 0.7, 0.05], at: [0, 1.4, 0.36], color: 0xf06a1a }, // ember chest crack
+        { kind: 'cone', r: 0.6, h: 1.0, seg: 3, scale: [1, 1, 0.07], rotZ: 0.7, rotY: 0.4, at: [-0.6, 1.6, -0.2], color: 0x3a1810 }, // wings
+        { kind: 'cone', r: 0.6, h: 1.0, seg: 3, scale: [1, 1, 0.07], rotZ: -0.7, rotY: -0.4, at: [0.6, 1.6, -0.2], color: 0x3a1810 },
       ],
     },
   },
@@ -1097,13 +1097,13 @@ export const MOBS = {
     model: {
       height: 2.4,
       parts: [
-        ...figure({ scale: 1.48, build: 1.4, headScale: 1.1, skin: 0xbfe0ec, shirt: 0x9ac8dc, sleeve: 0x88b8d0, pants: 0x6ea0bc, boot: 0x5a8ca8, bald: true }),
+        ...figure({ scale: 1.48, build: 1.4, headScale: 1.1, skin: 0xc8e8f0, shirt: 0x9ad0e0, sleeve: 0x88b8d0, pants: 0x6ea0bc, boot: 0x5a8ca8, bald: true }),
         { kind: 'cone', r: 0.1, h: 0.5, at: [-0.18, 2.28, 0], color: 0xe8f8ff }, // ice crown
         { kind: 'cone', r: 0.12, h: 0.62, at: [0, 2.36, 0], color: 0xe8f8ff },
         { kind: 'cone', r: 0.1, h: 0.5, at: [0.18, 2.28, 0], color: 0xe8f8ff },
         { kind: 'sphere', r: 0.05, detail: 0, at: [-0.11, 2.02, 0.18], color: 0x3aa8e0 }, // eyes
         { kind: 'sphere', r: 0.05, detail: 0, at: [0.11, 2.02, 0.18], color: 0x3aa8e0 },
-        { kind: 'cone', r: 0.14, h: 0.9, rotX: 0.4, rotZ: 0.3, at: [0.6, 1.5, 0.2], color: 0xcfeefb }, // ice staff
+        { kind: 'cone', r: 0.14, h: 0.9, rotX: 0.4, rotZ: 0.3, at: [0.6, 1.5, 0.2], color: 0xc8e8f0 }, // ice staff
       ],
     },
   },
@@ -1121,17 +1121,17 @@ export const MOBS = {
     model: {
       height: 0.6,
       parts: [
-        { kind: 'ball', r: 0.3, at: [0, 0.32, 0], color: 0x4a4458 },
+        { kind: 'ball', r: 0.3, at: [0, 0.32, 0], color: 0x4a4a52 },
         { kind: 'ball', r: 0.18, at: [0, 0.3, -0.34], color: 0x5a5468 },
         { kind: 'sphere', r: 0.04, detail: 0, at: [-0.08, 0.36, -0.48], color: 0x7ac8d8 },
         { kind: 'sphere', r: 0.04, detail: 0, at: [0.08, 0.36, -0.48], color: 0x7ac8d8 },
         // six angled legs, feelers, and segment bumps down the back
-        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0.45, rotZ: 1.0, at: [-0.27, 0.22, 0.14], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0, rotZ: 1.0, at: [-0.29, 0.22, -0.04], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: -0.45, rotZ: 1.0, at: [-0.27, 0.22, -0.22], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: -0.45, rotZ: -1.0, at: [0.27, 0.22, 0.14], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0, rotZ: -1.0, at: [0.29, 0.22, -0.04], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0.45, rotZ: -1.0, at: [0.27, 0.22, -0.22], color: 0x322e3e },
+        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0.45, rotZ: 1.0, at: [-0.27, 0.22, 0.14], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0, rotZ: 1.0, at: [-0.29, 0.22, -0.04], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: -0.45, rotZ: 1.0, at: [-0.27, 0.22, -0.22], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: -0.45, rotZ: -1.0, at: [0.27, 0.22, 0.14], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0, rotZ: -1.0, at: [0.29, 0.22, -0.04], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.024, rb: 0.015, h: 0.4, rotY: 0.45, rotZ: -1.0, at: [0.27, 0.22, -0.22], color: 0x3a3632 },
         { kind: 'cyl', rt: 0.012, rb: 0.006, h: 0.26, rotX: -0.9, at: [-0.07, 0.44, -0.5], color: 0x7ac8d8 },
         { kind: 'cyl', rt: 0.012, rb: 0.006, h: 0.26, rotX: -0.9, at: [0.07, 0.44, -0.5], color: 0x7ac8d8 },
         { kind: 'sphere', r: 0.13, at: [0, 0.5, 0.02], color: 0x5a5468 },
@@ -1157,15 +1157,15 @@ export const MOBS = {
     model: {
       height: 0.9,
       parts: [
-        { kind: 'sphere', r: 0.42, scale: [1.2, 0.7, 1.35], at: [0, 0.42, 0], color: 0x3a3448 },
+        { kind: 'sphere', r: 0.42, scale: [1.2, 0.7, 1.35], at: [0, 0.42, 0], color: 0x3a2a4a },
         { kind: 'cone', r: 0.14, h: 0.5, at: [-0.16, 0.85, 0.05], color: 0x7ac8d8 },  // crystal growths
         { kind: 'cone', r: 0.12, h: 0.42, at: [0.18, 0.8, -0.12], color: 0x9a6ad8 },
         { kind: 'cone', r: 0.1, h: 0.34, at: [0, 0.78, 0.25], color: 0x7ac8d8 },
-        { kind: 'box', size: [0.24, 0.16, 0.2], at: [0, 0.34, -0.6], color: 0x4a4458 },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.3, 0.15, 0.2], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.3, 0.15, 0.2], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.3, 0.15, -0.24], color: 0x322e3e },
-        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.3, 0.15, -0.24], color: 0x322e3e },
+        { kind: 'box', size: [0.24, 0.16, 0.2], at: [0, 0.34, -0.6], color: 0x4a4a52 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.3, 0.15, 0.2], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.3, 0.15, 0.2], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [-0.3, 0.15, -0.24], color: 0x3a3632 },
+        { kind: 'cyl', rt: 0.05, rb: 0.04, h: 0.3, at: [0.3, 0.15, -0.24], color: 0x3a3632 },
       ],
     },
   },
@@ -1186,11 +1186,11 @@ export const MOBS = {
     model: {
       height: 2.2,
       parts: [
-        ...figure({ scale: 1.38, build: 1.48, headScale: 1.1, skin: 0x6a6a78, shirt: 0x55556a, sleeve: 0x55556a, pants: 0x44445a, hair: 0x3a3a4c, boot: 0x30303e, bald: true }),
+        ...figure({ scale: 1.38, build: 1.48, headScale: 1.1, skin: 0x6a6a72, shirt: 0x5a5468, sleeve: 0x5a5468, pants: 0x4a4a52, hair: 0x3a2a4a, boot: 0x3a3632, bald: true }),
         { kind: 'sphere', r: 0.15, scale: [1, 0.65, 1], at: [-0.35, 1.86, -0.04], color: 0x7a7a8c },
         { kind: 'sphere', r: 0.15, scale: [1, 0.65, 1], at: [0.36, 1.82, -0.04], color: 0x7a7a8c },
-        { kind: 'cone', r: 0.05, h: 0.16, rotX: 3.14, at: [-0.1, 1.58, 0.16], color: 0xd8d4e0 },
-        { kind: 'cone', r: 0.05, h: 0.16, rotX: 3.14, at: [0.1, 1.58, 0.16], color: 0xd8d4e0 },
+        { kind: 'cone', r: 0.05, h: 0.16, rotX: 3.14, at: [-0.1, 1.58, 0.16], color: 0xcfd8dc },
+        { kind: 'cone', r: 0.05, h: 0.16, rotX: 3.14, at: [0.1, 1.58, 0.16], color: 0xcfd8dc },
       ],
     },
   },
@@ -1213,14 +1213,14 @@ export const MOBS = {
     model: {
       height: 1.9,
       parts: [
-        { kind: 'box', size: [0.46, 1.0, 0.3], at: [0, 1.0, 0], color: 0x1e1a28 },
-        { kind: 'box', size: [0.3, 0.3, 0.3], at: [0, 1.66, 0], color: 0x2a2438 },
+        { kind: 'box', size: [0.46, 1.0, 0.3], at: [0, 1.0, 0], color: 0x2a2624 },
+        { kind: 'box', size: [0.3, 0.3, 0.3], at: [0, 1.66, 0], color: 0x2a2a3a },
         { kind: 'sphere', r: 0.05, detail: 0, at: [-0.08, 1.7, 0.14], color: 0x9a6ad8 },
         { kind: 'sphere', r: 0.05, detail: 0, at: [0.08, 1.7, 0.14], color: 0x9a6ad8 },
         { kind: 'box', size: [0.13, 0.85, 0.16], at: [-0.32, 0.95, 0], color: 0x16121e },
         { kind: 'box', size: [0.13, 0.85, 0.16], at: [0.32, 0.95, 0], color: 0x16121e },
-        { kind: 'cone', r: 0.09, h: 0.5, seg: 5, rotZ: 0.5, at: [-0.2, 2.0, -0.05], color: 0x0e0a14 },
-        { kind: 'cone', r: 0.09, h: 0.5, seg: 5, rotZ: -0.5, at: [0.2, 2.0, -0.05], color: 0x0e0a14 },
+        { kind: 'cone', r: 0.09, h: 0.5, seg: 5, rotZ: 0.5, at: [-0.2, 2.0, -0.05], color: 0x120808 },
+        { kind: 'cone', r: 0.09, h: 0.5, seg: 5, rotZ: -0.5, at: [0.2, 2.0, -0.05], color: 0x120808 },
       ],
     },
   },
@@ -1244,7 +1244,7 @@ export const MOBS = {
       height: 1.7,
       parts: [
         { kind: 'cyl', rt: 0.16, rb: 0.42, h: 1.35, seg: 8, at: [0, 0.85, 0], color: 0xcfd8dc },
-        { kind: 'sphere', r: 0.16, at: [0, 1.62, 0], color: 0xe4ecf0 },
+        { kind: 'sphere', r: 0.16, at: [0, 1.62, 0], color: 0xf2efe6 },
         { kind: 'box', size: [0.2, 0.1, 0.1], at: [0, 1.58, 0.1], color: 0x8a98a2 }, // the not-face
         { kind: 'cyl', rt: 0.04, rb: 0.04, h: 0.5, rotZ: 0.3, at: [-0.26, 1.1, 0.02], color: 0xcfd8dc },
         { kind: 'cyl', rt: 0.04, rb: 0.04, h: 0.5, rotZ: -0.3, at: [0.26, 1.1, 0.02], color: 0xcfd8dc },
@@ -1267,15 +1267,15 @@ export const MOBS = {
     model: {
       height: 2.15,
       parts: [
-        { kind: 'cyl', rt: 0.2, rb: 0.5, h: 1.65, seg: 10, at: [0, 0.95, 0], color: 0x241a30 }, // great robe
-        { kind: 'sphere', r: 0.17, at: [0, 1.86, 0.02], color: 0xd6d0dc },                        // pale head
-        { kind: 'cone', r: 0.26, h: 0.5, seg: 8, at: [0, 2.12, -0.02], color: 0x1a1226 },         // high cowl
+        { kind: 'cyl', rt: 0.2, rb: 0.5, h: 1.65, seg: 10, at: [0, 0.95, 0], color: 0x2a2624 }, // great robe
+        { kind: 'sphere', r: 0.17, at: [0, 1.86, 0.02], color: 0xdad6cc },                        // pale head
+        { kind: 'cone', r: 0.26, h: 0.5, seg: 8, at: [0, 2.12, -0.02], color: 0x16121e },         // high cowl
         { kind: 'sphere', r: 0.045, detail: 0, at: [-0.07, 1.9, 0.15], color: 0x8f2fbf },         // burning eyes
         { kind: 'sphere', r: 0.045, detail: 0, at: [0.07, 1.9, 0.15], color: 0x8f2fbf },
         { kind: 'box', size: [0.16, 0.55, 0.05], at: [0, 1.15, 0.26], color: 0x8f2f4a },          // sigil stole
-        { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.6, rotZ: 0.2, at: [-0.3, 1.15, 0.05], color: 0x241a30 }, // sleeves
-        { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.6, rotZ: -0.2, at: [0.3, 1.15, 0.05], color: 0x241a30 },
-        { kind: 'cyl', rt: 0.035, rb: 0.035, h: 1.9, rotZ: 0.12, at: [0.44, 1.15, 0.06], color: 0x16101e }, // black staff
+        { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.6, rotZ: 0.2, at: [-0.3, 1.15, 0.05], color: 0x2a2624 }, // sleeves
+        { kind: 'cyl', rt: 0.05, rb: 0.05, h: 0.6, rotZ: -0.2, at: [0.3, 1.15, 0.05], color: 0x2a2624 },
+        { kind: 'cyl', rt: 0.035, rb: 0.035, h: 1.9, rotZ: 0.12, at: [0.44, 1.15, 0.06], color: 0x16121e }, // black staff
         { kind: 'sphere', r: 0.11, detail: 0, at: [0.47, 2.14, 0.06], color: 0x8f2fbf },          // staff void-gem
         // orbiting shard crown
         { kind: 'cone', r: 0.05, h: 0.22, rotZ: 0.9, at: [-0.34, 2.2, 0], color: 0x9a6ad8 },
@@ -1300,15 +1300,15 @@ export const MOBS = {
       height: 2.05,
       parts: [
         // gaunt noble in black, tall and slim, deathly-pale face
-        ...figure({ scale: 1.16, build: 0.86, skin: 0xd6d0dc, shirt: 0x241f2c, sleeve: 0x1f1a26, pants: 0x18141e, hair: 0x100c16, boot: 0x0c0a12, headScale: 0.94 }),
+        ...figure({ scale: 1.16, build: 0.86, skin: 0xdad6cc, shirt: 0x2a2624, sleeve: 0x2a2624, pants: 0x241a12, hair: 0x120808, boot: 0x120808, headScale: 0.94 }),
         // floor-length cloak: a dark flared drape behind, blood-red lining
-        { kind: 'cone', r: 0.62, h: 1.75, seg: 10, scale: [1.15, 1, 0.32], at: [0, 0.9, -0.16], color: 0x14111c },
-        { kind: 'cone', r: 0.5, h: 1.55, seg: 8, scale: [1.05, 1, 0.22], at: [0, 0.86, -0.02], color: 0x5a0e1c },
+        { kind: 'cone', r: 0.62, h: 1.75, seg: 10, scale: [1.15, 1, 0.32], at: [0, 0.9, -0.16], color: 0x16121e },
+        { kind: 'cone', r: 0.5, h: 1.55, seg: 8, scale: [1.05, 1, 0.22], at: [0, 0.86, -0.02], color: 0x5a1e14 },
         // high vampiric collar rising behind the head
-        { kind: 'cone', r: 0.17, h: 0.5, seg: 6, scale: [1, 1, 0.35], rotX: -0.5, at: [-0.17, 1.62, -0.16], color: 0x120a16 },
-        { kind: 'cone', r: 0.17, h: 0.5, seg: 6, scale: [1, 1, 0.35], rotX: -0.5, at: [0.17, 1.62, -0.16], color: 0x120a16 },
+        { kind: 'cone', r: 0.17, h: 0.5, seg: 6, scale: [1, 1, 0.35], rotX: -0.5, at: [-0.17, 1.62, -0.16], color: 0x120808 },
+        { kind: 'cone', r: 0.17, h: 0.5, seg: 6, scale: [1, 1, 0.35], rotX: -0.5, at: [0.17, 1.62, -0.16], color: 0x120808 },
         // red chest V + glowing eyes
-        { kind: 'box', size: [0.18, 0.42, 0.05], at: [0, 1.22, 0.16], color: 0x5a0e1c },
+        { kind: 'box', size: [0.18, 0.42, 0.05], at: [0, 1.22, 0.16], color: 0x5a1e14 },
         { kind: 'sphere', r: 0.035, detail: 0, at: [-0.07, 1.58, 0.15], color: 0xe23636 },
         { kind: 'sphere', r: 0.035, detail: 0, at: [0.07, 1.58, 0.15], color: 0xe23636 },
       ],
@@ -1328,7 +1328,7 @@ export const MOBS = {
       height: 2.9,
       parts: [
         // huge charred demon, broad and bald, ember-lit
-        ...figure({ scale: 1.68, build: 1.42, skin: 0x3a1414, shirt: 0x4a1614, sleeve: 0x3a1212, pants: 0x280e0e, boot: 0x180808, bald: true, headScale: 1.12 }),
+        ...figure({ scale: 1.68, build: 1.42, skin: 0x3a1810, shirt: 0x3a1810, sleeve: 0x3a1810, pants: 0x241a12, boot: 0x120808, bald: true, headScale: 1.12 }),
         // great swept horns
         { kind: 'cone', r: 0.14, h: 0.85, seg: 6, rotZ: 0.55, rotX: -0.25, at: [-0.26, 2.6, -0.05], color: 0x120808 },
         { kind: 'cone', r: 0.14, h: 0.85, seg: 6, rotZ: -0.55, rotX: -0.25, at: [0.26, 2.6, -0.05], color: 0x120808 },
@@ -1336,15 +1336,15 @@ export const MOBS = {
         { kind: 'sphere', r: 0.06, detail: 0, at: [-0.11, 2.34, 0.26], color: 0xffa32a },
         { kind: 'sphere', r: 0.06, detail: 0, at: [0.11, 2.34, 0.26], color: 0xffa32a },
         // ember cracks blazing across the chest + belly
-        { kind: 'box', size: [0.09, 0.7, 0.05], at: [0, 1.55, 0.4], color: 0xff7a1e },
-        { kind: 'box', size: [0.52, 0.08, 0.05], at: [0, 1.72, 0.4], color: 0xff7a1e },
+        { kind: 'box', size: [0.09, 0.7, 0.05], at: [0, 1.55, 0.4], color: 0xff7a2a },
+        { kind: 'box', size: [0.52, 0.08, 0.05], at: [0, 1.72, 0.4], color: 0xff7a2a },
         { kind: 'box', size: [0.34, 0.08, 0.05], at: [-0.02, 1.32, 0.41], rotZ: 0.5, color: 0xf06a1a },
         { kind: 'box', size: [0.3, 0.07, 0.05], at: [0.16, 1.46, 0.41], rotZ: -0.6, color: 0xf06a1a },
-        { kind: 'sphere', r: 0.09, detail: 0, at: [0, 0.95, 0.42], color: 0xff8a2a }, // ember core
+        { kind: 'sphere', r: 0.09, detail: 0, at: [0, 0.95, 0.42], color: 0xff7a2a }, // ember core
         // jagged shoulder + back spikes
         { kind: 'cone', r: 0.14, h: 0.5, seg: 5, rotX: -0.7, at: [-0.56, 2.02, -0.12], color: 0x120808 },
         { kind: 'cone', r: 0.14, h: 0.5, seg: 5, rotX: -0.7, at: [0.56, 2.02, -0.12], color: 0x120808 },
-        { kind: 'cone', r: 0.1, h: 0.34, at: [0, 2.0, -0.2], color: 0x180a0a },
+        { kind: 'cone', r: 0.1, h: 0.34, at: [0, 2.0, -0.2], color: 0x120808 },
       ],
     },
   },
@@ -1362,7 +1362,7 @@ export const MOBS = {
       height: 2.75,
       parts: [
         // barrel body (chest thick at front -z, hips narrower at back +z)
-        { kind: 'cyl', rt: 0.56, rb: 0.34, h: 1.9, seg: 12, rotX: 1.5708, at: [0, 1.05, 0.15], color: 0x6a2418 },
+        { kind: 'cyl', rt: 0.56, rb: 0.34, h: 1.9, seg: 12, rotX: 1.5708, at: [0, 1.05, 0.15], color: 0x5a1e14 },
         { kind: 'cyl', rt: 0.42, rb: 0.24, h: 1.75, seg: 10, scale: [1, 0.5, 1], rotX: 1.5708, at: [0, 0.74, 0.15], color: 0xc24e1a }, // glowing ember belly
         // long serpentine neck (two segments) rising up and forward
         { kind: 'cyl', rt: 0.36, rb: 0.28, h: 0.85, seg: 10, rotX: 0.95, at: [0, 1.6, -0.7], color: 0x7a2c1a },
@@ -1370,15 +1370,15 @@ export const MOBS = {
         // elongated head, clearly the highest point of the silhouette
         { kind: 'sphere', r: 0.37, scale: [1, 0.95, 1.5], at: [0, 2.52, -1.74], color: 0x7a2c1a },
         { kind: 'box', size: [0.34, 0.2, 0.52], at: [0, 2.44, -2.16], color: 0x8a3a20 }, // snout / upper jaw
-        { kind: 'box', size: [0.3, 0.12, 0.44], at: [0, 2.28, -2.12], color: 0x261008 }, // lower jaw
-        { kind: 'box', size: [0.24, 0.1, 0.3], at: [0, 2.35, -2.06], color: 0xff8a2a }, // glowing maw
-        { kind: 'cone', r: 0.03, h: 0.11, rotX: 3.14, at: [-0.1, 2.33, -2.32], color: 0xe8e0d0 }, // fangs
-        { kind: 'cone', r: 0.03, h: 0.11, rotX: 3.14, at: [0.1, 2.33, -2.32], color: 0xe8e0d0 },
+        { kind: 'box', size: [0.3, 0.12, 0.44], at: [0, 2.28, -2.12], color: 0x241a12 }, // lower jaw
+        { kind: 'box', size: [0.24, 0.1, 0.3], at: [0, 2.35, -2.06], color: 0xff7a2a }, // glowing maw
+        { kind: 'cone', r: 0.03, h: 0.11, rotX: 3.14, at: [-0.1, 2.33, -2.32], color: 0xe8e2d0 }, // fangs
+        { kind: 'cone', r: 0.03, h: 0.11, rotX: 3.14, at: [0.1, 2.33, -2.32], color: 0xe8e2d0 },
         // great swept-back horns, brow spikes, glowing eyes
-        { kind: 'cone', r: 0.1, h: 0.82, seg: 5, rotX: -1.2, at: [-0.2, 2.74, -1.5], color: 0x241008 },
-        { kind: 'cone', r: 0.1, h: 0.82, seg: 5, rotX: -1.2, at: [0.2, 2.74, -1.5], color: 0x241008 },
-        { kind: 'cone', r: 0.05, h: 0.24, seg: 5, rotX: -0.6, at: [-0.15, 2.62, -1.92], color: 0x241008 },
-        { kind: 'cone', r: 0.05, h: 0.24, seg: 5, rotX: -0.6, at: [0.15, 2.62, -1.92], color: 0x241008 },
+        { kind: 'cone', r: 0.1, h: 0.82, seg: 5, rotX: -1.2, at: [-0.2, 2.74, -1.5], color: 0x241a12 },
+        { kind: 'cone', r: 0.1, h: 0.82, seg: 5, rotX: -1.2, at: [0.2, 2.74, -1.5], color: 0x241a12 },
+        { kind: 'cone', r: 0.05, h: 0.24, seg: 5, rotX: -0.6, at: [-0.15, 2.62, -1.92], color: 0x241a12 },
+        { kind: 'cone', r: 0.05, h: 0.24, seg: 5, rotX: -0.6, at: [0.15, 2.62, -1.92], color: 0x241a12 },
         { kind: 'sphere', r: 0.055, detail: 0, at: [-0.18, 2.54, -2.0], color: 0xffd23a },
         { kind: 'sphere', r: 0.055, detail: 0, at: [0.18, 2.54, -2.0], color: 0xffd23a },
         // grand membranous wings: leading-edge spar + a thin triangular membrane
@@ -1391,17 +1391,17 @@ export const MOBS = {
         { kind: 'cone', r: 0.11, h: 0.38, at: [0, 1.64, 0.15], color: 0x3a1810 },
         { kind: 'cone', r: 0.09, h: 0.32, at: [0, 1.55, 0.62], color: 0x3a1810 },
         // long tapering tail with a spade tip
-        { kind: 'cone', r: 0.3, h: 1.95, seg: 8, rotX: -1.5708, at: [0, 0.92, 1.55], color: 0x6a2418 },
+        { kind: 'cone', r: 0.3, h: 1.95, seg: 8, rotX: -1.5708, at: [0, 0.92, 1.55], color: 0x5a1e14 },
         { kind: 'cone', r: 0.14, h: 0.42, seg: 5, rotX: 1.4, at: [0, 0.98, 2.45], color: 0x3a1810 },
         // four clawed legs
-        { kind: 'cyl', rt: 0.17, rb: 0.12, h: 0.72, at: [-0.44, 0.36, -0.5], color: 0x5a2014 },
-        { kind: 'cyl', rt: 0.17, rb: 0.12, h: 0.72, at: [0.44, 0.36, -0.5], color: 0x5a2014 },
-        { kind: 'cyl', rt: 0.19, rb: 0.13, h: 0.72, at: [-0.48, 0.36, 0.7], color: 0x5a2014 },
-        { kind: 'cyl', rt: 0.19, rb: 0.13, h: 0.72, at: [0.48, 0.36, 0.7], color: 0x5a2014 },
-        { kind: 'box', size: [0.32, 0.12, 0.34], at: [-0.44, 0.06, -0.58], color: 0x261008 },
-        { kind: 'box', size: [0.32, 0.12, 0.34], at: [0.44, 0.06, -0.58], color: 0x261008 },
-        { kind: 'box', size: [0.34, 0.12, 0.36], at: [-0.48, 0.06, 0.78], color: 0x261008 },
-        { kind: 'box', size: [0.34, 0.12, 0.36], at: [0.48, 0.06, 0.78], color: 0x261008 },
+        { kind: 'cyl', rt: 0.17, rb: 0.12, h: 0.72, at: [-0.44, 0.36, -0.5], color: 0x5a1e14 },
+        { kind: 'cyl', rt: 0.17, rb: 0.12, h: 0.72, at: [0.44, 0.36, -0.5], color: 0x5a1e14 },
+        { kind: 'cyl', rt: 0.19, rb: 0.13, h: 0.72, at: [-0.48, 0.36, 0.7], color: 0x5a1e14 },
+        { kind: 'cyl', rt: 0.19, rb: 0.13, h: 0.72, at: [0.48, 0.36, 0.7], color: 0x5a1e14 },
+        { kind: 'box', size: [0.32, 0.12, 0.34], at: [-0.44, 0.06, -0.58], color: 0x241a12 },
+        { kind: 'box', size: [0.32, 0.12, 0.34], at: [0.44, 0.06, -0.58], color: 0x241a12 },
+        { kind: 'box', size: [0.34, 0.12, 0.36], at: [-0.48, 0.06, 0.78], color: 0x241a12 },
+        { kind: 'box', size: [0.34, 0.12, 0.36], at: [0.48, 0.06, 0.78], color: 0x241a12 },
       ],
     },
   },

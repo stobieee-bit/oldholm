@@ -694,7 +694,7 @@ export class World {
     });
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = { value: 0 };
-      shader.uniforms.uSky = { value: new THREE.Color(0x9fc6c2) };
+      shader.uniforms.uSky = { value: new THREE.Color(0xa4bcc8) };
       this._waterUniforms = shader.uniforms;
       const WAVE = `
         float waveH(vec2 p, float t){
@@ -800,7 +800,7 @@ export class World {
     flame.position.set(x, y + 0.34, z); this.group.add(flame);
     this.lightEmitters.push({
       x, y: y + 0.42, z, flame,
-      color: opts.color ?? 0xffa03a, strength: opts.strength ?? 1, range: opts.range ?? 8,
+      color: opts.color ?? 0xffa32a, strength: opts.strength ?? 1, range: opts.range ?? 8,
     });
     return flame;
   }
@@ -830,7 +830,7 @@ export class World {
     const c = this.def.castle;
     const base = c.plateauH;
     const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
-    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
 
     const wallH = c.wallH, sink = 0.5;
     const wallY = base - sink + (wallH + sink) / 2;
@@ -907,8 +907,8 @@ export class World {
   _buildKeep(c) {
     const k = c.keep, base = c.plateauH;
     const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
-    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
-    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
 
@@ -1125,7 +1125,7 @@ export class World {
     });
 
     // ---- the castle range (ground floor, against the south wall) ----
-    const rangeStone = new THREE.MeshLambertMaterial({ color: 0x6f6a62, flatShading: true });
+    const rangeStone = new THREE.MeshLambertMaterial({ color: 0x6e6258, flatShading: true });
     const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
     const rgx = k.x0 + 9, rgz = k.z1 - 1.45;
     const rangeMeshes = [
@@ -1146,8 +1146,8 @@ export class World {
 
   _buildBridgeMeshes() {
     const b = this.def.bridge;
-    const stone = new THREE.MeshLambertMaterial({ color: 0x8f8a80, flatShading: true });
-    const darker = new THREE.MeshLambertMaterial({ color: 0x777168, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
+    const darker = new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
     const len = this.bridgeX1 - this.bridgeX0;
     const cx = (this.bridgeX0 + this.bridgeX1) / 2;
     // deck covers exactly the walk + rail rows
@@ -1334,6 +1334,22 @@ export class World {
         const g = cdef.cone
           ? new THREE.ConeGeometry(cdef.cone[0], cdef.cone[1], 8)
           : new THREE.IcosahedronGeometry(cdef.ball, 1);
+        // under-canopy shading: darken the layer's lower verts; multiplies
+        // with the per-instance leaf tint (material stays white)
+        const pos = g.getAttribute('position');
+        let minY = Infinity, maxY = -Infinity;
+        for (let i = 0; i < pos.count; i++) {
+          const y = pos.getY(i);
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+        const span = Math.max(0.001, maxY - minY);
+        const colors = new Float32Array(pos.count * 3);
+        for (let i = 0; i < pos.count; i++) {
+          const f = 0.72 + 0.3 * Math.min(1, (pos.getY(i) - minY) / span);
+          colors[i * 3] = colors[i * 3 + 1] = colors[i * 3 + 2] = f;
+        }
+        g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         const o = cdef.off ?? [0, 0, 0];
         g.translate(o[0], cdef.y + o[1], o[2]);
         return g;
@@ -1369,7 +1385,10 @@ export class World {
         mesh.frustumCulled = false;
         this.group.add(mesh);
       }
-      for (const mesh of cans) this._applyWind(mesh.material, 1.7, 4.6, 0.16); // canopies shear in the wind; trunks hold
+      for (const mesh of cans) {
+        mesh.material.vertexColors = true; // the under-canopy AO gradient
+        this._applyWind(mesh.material, 1.7, 4.6, 0.16); // canopies shear in the wind; trunks hold
+      }
       this.treeSets[type] = { meshes, list: records };
       const tdef = TREES[type];
       this.addInteractable({
@@ -1472,7 +1491,7 @@ export class World {
     }
     for (let i = gi; i < N.grass; i++) grass.setMatrixAt(i, zero);
 
-    const FLOWERS = [0xf2f0e6, 0xf2d04a, 0xd8544a, 0xb56ac8, 0x6aa6e0, 0xf29a3a];
+    const FLOWERS = [0xf2efe6, 0xf2d04a, 0xd8544a, 0xb56ac8, 0x6aa6e0, 0xf29a3a];
     let fi = 0; tries = N.flower * 8;
     while (fi < N.flower && tries-- > 0) {
       const x = 2 + rng() * (size - 4), z = 2 + rng() * (size - 4);
@@ -1591,7 +1610,7 @@ export class World {
   _buildPasture() {
     const p = this.def.pasture;
     if (!p) return;
-    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const isGap = (tx, tz) => p.gaps.some(([gx, gz]) => gx === tx && gz === tz);
 
     // perimeter tiles (rows z0/z1-1, cols x0/x1-1), skipping the gate gap
@@ -1636,8 +1655,8 @@ export class World {
     const c = this.def.coop;
     if (!c) return;
     const y = this.getGroundHeight(c.x, c.z);
-    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
-    const roof = new THREE.MeshLambertMaterial({ color: 0x8a5a3a, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
+    const roof = new THREE.MeshLambertMaterial({ color: 0x8a6a42, flatShading: true });
     const coopMeshes = [
       this._addBox(2.2, 1.6, 1.8, c.x, y + 0.8, c.z, wood),
       this._addBox(0.7, 0.9, 0.1, c.x - 0.3, y + 0.45, c.z + 0.86, dark),
@@ -1659,8 +1678,8 @@ export class World {
   _buildGoblinCamp() {
     const g = this.def.goblinCamp;
     if (!g) return;
-    const cloth = new THREE.MeshLambertMaterial({ color: 0x6b5744, flatShading: true });
-    const stone = new THREE.MeshLambertMaterial({ color: 0x77716a, flatShading: true });
+    const cloth = new THREE.MeshLambertMaterial({ color: 0x6a5a48, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
     const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
     for (const [tx, tz] of g.tents) {
       const y = this.getGroundHeight(tx, tz);
@@ -1708,7 +1727,7 @@ export class World {
   }
 
   _buildOneMine(m, plane = 0) {
-    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x847e76, flatShading: true });
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     for (const [ore, dx, dz] of m.rocks) {
       const def = ROCKS[ore];
       const tx = m.x + dx, tz = m.z + dz;
@@ -1777,10 +1796,10 @@ export class World {
   _buildSmithy() {
     const s = this.def.smithy;
     if (!s) return;
-    const stone = new THREE.MeshLambertMaterial({ color: 0x77716a, flatShading: true });
-    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
     const ember = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
-    const iron = new THREE.MeshLambertMaterial({ color: 0x5a5a60, flatShading: true });
+    const iron = new THREE.MeshLambertMaterial({ color: 0x5a5468, flatShading: true });
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
 
     // furnace: squat stone stack with a glowing mouth
@@ -1822,8 +1841,8 @@ export class World {
   _buildTanningRack() {
     const t = this.def.tanningRack;
     if (!t) return;
-    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
-    const hide = new THREE.MeshLambertMaterial({ color: 0xc9a877, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
+    const hide = new THREE.MeshLambertMaterial({ color: 0xc9a27a, flatShading: true });
     const y = this.getGroundHeight(t.x, t.z);
     const meshes = [
       this._addBox(0.1, 1.5, 0.1, t.x - 0.6, y + 0.75, t.z, wood),
@@ -1901,7 +1920,7 @@ export class World {
   /** A rectangular building shell with a door, ceiling, cap roof, and props. */
   _buildSimpleBuilding(b) {
     const stone = new THREE.MeshLambertMaterial({ color: b.color ?? 0x99998f, flatShading: true });
-    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const { x0, x1, z0, z1 } = b;
     const y = this.getGroundHeight((x0 + x1) / 2, (z0 + z1) / 2);
@@ -1941,7 +1960,7 @@ export class World {
     }
     // eave board + a pitched (hip) roof — a 4-sided pyramid scaled to the shell
     this._addBox(w + 0.5, 0.16, d + 0.5, midX, y + H + 0.06, midZ, wood);
-    const roofMat = new THREE.MeshLambertMaterial({ color: b.roofColor ?? 0x6e3a2c, flatShading: true });
+    const roofMat = new THREE.MeshLambertMaterial({ color: b.roofColor ?? 0x6a3a2a, flatShading: true });
     const roofH = Math.min(w, d) * 0.42 + 0.45;
     // Bake the 45° into the GEOMETRY (base becomes an axis-aligned unit square)
     // so the non-uniform footprint scale stays axis-aligned. Object-level
@@ -1965,7 +1984,7 @@ export class World {
     const outN = (side === 'n' || side === 'w') ? -1 : 1;
     if (dh) this._addTorch(doorTile + 0.5 - 0.95, y + 2.0, df + 0.5 + outN * 0.5, { strength: 0.95 });
     else this._addTorch(df + 0.5 + outN * 0.5, y + 2.0, doorTile + 0.5 - 0.95, { strength: 0.95 });
-    this.windowMat ??= new THREE.MeshBasicMaterial({ color: 0x140f09 }); // shared; main.js glows it at night
+    this.windowMat ??= new THREE.MeshBasicMaterial({ color: 0x120808 }); // shared; main.js glows it at night
     const wyw = y + H * 0.58;
     for (const s2 of [-1, 1]) {
       const wm = new THREE.Mesh(
@@ -1977,8 +1996,8 @@ export class World {
 
     // ---- dressing: plinth, corner timbers, door frame, chimney, finial ----
     // Shared trim materials; pure decor (no blocking, no occluder entries).
-    this._timberMat ??= new THREE.MeshLambertMaterial({ color: 0x453324, flatShading: true });
-    this._plinthMat ??= new THREE.MeshLambertMaterial({ color: 0x74746c, flatShading: true });
+    this._timberMat ??= new THREE.MeshLambertMaterial({ color: 0x4a3520, flatShading: true });
+    this._plinthMat ??= new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
     // a stone plinth course ringing the base
     this._addDecor(w + 0.24, 0.34, d + 0.24, midX, y + 0.02, midZ, this._plinthMat);
     // corner posts up to the eave
@@ -2015,7 +2034,7 @@ export class World {
         for (let tz = z0 + 2; tz <= z1 - 3; tz++) this.setTileBlocked(x0 + 2, tz, true);
         this.addInteractable({ kind: 'scenery', name: 'Counter', meshes: [m], examine: 'Commerce happens here.', actions: [] });
       } else if (c === 'anvil') {
-        const iron = new THREE.MeshLambertMaterial({ color: 0x5a5a60, flatShading: true });
+        const iron = new THREE.MeshLambertMaterial({ color: 0x5a5468, flatShading: true });
         const m = this._addBox(0.85, 0.5, 0.4, midX + 1, y + 0.45, midZ, iron);
         this.setTileBlocked(Math.floor(midX + 1), Math.floor(midZ), true);
         this.addInteractable({
@@ -2044,7 +2063,7 @@ export class World {
   }
 
   _placeBankChest(x, z, plane) {
-    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4a33, flatShading: true });
     const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
     const y = this.getGroundHeight(x, z, plane);
     const meshes = [
@@ -2061,8 +2080,8 @@ export class World {
   }
 
   _buildTownProp(p) {
-    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
-    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const y = this.getGroundHeight(p.x, p.z);
     if (p.kind === 'fountain') {
       const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.0, 0.7, 10), stone);
@@ -2104,7 +2123,7 @@ export class World {
       flame.position.set(p.x, y + 0.8, p.z);
       this.group.add(flame);
       meshes.push(flame);
-      this.lightEmitters.push({ x: p.x, y: y + 1.0, z: p.z, flame, color: 0xff8a30, strength: 2.2, range: 13 });
+      this.lightEmitters.push({ x: p.x, y: y + 1.0, z: p.z, flame, color: 0xff7a2a, strength: 2.2, range: 13 });
       this.markBlockedCircle(p.x, p.z, 1.6);
       let entry;
       entry = this.addInteractable({
@@ -2145,8 +2164,8 @@ export class World {
     const by = -8;
     const p = this.addPlane(by);
     this.sewersPlane = p;
-    const stone = new THREE.MeshLambertMaterial({ color: 0x5a615a, flatShading: true });
-    const dark = new THREE.MeshLambertMaterial({ color: 0x3a403a, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x5a5a52, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x3a3632, flatShading: true });
     const { x0, z0, x1, z1 } = s; // outer rect (tiles)
     const iw = 6; // ring width in tiles
     const ix0 = x0 + iw, iz0 = z0 + iw, ix1 = x1 - iw, iz1 = z1 - iw;
@@ -2174,7 +2193,7 @@ export class World {
     // entrance/exit ladders
     const inX = s.entrance.x, inZ = s.entrance.z;
     const surfY = this.getGroundHeight(inX, inZ);
-    const dk = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const dk = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
     const hole = this._addBox(1.0, 0.1, 1.0, inX, surfY + 0.05, inZ, dk);
     this.addInteractable({
       kind: 'ladder', name: 'Sewer grate', meshes: [hole],
@@ -2202,7 +2221,7 @@ export class World {
     const by = -7;
     const p = this.addPlane(by);
     this.guildPlane = p;
-    const stone = new THREE.MeshLambertMaterial({ color: 0x77716a, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
     for (let tx = g.x - 4; tx <= g.x + 4; tx++)
       for (let tz = g.z - 4; tz <= g.z + 4; tz++)
         this.setPlaneTile(p, tx, tz, by,
@@ -2211,7 +2230,7 @@ export class World {
     this._addBox(9.4, 0.3, 9.4, g.x + 0.5, by + 3.2, g.z + 0.5, stone);
     for (const [dx, dz, w, d] of [[0, -4.4, 9.6, 0.5], [0, 4.4, 9.6, 0.5], [-4.4, 0, 0.5, 8.6], [4.4, 0, 0.5, 8.6]])
       this._addBox(w, 3.4, d, g.x + 0.5 + dx, by + 1.6, g.z + 0.5 + dz, stone);
-    const dk = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const dk = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
     const trap = this._addBox(0.9, 0.09, 0.9, g.x + 0.5, this.getGroundHeight(g.x, g.z) + 0.05, g.z + 0.5, dk);
     this.addInteractable({
       kind: 'ladder', name: 'Guild trapdoor', meshes: [trap],
@@ -2258,7 +2277,7 @@ export class World {
 
   /** A surface trapdoor + matching plane ladder between the world and a plane. */
   _addDungeonPortal(sx, sz, plane, ax, az, by, opts) {
-    const dk = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const dk = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
     const sy = this.getGroundHeight(sx, sz);
     const trap = this._addBox(0.95, 0.09, 0.95, sx, sy + 0.05, sz, dk);
     this.addInteractable({
@@ -2289,7 +2308,7 @@ export class World {
     const c = this.def.iceCave;
     if (!c) return;
     const by = -6;
-    const p = this._undergroundChamber(c.cx, c.cz, c.r, by, 0x8ab0c0);
+    const p = this._undergroundChamber(c.cx, c.cz, c.r, by, 0x88b8d0);
     this.iceCavePlane = p;
     // frost pillars + coldiron veins (on the plane)
     const ice = new THREE.MeshLambertMaterial({ color: 0xc8e8f0, flatShading: true });
@@ -2311,10 +2330,10 @@ export class World {
     const u = this.def.undervault;
     if (!u) return;
     const by = -10;
-    const p = this._undergroundChamber(u.cx, u.cz, u.r, by, 0x4a4458);
+    const p = this._undergroundChamber(u.cx, u.cz, u.r, by, 0x4a4a52);
     this.undervaultPlane = p;
     // glowing crystal spires
-    const crystal = new THREE.MeshLambertMaterial({ color: 0x7ac8d8, emissive: 0x1a4a58, flatShading: true });
+    const crystal = new THREE.MeshLambertMaterial({ color: 0x7ac8d8, emissive: 0x1a4a5a, flatShading: true });
     const violet = new THREE.MeshLambertMaterial({ color: 0x9a6ad8, emissive: 0x2a1a48, flatShading: true });
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * Math.PI * 2 + 0.4;
@@ -2361,7 +2380,7 @@ export class World {
       }],
     });
     // the black stair: undervault -> sanctum, gated on the questline
-    const dk = new THREE.MeshLambertMaterial({ color: 0x1c1622 });
+    const dk = new THREE.MeshLambertMaterial({ color: 0x16121e });
     const stairDown = this._addBox(1.1, 0.12, 1.1, u.cx + u.r - 1.5, by + 0.07, u.cz + u.r - 1.5, dk);
     this.addInteractable({
       kind: 'ladder', name: 'The Black Stair', meshes: [stairDown],
@@ -2397,11 +2416,11 @@ export class World {
    *  src/house.js, which turns them into working furniture when built. */
   _buildHouse() {
     this._buildSimpleBuilding({
-      ...HOUSE_PLOT, name: 'The Hearthstead', color: 0x9a8a72, roofColor: 0x7a4a30,
+      ...HOUSE_PLOT, name: 'The Hearthstead', color: 0x9a8a72, roofColor: 0x6e4f33,
       examine: 'Yours. The only deed in the realm with your boot-prints on it.',
     });
     this.houseSpots = [];
-    const spotMat = new THREE.MeshLambertMaterial({ color: 0x6a6258, flatShading: true });
+    const spotMat = new THREE.MeshLambertMaterial({ color: 0x6e6258, flatShading: true });
     const y = this.getGroundHeight(149, 94);
     this._addTorch(147.4, y + 2.1, 95.2, { strength: 0.9 }); // parlour light
     const SPOTS = {
@@ -2444,7 +2463,7 @@ export class World {
       ];
       for (const sp of spots) {
         const box = this._addBox(0.6, 0.6, 0.35, sp.x, by + 1.5, sp.z,
-          new THREE.MeshLambertMaterial({ color: 0x3a3a40, flatShading: true }));
+          new THREE.MeshLambertMaterial({ color: 0x3a3632, flatShading: true }));
         this.addInteractable({
           kind: 'safe', name: 'Wall safe', meshes: [box],
           examine: `A stubborn little door in the stone. (Thieving 50)`,
@@ -2462,7 +2481,7 @@ export class World {
     const a = { x: 40, z: 40, r: 11 };
     this.delveArena = a;
     this.delveFloorY = -22;
-    const p = this._undergroundChamber(a.x, a.z, a.r, -22, 0x2e2234);
+    const p = this._undergroundChamber(a.x, a.z, a.r, -22, 0x2a2624);
     this.delvePlane = p;
     this._delveChestMat = new THREE.MeshLambertMaterial({ color: 0xc9a232, flatShading: true });
     // ember braziers so the arena reads as a fighting pit
@@ -2471,7 +2490,7 @@ export class World {
       const b = this._addBox(0.5, 1.1, 0.5, a.x + 0.5 + dx, -22 + 0.55, a.z + 0.5 + dz, ember);
       this.lightEmitters?.push({ x: a.x + 0.5 + dx, y: -20.8, z: a.z + 0.5 + dz, strength: 0.9 });
     }
-    const dk = new THREE.MeshLambertMaterial({ color: 0x120c18 });
+    const dk = new THREE.MeshLambertMaterial({ color: 0x120808 });
     // the Long Stair mouth, in the Undervault's south-west corner (by = -10)
     const mouth = this._addBox(1.2, 0.14, 1.2, u.cx - u.r + 1.5, -10 + 0.08, u.cz + u.r - 1.5, dk);
     this.addInteractable({
@@ -2498,8 +2517,8 @@ export class World {
    *  Take-shortcut marker at each end (two-way). */
   _buildShortcuts() {
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
-    const vineMat = new THREE.MeshLambertMaterial({ color: 0x5a7a3a, flatShading: true });
-    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
+    const vineMat = new THREE.MeshLambertMaterial({ color: 0x5f7f3a, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     for (const s of this.def.shortcuts ?? []) {
       const ya = this.getGroundHeight(s.ax, s.az), yb = this.getGroundHeight(s.bx, s.bz);
       const mx = (s.ax + s.bx) / 2, mz = (s.az + s.bz) / 2;
@@ -2563,13 +2582,13 @@ export class World {
   /** Soil patches for the Farming skill (src/farming.js drives growth). */
   _buildFarmPatches() {
     this.farmPatches = [];
-    const soil = new THREE.MeshLambertMaterial({ color: 0x4a3624, flatShading: true });
+    const soil = new THREE.MeshLambertMaterial({ color: 0x4a3520, flatShading: true });
     for (const fp of this.def.farmPatches ?? []) {
       const y = this.getGroundHeight(fp.x, fp.z);
       const bed = this._addBox(1.7, 0.14, 1.7, fp.x, y + 0.07, fp.z, soil);
       const growth = new THREE.Mesh(
         new THREE.ConeGeometry(0.4, 1.0, 6),
-        new THREE.MeshLambertMaterial({ color: 0x557a3a, flatShading: true }));
+        new THREE.MeshLambertMaterial({ color: 0x5f7f3a, flatShading: true }));
       growth.position.set(fp.x, y + 0.6, fp.z);
       growth.visible = false;
       this.group.add(growth);
@@ -2589,10 +2608,10 @@ export class World {
     const t = this.def.tomb;
     if (!t) return;
     const by = -8;
-    const p = this._undergroundChamber(t.cx, t.cz, t.r, by, 0x4a4652);
+    const p = this._undergroundChamber(t.cx, t.cz, t.r, by, 0x4a4a52);
     this.tombPlane = p;
     // the summoning circle (decor) and Dawnbrand's reliquary
-    const rune = new THREE.MeshLambertMaterial({ color: 0x8f2f4a, emissive: 0x3a0f1a });
+    const rune = new THREE.MeshLambertMaterial({ color: 0x8f2f4a, emissive: 0x3a1810 });
     const ring = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.12, 6, 20), rune);
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(t.cx + 0.5, by + 0.1, t.cz + 0.5);
@@ -2605,8 +2624,8 @@ export class World {
         fn: (ctx) => this._speakWards(ctx),
       }],
     });
-    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
-    const gold = new THREE.MeshLambertMaterial({ color: 0xe0b83a });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
+    const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
     const relMeshes = [
       this._addBox(1.2, 1.2, 0.8, t.cx + 0.5, by + 0.6, t.cz - t.r + 1.5, stone),
       this._addBox(1.4, 0.16, 1.0, t.cx + 0.5, by + 1.28, t.cz - t.r + 1.5, gold),
@@ -2660,8 +2679,8 @@ export class World {
     const by = 6; // the caldera arena sits high in the crater
     const p = this.addPlane(by);
     this.calderaPlane = p;
-    const rock = new THREE.MeshLambertMaterial({ color: 0x3a221a, flatShading: true });
-    const lava = new THREE.MeshLambertMaterial({ color: 0xd8531a, emissive: 0x8a2a08 });
+    const rock = new THREE.MeshLambertMaterial({ color: 0x3a1810, flatShading: true });
+    const lava = new THREE.MeshLambertMaterial({ color: 0xd8531a, emissive: 0x7a2e08 });
     for (let tx = c.cx - c.r; tx <= c.cx + c.r; tx++)
       for (let tz = c.cz - c.r; tz <= c.cz + c.r; tz++) {
         const edge = Math.max(Math.abs(tx - c.cx), Math.abs(tz - c.cz)) >= c.r;
@@ -2678,7 +2697,7 @@ export class World {
     }
     // the only way IN is the one-way boat; a raft lets you leave (esp. after victory)
     this.calderaArrive = c.arrive;
-    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4a33, flatShading: true });
     const raft = this._addBox(1.4, 0.3, 2.0, c.cx + 0.5, by + 0.1, c.cz + c.r - 1.5, wood);
     this.addInteractable({
       kind: 'boat', name: 'Rickety raft', meshes: [raft],
@@ -2699,8 +2718,8 @@ export class World {
     if (!m) return;
     const b = m.building;
     const y = this.getGroundHeight((b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2);
-    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4432, flatShading: true });
-    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2028, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4a33, flatShading: true });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2624, flatShading: true });
     const iron = new THREE.MeshLambertMaterial({ color: 0x4a4a52, flatShading: true });
 
     // interior partition splitting off the east study (behind the puzzle door).
@@ -2792,7 +2811,7 @@ export class World {
     const fx = b.x0 + 4, fz = b.z0 + 2;
     const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 0.7, 10), new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true }));
     basin.position.set(fx + 0.5, y + 0.35, fz + 0.5);
-    const water = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.1, 10), new THREE.MeshLambertMaterial({ color: 0x8a2a2a, transparent: true, opacity: 0.85 }));
+    const water = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.1, 10), new THREE.MeshLambertMaterial({ color: 0x8a2020, transparent: true, opacity: 0.85 }));
     water.position.set(fx + 0.5, y + 0.66, fz + 0.5);
     this.group.add(basin, water);
     this.occluders.push(basin);
@@ -2806,10 +2825,10 @@ export class World {
 
     // ---- the crypt (Ravenmoor sleeps below) ----
     const cby = -7;
-    const cp = this._undergroundChamber(m.crypt.cx, m.crypt.cz, m.crypt.r, cby, 0x3a3640);
+    const cp = this._undergroundChamber(m.crypt.cx, m.crypt.cz, m.crypt.r, cby, 0x3a3632);
     this.manorCryptPlane = cp;
     // a stone sarcophagus at the crypt's heart
-    const sarc = this._addBox(1.2, 0.8, 2.4, m.crypt.cx + 0.5, cby + 0.4, m.crypt.cz + 0.5, new THREE.MeshLambertMaterial({ color: 0x5a5560, flatShading: true }));
+    const sarc = this._addBox(1.2, 0.8, 2.4, m.crypt.cx + 0.5, cby + 0.4, m.crypt.cz + 0.5, new THREE.MeshLambertMaterial({ color: 0x5a5468, flatShading: true }));
     this.addInteractable({
       kind: 'scenery', name: 'Sarcophagus', meshes: [sarc],
       examine: 'Lord Ravenmoor’s bed. The lid is ajar.', actions: [],
@@ -2830,7 +2849,7 @@ export class World {
     if (i === -1) { ctx.ui.chat.add('You need poisoned fish food. (Poison some fish food first.)'); return; }
     ctx.player.inventory.slots[i] = null;
     this.manorPuzzle.piranhaClear = true;
-    if (this.manorFountain) this.manorFountain.water.material.color.setHex(0x2a3a4a);
+    if (this.manorFountain) this.manorFountain.water.material.color.setHex(0x2e3a55);
     ctx.ui.chat.add('You scatter the poisoned flakes. The churning stops. The lever is yours.', 'system');
     ctx.ui.refreshInventory();
   }
@@ -2873,7 +2892,7 @@ export class World {
   _buildDocks() {
     const d = this.def.docks;
     if (!d) return;
-    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4a33, flatShading: true });
     const deckH = 1.0;
     // the pier: walkable deck tiles over the sea (override the water)
     for (let tz = d.z0; tz <= d.z1; tz++) {
@@ -2920,7 +2939,7 @@ export class World {
     const tiles = [];
     for (let dx = 0; dx < w; dx++) { this.setTileBlocked(t.x + dx, t.z, true); tiles.push([t.x + dx, t.z]); }
     const y = this.getGroundHeight(t.x, t.z);
-    const barMat = new THREE.MeshLambertMaterial({ color: 0x8a6a3a, flatShading: true });
+    const barMat = new THREE.MeshLambertMaterial({ color: 0x8a6a42, flatShading: true });
     const bar = this._addBox(w, 0.3, 0.4, t.x + w / 2, y + 1.3, t.z + 0.5, barMat);
     this.tollGate = { open: false, tiles, bar };
     let entry;
@@ -2952,7 +2971,7 @@ export class World {
     const m = this.def.windmill;
     if (!m) return;
     const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
-    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const cloth = new THREE.MeshLambertMaterial({ color: 0xe8e2d0, flatShading: true });
     const y = this.getGroundHeight(m.x, m.z);
@@ -3009,7 +3028,7 @@ export class World {
         fn: (ctx) => { ctx.player.setPosition(m.x + 0.6, m.z + 0.4, undefined, pTop); ctx.ui.chat.add('You climb to the hopper floor.'); },
       }],
     });
-    const stub = this._addBox(0.9, 0.1, 0.9, m.x - 0.65, ty + 0.05, m.z - 0.8, new THREE.MeshLambertMaterial({ color: 0x2e2a24 }));
+    const stub = this._addBox(0.9, 0.1, 0.9, m.x - 0.65, ty + 0.05, m.z - 0.8, new THREE.MeshLambertMaterial({ color: 0x2a2624 }));
     this.addInteractable({
       kind: 'ladder', name: 'Mill ladder', meshes: [stub],
       examine: 'Down to the flour bin.',
@@ -3071,7 +3090,7 @@ export class World {
     if (!t) return;
     const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a92, flatShading: true });
     const darkStone = new THREE.MeshLambertMaterial({ color: 0x6a6a72, flatShading: true });
-    const dark = new THREE.MeshLambertMaterial({ color: 0x2e2a24 });
+    const dark = new THREE.MeshLambertMaterial({ color: 0x2a2624 });
     const y = this.getGroundHeight(t.x, t.z);
     const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.0, 9, 10), stone);
     tower.position.set(t.x, y + 4.2, t.z);
@@ -3102,7 +3121,7 @@ export class World {
     for (const [dx, dz, w, d] of [[0, -2.6, 5.6, 0.4], [0, 2.6, 5.6, 0.4], [-2.6, 0, 0.4, 5.2], [2.6, 0, 0.4, 5.2]])
       this._addBox(w, 3.2, d, t.x + dx, by + 1.6, t.z + dz, stone);
     const candle = this._addBox(0.1, 0.3, 0.1, t.x - 1.6, by + 0.15, t.z - 1.6,
-      new THREE.MeshLambertMaterial({ color: 0xf0e8d8, emissive: 0x6a5a2a }));
+      new THREE.MeshLambertMaterial({ color: 0xe8e2d0, emissive: 0x6e4f33 }));
     this.addInteractable({
       kind: 'scenery', name: 'Candle', meshes: [candle],
       examine: 'It has watched unspeakable chanting.', actions: [],
@@ -3131,7 +3150,7 @@ export class World {
   _buildChurchyard() {
     const c = this.def.church;
     if (!c) return;
-    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8a82, flatShading: true });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     const graves = [];
     const spots = [[c.x0 + 1.5, c.z0 - 2.2], [c.x0 + 3.6, c.z0 - 1.6], [c.x0 + 5.8, c.z0 - 2.4], [c.x0 + 7.6, c.z0 - 1.8]];
     for (const [gx, gz] of spots) {
@@ -3176,8 +3195,8 @@ export class World {
   // broken-ring form as the gale altar; each imbues its own glyph.
   _buildGlyphAltars() {
     const ALTAR_COLOR = {
-      gale: 0x9aa8a2, tide: 0x4a90c2, stone: 0x8a7a5a, ember: 0xe07a2a,
-      spirit: 0xd8d0f0, sigil: 0xc23a5a, void: 0x6a4a8a,
+      gale: 0x9aa8a2, tide: 0x4a90c2, stone: 0x8a6a5a, ember: 0xd86a2a,
+      spirit: 0xd8d0f0, sigil: 0xc23a5a, void: 0x6a3a8a,
     };
     for (const a of this.def.glyphAltars ?? []) {
       const stone = new THREE.MeshLambertMaterial({ color: a.color ?? ALTAR_COLOR[a.element] ?? 0x9aa8a2, flatShading: true });
@@ -3217,7 +3236,7 @@ export class World {
       } else if (p.kind === 'bush') {
         name = 'Redberry bush'; examine = 'Heavy with berries and self-importance.';
         const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 0),
-          new THREE.MeshLambertMaterial({ color: 0x3f6f34, flatShading: true }));
+          new THREE.MeshLambertMaterial({ color: 0x4a6a3a, flatShading: true }));
         leaf.position.set(p.x, y + 0.45, p.z);
         this.group.add(leaf);
         meshes.push(leaf);
@@ -3232,7 +3251,7 @@ export class World {
         this.setTileBlocked(Math.floor(p.x), Math.floor(p.z), true);
       } else {
         name = 'Marsh greens'; examine = 'Defiantly green about it.';
-        const mat = new THREE.MeshLambertMaterial({ color: 0x4a7a3a, flatShading: true });
+        const mat = new THREE.MeshLambertMaterial({ color: 0x4a7a2a, flatShading: true });
         for (let i = 0; i < 3; i++) {
           const blade = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 4), mat);
           blade.position.set(p.x + (i - 1) * 0.28, y + 0.3, p.z + (i % 2) * 0.2);
@@ -3263,7 +3282,7 @@ export class World {
   _buildDyeCart() {
     const c = this.def.dyeCart;
     if (!c) return;
-    const wood = new THREE.MeshLambertMaterial({ color: 0x6e5638, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const y = this.getGroundHeight(c.x, c.z);
     const meshes = [this._addBox(1.8, 0.7, 1.0, c.x, y + 0.75, c.z, wood)];
     for (const dx of [-0.7, 0.7]) {
@@ -3300,7 +3319,7 @@ export class World {
     const c = this.def.store;
     if (!c) return;
     const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
-    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const { x0, x1, z0, z1 } = c;
     const y = this.getGroundHeight((x0 + x1) / 2, (z0 + z1) / 2);
@@ -3346,7 +3365,7 @@ export class World {
   _buildBankChest() {
     const c = this.def.bankChest;
     if (!c) return;
-    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4128, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x5a4a33, flatShading: true });
     const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
     const plane = this.keepPlanes?.floor ?? 0;
     const y = this.getGroundHeight(c.x, c.z, plane);
@@ -3370,7 +3389,7 @@ export class World {
     const c = this.def.church;
     if (!c) return;
     const stone = new THREE.MeshLambertMaterial({ color: 0x99998f, flatShading: true });
-    const darkStone = new THREE.MeshLambertMaterial({ color: 0x7c7c74, flatShading: true });
+    const darkStone = new THREE.MeshLambertMaterial({ color: 0x8a8078, flatShading: true });
     const wood = new THREE.MeshLambertMaterial({ color: 0x6e4f33, flatShading: true });
     const gold = new THREE.MeshLambertMaterial({ color: 0xd8b13a });
     const cloth = new THREE.MeshLambertMaterial({ color: 0xe8e2d0, flatShading: true });
@@ -3478,9 +3497,9 @@ export class World {
     const y = this.getGroundHeight(x, z);
     const root = new THREE.Group();
     root.position.set(x, y, z);
-    const wood = new THREE.MeshLambertMaterial({ color: 0x4a3826, flatShading: true });
+    const wood = new THREE.MeshLambertMaterial({ color: 0x4a3520, flatShading: true });
     const outer = new THREE.MeshLambertMaterial({ color: 0xd86a2a, emissive: 0x7a2e08 });
-    const inner = new THREE.MeshLambertMaterial({ color: 0xf0a83a, emissive: 0xa85a10 });
+    const inner = new THREE.MeshLambertMaterial({ color: 0xf29a3a, emissive: 0xa85a10 });
     const meshes = [];
     const add = (mesh) => { root.add(mesh); meshes.push(mesh); return mesh; };
     const log1 = add(new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.12), wood));
