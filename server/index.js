@@ -69,6 +69,7 @@ function handleSave(req, res, body, url) {
 }
 
 const cleanName = (s) => String(s ?? '').replace(/[^\w \-']/g, '').trim().slice(0, 16);
+const cleanTitle = (s) => String(s ?? '').replace(/[^\w ,\-']/g, '').trim().slice(0, 40);
 const clampInt = (n, lo, hi) => Math.max(lo, Math.min(hi, Math.floor(Number(n) || 0)));
 
 function topList() {
@@ -137,8 +138,10 @@ wss.on('connection', (sock) => {
     let m;
     try { m = JSON.parse(raw); } catch (_) { return; }
     if (m.t === 'join') {
-      sock.player = { name: cleanName(m.name) || 'Wanderer', x: 0, z: 0, plane: 0 };
+      sock.player = { name: cleanName(m.name) || 'Wanderer', title: cleanTitle(m.title), x: 0, z: 0, plane: 0 };
       broadcast({ t: 'chat', name: '', msg: `${sock.player.name} wanders in. (${countPlayers()} online)` });
+    } else if (m.t === 'title' && sock.player) {
+      sock.player.title = cleanTitle(m.title); // collection titles, worn openly
     } else if (m.t === 'pos' && sock.player) {
       sock.player.x = clampInt(m.x * 10, 0, 3840) / 10; // one decimal, in-bounds
       sock.player.z = clampInt(m.z * 10, 0, 3840) / 10;
@@ -148,7 +151,7 @@ wss.on('connection', (sock) => {
       if (now - sock.lastChat < 1500) return; // rate limit
       sock.lastChat = now;
       const msg = String(m.msg ?? '').slice(0, 120).trim();
-      if (msg) broadcast({ t: 'chat', name: sock.player.name, msg });
+      if (msg) broadcast({ t: 'chat', name: sock.player.name, title: sock.player.title, msg });
     }
   });
 

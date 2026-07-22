@@ -116,13 +116,15 @@ export class Online {
     try { this.sock = new WebSocket(url); } catch (_) { this.sock = null; return; }
     this.sock.onopen = () => {
       this.connected = true;
-      this.sock.send(JSON.stringify({ t: 'join', name: this.name() }));
+      this.sock.send(JSON.stringify({ t: 'join', name: this.name(), title: this.collection?.current() ?? '' }));
       this.ui.chat.add('You feel the presence of other wanderers.', 'system');
     };
     this.sock.onmessage = (e) => {
       let m; try { m = JSON.parse(e.data); } catch (_) { return; }
       if (m.t === 'players') this._sync(m.list);
-      else if (m.t === 'chat') this.ui.chat.add(m.name ? `[${m.name}] ${m.msg}` : m.msg, m.name ? undefined : 'system');
+      else if (m.t === 'chat') this.ui.chat.add(
+        m.name ? `[${m.name}${m.title ? ', ' + m.title : ''}] ${m.msg}` : m.msg,
+        m.name ? undefined : 'system');
     };
     const drop = () => { this.connected = false; this.sock = null; this._sync([]); };
     this.sock.onclose = drop;
@@ -132,6 +134,12 @@ export class Online {
   sendChat(msg) {
     if (this.sock && this.connected) this.sock.send(JSON.stringify({ t: 'chat', msg }));
     else this.ui.chat.add('No other wanderers can hear you — the realm link is quiet.', 'system');
+  }
+
+  /** The worn collection title changed — tell the realm. */
+  announceTitle() {
+    if (this.sock && this.connected)
+      this.sock.send(JSON.stringify({ t: 'title', title: this.collection?.current() ?? '' }));
   }
 
   /** Called each game tick: throttled position beacon (~every 0.6s is fine). */
@@ -158,8 +166,13 @@ export class Online {
     for (const p of list) {
       seen.add(p.id);
       let g = this.ghosts.get(p.id);
+      if (g && g.title !== (p.title ?? '')) { // re-label when a title changes
+        this.world.group.remove(g.group);
+        this.ghosts.delete(p.id);
+        g = null;
+      }
       if (!g) {
-        g = { group: this._makeGhost(p.name), tx: p.x, tz: p.z, plane: p.plane };
+        g = { group: this._makeGhost(p.name, p.title), tx: p.x, tz: p.z, plane: p.plane, title: p.title ?? '' };
         g.group.position.set(p.x, this.world.getGroundHeight(p.x, p.z, p.plane ?? 0), p.z);
         this.world.group.add(g.group);
         this.ghosts.set(p.id, g);
@@ -171,7 +184,7 @@ export class Online {
     }
   }
 
-  _makeGhost(name) {
+  _makeGhost(name, title) {
     const mat = new THREE.MeshLambertMaterial({ color: 0xc9a232, transparent: true, opacity: 0.5, flatShading: true });
     const group = new THREE.Group();
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.85, 0.26), mat);
@@ -183,12 +196,20 @@ export class Online {
       const c = document.createElement('canvas');
       c.width = 256; c.height = 64;
       const g2 = c.getContext('2d');
-      g2.font = 'bold 30px serif';
       g2.textAlign = 'center';
+      const ny = title ? 30 : 40; // the name rides higher when a title hangs below
+      g2.font = 'bold 30px serif';
       g2.fillStyle = 'rgba(0,0,0,0.75)';
-      g2.fillText(name, 129, 41);
+      g2.fillText(name, 129, ny + 1);
       g2.fillStyle = '#ffe17d';
-      g2.fillText(name, 128, 40);
+      g2.fillText(name, 128, ny);
+      if (title) { // an earned collection title, worn for all to see
+        g2.font = 'italic 19px serif';
+        g2.fillStyle = 'rgba(0,0,0,0.75)';
+        g2.fillText(title, 129, 56);
+        g2.fillStyle = '#c9d4a8';
+        g2.fillText(title, 128, 55);
+      }
       const tex = new THREE.CanvasTexture(c);
       const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
       label.scale.set(1.9, 0.48, 1);

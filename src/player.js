@@ -26,11 +26,12 @@ export class Inventory {
   add(id, count = 1) {
     if (ITEMS[id].stackable) {
       const slot = this.slots.find((s) => s && s.id === id);
-      if (slot) { slot.count += count; return true; }
+      if (slot) { slot.count += count; this.onAdd?.(id); return true; }
     }
     const free = this.slots.indexOf(null);
     if (free === -1) return false;
     this.slots[free] = { id, count };
+    this.onAdd?.(id); // the collection log watches first acquisitions
     return true;
   }
 

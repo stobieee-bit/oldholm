@@ -718,11 +718,60 @@ export class TabPanel {
     if (id === 'bestiary') this.renderBestiary(); // kills move; render fresh
   }
 
-  /** The collection log: every attackable species, its level, and your tally. */
+  /** The Log tab: bestiary and the collection log share it via sub-tabs. */
   renderBestiary() {
     const el = this.pages.bestiary;
     if (!el) return;
     el.innerHTML = '';
+    this._logView ??= 'bestiary';
+    const bar = document.createElement('div');
+    bar.className = 'combat-head';
+    for (const [key, label] of [['bestiary', 'Bestiary'], ['collection', 'Collection']]) {
+      const b = document.createElement('button');
+      b.className = 'sys-btn' + (this._logView === key ? ' sys-btn-on' : '');
+      b.textContent = label;
+      b.addEventListener('click', () => { this._logView = key; this.renderBestiary(); });
+      bar.appendChild(b);
+    }
+    el.appendChild(bar);
+    if (this._logView === 'collection') { this._renderCollection(el); return; }
+    this._renderBestiaryRows(el);
+  }
+
+  /** Collection pages: ticks, progress, and earned titles you can wear. */
+  _renderCollection(el) {
+    const col = this.ui.collection;
+    if (!col) return;
+    const worn = col.current();
+    for (const p of col.pages) {
+      const done = p.entries.filter((e) => col.has(e)).length;
+      const head = document.createElement('div');
+      head.className = 'combat-head';
+      head.innerHTML = `<div class="combat-lvl">${p.name.toUpperCase()} — ${done} / ${p.entries.length}</div>`;
+      el.appendChild(head);
+      for (const e of p.entries) {
+        const got = col.has(e);
+        const row = document.createElement('div');
+        row.className = 'quest-row ' + (got ? 'quest-done' : 'quest-locked');
+        row.textContent = `${got ? '✓' : '·'} ${got || e.kind === 'floor' ? e.label : '???'}`;
+        el.appendChild(row);
+      }
+      if (col.pageDone(p)) {
+        const t = document.createElement('div');
+        t.className = 'quest-row quest-done';
+        t.style.cursor = 'pointer';
+        t.textContent = worn === p.title ? `♛ Wearing "${p.title}"` : `♛ Wear the title "${p.title}"`;
+        t.addEventListener('click', () => {
+          col.setTitle(worn === p.title ? '' : p.title); // click again to doff
+          this.renderBestiary();
+        });
+        el.appendChild(t);
+      }
+    }
+  }
+
+  /** The bestiary: every attackable species, its level, and your tally. */
+  _renderBestiaryRows(el) {
     const kills = this.ui.combatRef?.kills ?? {};
     const cl = (s) => Math.floor(0.25 * (s.def + s.hp) + 0.325 * (s.att + s.str));
     const rows = Object.entries(MOBS)

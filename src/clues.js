@@ -67,6 +67,7 @@ export class Clues {
     let pick = Math.random() * total;
     const loot = CASKET_LOOT.find((l) => (pick -= l.weight) <= 0) ?? CASKET_LOOT[0];
     const n = Array.isArray(loot.count) ? loot.count[0] + Math.floor(Math.random() * (loot.count[1] - loot.count[0] + 1)) : loot.count;
+    this.ui.collection?.onCasket(loot.item); // treasure-trails log page
     this.player.inventory.removeSlot(slotIndex);
     this.player.inventory.add(loot.item, n);
     this.ui.chat.add(`The casket creaks open: ${n > 1 ? n + ' × ' : ''}${ITEMS[loot.item].name.toLowerCase()}!`, 'system');

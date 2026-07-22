@@ -34,6 +34,7 @@ import { Weather } from './weather.js';
 import { Delve } from './delve.js';
 import { Pets } from './pets.js';
 import { House } from './house.js';
+import { Collection } from './collection.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -384,6 +385,11 @@ const touch = TouchControls.isTouchDevice()
 // optional online services (hiscores + presence); quiet when the server's away
 const online = new Online(player, ui, world);
 ui.online = online; // System-tab Online section + chat input send path
+const collection = new Collection({ combat, delve, ui, online });
+game.collection = collection;
+ui.collection = collection;     // Log tab view + the casket hook + titles
+online.collection = collection; // join/chat carry the worn title
+player.inventory.onAdd = (id) => collection.onItem(id);
 const chatInput = document.getElementById('chat-input');
 // no Enter key on a phone — promise what the device can deliver
 if (touch && chatInput) chatInput.placeholder = 'Tap here to chat with other wanderers…';
@@ -483,6 +489,7 @@ clock.on((tick) => {
     player.addXp('Agility', xp, ui);
     ui.fx.xpDrop([['Agility', xp]]);
   }
+  if (tick % 5 === 0) collection.check(); // kills/floors tick pages outside the item hooks
   if (tick % 500 === 0) online.submitHiscore(); // refresh the board ~5-minutely
 });
 
@@ -710,7 +717,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather, delve, pets, house,
+  farming, siege, weather, delve, pets, house, collection,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
