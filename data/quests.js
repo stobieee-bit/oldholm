@@ -184,6 +184,21 @@ QUESTS.the_last_circle = {
   rewardFn: [['item', 'malgrims_mantle', 1], ['item', 'combat_lamp', 2], ['item', 'coins', 8000]],
 };
 
+// ---- The Construction capstone: raising Brinkton from the ash ----
+QUESTS.rebuild_brinkton = {
+  name: 'Rebuild Brinkton',
+  qp: 3,
+  start: 'Speak with the Blight survivor in Brinkton, by the signpost.',
+  journal: {
+    1: 'The survivor has plans and no hands. First, the well: 8 logs and 300 coins at the rebuilding board (Construction 5).',
+    2: 'The well flows. Next, Cottage Row: 12 oak logs, 4 iron bars, 1,200 coins (Construction 20).',
+    3: 'Families are home. Next, the Ashguard barracks: 14 willow logs, 6 steel bars, 3,000 coins (Construction 35).',
+    4: 'The guard is housed. Last, the Beacon Hall: 16 yew logs, 8 mithril bars, 8,000 coins (Construction 50).',
+  },
+  rewards: ['4,000 Construction xp', 'Brinkton, alive again'],
+  rewardFn: [['xp', 'Construction', 4000]],
+};
+
 export const QUEST_ORDER = [
   'cooks_calamity', 'unquiet_grave', 'beads_of_the_magus', 'severed_circle', 'matter_of_colors',
   'poultrified_professor', 'lord_of_murkwell', 'squires_blunder', 'shadow_over_corvath', 'wyrm_of_ashkara',
@@ -191,6 +206,8 @@ export const QUEST_ORDER = [
   'crossroads_menace', 'blight_cull',
   // the villain arc
   'embers_of_malgrim', 'the_black_stair', 'the_last_circle',
+  // Round 3
+  'rebuild_brinkton',
 ];
 
 // The Champions' Guild opens its door at this many quest points (spec §11).

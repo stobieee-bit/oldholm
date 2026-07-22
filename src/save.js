@@ -61,6 +61,7 @@ export class SaveManager {
       pets: g.pets?.snapshot() ?? null,
       house: g.house?.snapshot() ?? null,
       collection: g.collection?.snapshot() ?? null,
+      brinkton: g.brinkton?.snapshot() ?? null,
     };
   }
 
@@ -127,6 +128,7 @@ export class SaveManager {
     g.pets?.restore(data.pets);
     g.house?.restore(data.house);
     g.collection?.restore(data.collection);
+    g.brinkton?.restore(data.brinkton);
     g.clock.tick = data.when ?? 0;
     g.clock.gameMinutes = data.gameMinutes ?? 600;
     g.world.reconcile(g.quests, g.npcs, {

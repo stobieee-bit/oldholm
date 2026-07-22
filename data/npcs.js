@@ -468,6 +468,13 @@ export const NPCS = {
     },
     chatter: ['A saga for a coin? A limerick for less?', 'I rhymed "Halvard" with "hard word" once. He threw a bench.'],
   },
+  brinkton_reeve: {
+    ...base, name: 'Reeve of Brinkton',
+    examine: 'Holds the town’s new charter like it might blow away.',
+    talk: 'brinkton_reeve', wanderRadius: 1,
+    model: human(0xc9a27a, 0x7a3a3a, 0x3a3632, 0x8a8078),
+    chatter: ['Mind the fresh paint.', 'The beacon stays lit. Always.'],
+  },
   blight_survivor: {
     ...base, name: 'Blight survivor', examine: 'Went north whole. Came back mostly.',
     talk: 'blight_survivor', wanderRadius: 1,

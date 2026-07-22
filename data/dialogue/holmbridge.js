@@ -1087,15 +1087,39 @@ export const TREES = {
     },
   },
   blight_survivor: {
-    start: ['greet'],
+    start: [
+      { if: { quest: 'rebuild_brinkton', gte: 100 }, node: 'rb_done' },
+      { if: { quest: 'rebuild_brinkton', gte: 1 }, node: 'rb_mid' },
+      'greet',
+    ],
     nodes: {
       greet: {
         speaker: 'npc', text: 'You’re looking north. Don’t. I looked north. I came back, mostly — the Blight kept the rest. Ash for soil, ash for sky, and things in it that used to be people.',
         options: [
           { label: 'What lives out there?', next: 'mobs' },
           { label: 'Why does anyone stay in Brinkton?', next: 'stay' },
+          { label: 'Could Brinkton be rebuilt?', next: 'rb_pitch' },
           { label: 'I’ll be careful.', action: 'end' },
         ],
+      },
+      rb_pitch: {
+        speaker: 'npc', text: 'Rebuilt? I… kept the plans. Every house, every beam, drawn from memory the winter after. But plans need timber, coin, and hands that don’t shake. Mine shake.',
+        options: [
+          { label: 'Mine don’t. Let’s raise it.', actions: ['quest:rebuild_brinkton:1'], next: 'rb_accept' },
+          { label: 'Some things stay buried.', action: 'end' },
+        ],
+      },
+      rb_accept: {
+        speaker: 'npc', text: 'Then take them to the rebuilding board, there by the well that was. Start small — start with water. Everything alive needs water first.',
+        options: [{ label: 'Brick by brick.', action: 'end' }],
+      },
+      rb_mid: {
+        speaker: 'npc', text: 'I hear hammering some mornings and forget to be sad. The board keeps the tally — timber, bars, coin. Brinkton keeps the score.',
+        options: [{ label: 'Back to work.', action: 'end' }],
+      },
+      rb_done: {
+        speaker: 'npc', text: 'I stood at the beacon last night and watched the windows glow — every one a family that came home because of you. I looked north and, for the first time, the north blinked first.',
+        options: [{ label: 'Brinkton endures.', action: 'end' }],
       },
       mobs: {
         speaker: 'npc', text: 'Bogwyrms in the shallows of it. Echoes — deaths that keep happening. Deeper, the ashfiends, and they burn. If you go, go armoured against fire and light of foot. And do not die there — the Blight keeps everything you drop.',
@@ -1104,6 +1128,23 @@ export const TREES = {
       stay: {
         speaker: 'npc', text: 'Somebody has to watch the door so it doesn’t open wider. Warden Ashe watches. I drink. Between us, Brinkton sleeps. Barely.',
         options: [{ label: 'Keep watching.', action: 'end' }],
+      },
+    },
+  },
+
+  brinkton_reeve: {
+    start: ['greet'],
+    nodes: {
+      greet: {
+        speaker: 'npc', text: 'Reeve of Brinkton — words I never thought to say again. The hall you raised holds our records, our beacon, and on feast days, entirely too much singing.',
+        options: [
+          { label: 'How fares the town?', next: 'fares' },
+          { label: 'Sing away, reeve.', action: 'end' },
+        ],
+      },
+      fares: {
+        speaker: 'npc', text: 'Water from the well, bread in the cottages, the Ashguard snoring in shifts. The Blight still glowers at our fence — but now Brinkton glowers back.',
+        options: [{ label: 'Long may it glower.', action: 'end' }],
       },
     },
   },
