@@ -479,7 +479,9 @@ export const REGIONS = {
       { type: 'bait', z: 76 },
       { type: 'lure', z: 71 },
       { type: 'lure', z: 30 },   // Skalvik's fly water
-      { type: 'net', z: 218 },   // Murkwell's murky shallows
+      // Murkwell's shallows: explicit x — the auto river-hug placed this ring
+      // UNDER the town flatten (ground 1.6 over water level 0, ring entombed)
+      { type: 'net', x: 101.5, z: 231 },
       // Wave 7: Gullwick's sea fishing at the shoreline past the pier end. The
       // spot tile is walkable shore (y~0.5); its ring renders one tile out over
       // the water (z+0.5), so it's both reachable and visible on the surface.

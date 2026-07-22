@@ -1778,14 +1778,37 @@ export class World {
       const def = FISHING[s.type];
       // river spots hug the west channel edge; coastal spots pass an explicit x
       const x = s.x ?? this.riverCenter(s.z + 0.5) - (this.def.river.width / 2 + 1.2);
+      const wl = this.def.waterLevel;
+      const freeze = (m) => { m.matrixAutoUpdate = false; m.updateMatrix(); m.updateMatrixWorld(true); };
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(0.45, 0.055, 6, 14),
-        new THREE.MeshLambertMaterial({ color: 0xbfd8cf, transparent: true, opacity: 0.75 }));
+        new THREE.TorusGeometry(0.55, 0.085, 6, 14),
+        new THREE.MeshLambertMaterial({ color: 0xbfd8cf, transparent: true, opacity: 0.8 }));
       ring.rotation.x = -Math.PI / 2;
-      ring.position.set(x, this.def.waterLevel + 0.04, s.z + 0.5);
+      ring.position.set(x, wl + 0.05, s.z + 0.5);
       this.group.add(ring);
+      freeze(ring);
+      // rising bubbles make the spot readable from the bank
+      const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xd8e8e0, transparent: true, opacity: 0.55, depthWrite: false });
+      const bubbles = [];
+      for (const [bx, by, bz, br] of [[-0.12, 0.28, 0.1, 0.05], [0.15, 0.5, -0.08, 0.04], [0.02, 0.72, 0.04, 0.03]]) {
+        const b = new THREE.Mesh(new THREE.IcosahedronGeometry(br, 0), bubbleMat);
+        b.position.set(x + bx, wl + by, s.z + 0.5 + bz);
+        this.group.add(b);
+        freeze(b);
+        bubbles.push(b);
+      }
+      // the REAL click target: a fat invisible column — the flat ring alone
+      // was a razor-thin raycast target viewed edge-on from the bank
+      const column = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.75, 0.75, 1.6, 8),
+        // DoubleSide: aiming from INSIDE the column (wading, or standing at
+        // the ring's edge) must hit backfaces or point-blank clicks miss
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+      column.position.set(x, wl + 0.7, s.z + 0.5);
+      this.group.add(column);
+      freeze(column);
       this.addInteractable({
-        kind: 'fishspot', name: def.label, meshes: [ring],
+        kind: 'fishspot', name: def.label, meshes: [column, ring, ...bubbles],
         examine: def.examine,
         actions: [{ label: def.verb, fn: (ctx) => ctx.actions.startFish({ type: s.type }) }],
       });
