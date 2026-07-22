@@ -42,7 +42,6 @@ Check items off as they ship; move things between sections freely.
 - [x] **Grave marker** — death drops already held 5 min; now the spot is marked ☠ on both maps until claimed or expired
 - [x] **Combat & boss music** — war-drum pulse under the region theme while something wants you dead; doubled and deepened for bosses
 - [x] **Construction / player housing** — the Hearthstead: a real cottage on the east road (146,91) with five build hotspots (hearth/workbench/strongbox/trophy/nexus), the 19th skill, and Renovate as the repeatable grind
-- [ ] *(server, later)* world-event broadcasts — realm-wide hour events (double slayer points etc.)
 
 ## Round 3 (2026-07-21, approved subset)
 
@@ -51,4 +50,4 @@ Check items off as they ship; move things between sections freely.
 - [x] **Thieving (20th skill)** — 4 pickpocket tiers across 24 marks, 3 market stalls (guards may storm over), 2 sewer wall safes; fail = stun + damage
 - [x] **Rebuild Brinkton** — Construction capstone quest (16th): 4 board-driven stages raise the well, Cottage Row, Ashguard barracks and the Beacon Hall; town repopulates and persists
 
-Declined this round (still available): world events (server), special attacks, Hearthstead II.
+Declined this round (still available): special attacks, Hearthstead II. World events: dropped by request (2026-07-22).
