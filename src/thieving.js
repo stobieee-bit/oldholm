@@ -114,6 +114,7 @@ export class Thieving {
     const p = this.player;
     p.hp = Math.max(0, p.hp - dmg);
     ctx.ui.hurtFlash(dmg);
+    p.viewKick?.(dmg);
     ctx.ui.setHp(p.hp, p.maxHp);
     if (p.hp <= 0) this.combat.playerDie();
   }

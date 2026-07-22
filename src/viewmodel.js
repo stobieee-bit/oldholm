@@ -97,6 +97,12 @@ export class Viewmodel {
     if (mode === 'ranged') this._renock = 0.4; // the arrow is away; reach for the next
   }
 
+  /** The action engine ticked: the tool strikes in time with its sound. */
+  toolSwing(kind) {
+    if (!TOOL_OF[kind]) return; // only kinds with a tool in hand animate
+    this._toolSwing = 1;
+  }
+
   _toolAction() {
     const a = this.actions?.current;
     return a && TOOL_OF[a.kind] ? TOOL_OF[a.kind] : null;
@@ -186,7 +192,13 @@ export class Viewmodel {
       else if (this._mode === 'ranged') { az = k * 0.12; rx = -k * 0.15; } // draw and loose
       else { rx = -k * 0.25; az = -k * 0.24; ay = k * 0.1; }               // magic push
     } else if (this._toolAction()) {
-      rx = -Math.abs(Math.sin(this._bobT * 1.6)) * 0.85; // steady labor at the face
+      // synced labor: each action tick fires toolSwing — strike fast, recover
+      // slow, and hold a slightly raised ready pose while waiting for it
+      this._toolSwing = Math.max(0, (this._toolSwing ?? 0) - dt / 0.5);
+      const k = 1 - this._toolSwing;
+      rx = this._toolSwing > 0
+        ? -(k < 0.3 ? k / 0.3 : 1 - ((k - 0.3) / 0.7) * 0.85) * 0.95
+        : -0.14;
     }
     this.right.position.set(RIGHT_AT[0] + bobX + this._sway + ax, RIGHT_AT[1] + bobY + ay, RIGHT_AT[2] + az);
     this.right.rotation.x = rx;

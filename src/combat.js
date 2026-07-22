@@ -338,6 +338,7 @@ export class Combat {
       p.hp = Math.max(0, p.hp - dmg);
       this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
       this.ui.hurtFlash(dmg);
+      p.viewKick(dmg);
       this.ui.chat.add(guarded
         ? 'Dragonfire washes over your shield and mostly gives up.'
         : 'DRAGONFIRE! You are engulfed. A shield would have helped.', 'system');
@@ -356,7 +357,7 @@ export class Combat {
     if (this.prayers) dmg = Math.round(dmg * this.prayers.protection(vsType)); // overhead protection
     p.hp = Math.max(0, p.hp - dmg);
     this.ui.fx.hitsplat(() => ({ screen: true }), dmg);
-    if (dmg > 0) this.ui.hurtFlash(dmg);
+    if (dmg > 0) { this.ui.hurtFlash(dmg); p.viewKick(dmg); }
     if (p.hp <= 0) { this.playerDie(tickNo); return; }
     if (p.autoRetaliate && !p.target) p.target = mob;
   }

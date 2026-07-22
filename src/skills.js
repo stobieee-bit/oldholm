@@ -127,6 +127,7 @@ export class Actions {
     if (a.validate && !a.validate()) { this.cancel(); return; }
     const swing = SWING_SFX[a.kind];
     if (swing) this.audio?.sfx(swing);
+    this.onSwing?.(a.kind); // the first-person tool strikes in time with the sound
     a.onTick(tickNo);
   }
 

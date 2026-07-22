@@ -306,6 +306,7 @@ const actions = new Actions(player, world, ui);
 scene.add(camera); // the camera joins the scene so the hands can ride it
 const viewmodel = new Viewmodel(camera, player, world, actions);
 combat.onPlayerSwing = (mode) => viewmodel.swing(mode);
+actions.onSwing = (kind) => viewmodel.toolSwing(kind); // axe falls with its sound
 const prayers = new Prayers(player, ui);
 const magic = new Magic(player, ui);
 const dialogue = new Dialogue(player, ui);

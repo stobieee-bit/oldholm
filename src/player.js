@@ -74,6 +74,8 @@ export class Player {
     this.maxHp = 10;
     this.target = null;        // a mob, or null
     this.attackCooldown = 0;   // ticks until the next swing
+    this.kickPitch = 0;        // camera jolt from taking a hit (decays fast)
+    this.kickRoll = 0;
     this.attackSpeed = 4;      // unarmed; wielding sets the weapon's speed
     this.styleIndex = 0;       // index into the wielded weapon's style set
     this.autoRetaliate = true;
@@ -208,7 +210,10 @@ export class Player {
     this._eyeY += (targetY - this._eyeY) * Math.min(1, dt * 12);
 
     this.camera.position.set(this.pos.x, this._eyeY, this.pos.z);
-    this.camera.rotation.set(this.pitch, this.yaw, 0);
+    // taking a hit jolts the view; the jolt springs back on its own
+    this.kickPitch = (this.kickPitch ?? 0) * Math.pow(0.002, dt);
+    this.kickRoll = (this.kickRoll ?? 0) * Math.pow(0.002, dt);
+    this.camera.rotation.set(this.pitch + this.kickPitch, this.yaw, this.kickRoll);
   }
 
   _collides(x, z) {
@@ -256,6 +261,13 @@ export class Player {
     }
     ui.refreshSkills();
     return gained;
+  }
+
+  /** A camera jolt scaled to the blow — pitch up, a random lean, quick recovery. */
+  viewKick(dmg = 1) {
+    const s = Math.min(0.085, 0.028 + dmg * 0.006);
+    this.kickPitch += s;
+    this.kickRoll += (Math.random() < 0.5 ? -1 : 1) * s * 0.7;
   }
 
   /** Grant the level-99 skill cape once. Idempotent (checks pack + cape slot),
