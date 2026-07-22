@@ -185,6 +185,7 @@ export class Combat {
         else if (mode === 'ranged') this.rangedAttack(t, tickNo);
         else this.playerAttack(t, tickNo);
         p.attackCooldown = this.attackCadence();
+        this.onPlayerSwing?.(mode); // the first-person hands follow through
       }
     }
 

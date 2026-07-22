@@ -37,6 +37,7 @@ import { House } from './house.js';
 import { Collection } from './collection.js';
 import { Thieving } from './thieving.js';
 import { Brinkton } from './brinkton.js';
+import { Viewmodel } from './viewmodel.js';
 import { applyBinds } from './keybinds.js';
 
 export const TICK_MS = 600;
@@ -302,6 +303,9 @@ interactions.attach(canvas);
 const npcs = new NPCManager(world);
 const combat = new Combat(player, world, npcs, ui);
 const actions = new Actions(player, world, ui);
+scene.add(camera); // the camera joins the scene so the hands can ride it
+const viewmodel = new Viewmodel(camera, player, world, actions);
+combat.onPlayerSwing = (mode) => viewmodel.swing(mode);
 const prayers = new Prayers(player, ui);
 const magic = new Magic(player, ui);
 const dialogue = new Dialogue(player, ui);
@@ -688,6 +692,7 @@ function frame(now) {
   }
 
   player.update(dt);
+  viewmodel.update(dt); // the hands follow the eyes
   npcs.updateVisuals(dt, player.pos);
   world.updateProjectiles(dt);
   world.updateEffects(dt);
@@ -726,7 +731,7 @@ requestAnimationFrame(frame);
 window.__OLDHOLM = {
   world, player, clock, camera, renderer, scene, ui, interactions, npcs, combat, actions,
   prayers, magic, dialogue, shops, bank, quests, market, tutorial, slayer, diaries, clues, touch, online, worldMap,
-  farming, siege, weather, delve, pets, house, collection, thieving, brinkton,
+  farming, siege, weather, delve, pets, house, collection, thieving, brinkton, viewmodel,
   /** Advance the simulation without RAF (hidden-tab tooling). */
   step(dt = 0.016, frames = 1) {
     for (let i = 0; i < frames; i++) {
@@ -737,6 +742,7 @@ window.__OLDHOLM = {
         for (const fn of clock.listeners) fn(clock.tick);
       }
       player.update(dt);
+      viewmodel.update(dt);
       npcs.updateVisuals(dt, player.pos);
       world.updateProjectiles(dt);
       world.updateEffects(dt);

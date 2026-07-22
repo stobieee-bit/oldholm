@@ -149,7 +149,8 @@
 
   /* context menu */
   #ctx-menu {
-    position: fixed; min-width: 190px; z-index: 20;
+    /* above every panel (21-24): bank/shop item menus must never hide under them */
+    position: fixed; min-width: 190px; z-index: 25;
     background: rgba(28, 26, 20, 0.96); border: 2px solid #6a6248; border-radius: 4px;
     pointer-events: auto; user-select: none;
   }
