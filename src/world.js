@@ -748,6 +748,17 @@ export class World {
     return mesh;
   }
 
+  /** Decorative trim: like _addBox but skipped by the occluder raycasts —
+   *  plinths and door frames should never eat a click meant for a wall. */
+  _addDecor(w, h, dpt, x, y, z, mat) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), mat);
+    mesh.position.set(x, y, z);
+    mesh.matrixAutoUpdate = false;
+    mesh.updateMatrix();
+    this.group.add(mesh);
+    return mesh;
+  }
+
   /** A wall/standing torch: a dark bracket + an always-bright flame, and a
    *  registered light emitter that main.js turns into a real point light (and
    *  flickers) for whichever fires are nearest the player. */
@@ -1937,6 +1948,39 @@ export class World {
       else wm.position.set(df + 0.5 + outN * 0.42, wyw, midZ + s2 * (d * 0.26));
       this.group.add(wm);
     }
+
+    // ---- dressing: plinth, corner timbers, door frame, chimney, finial ----
+    // Shared trim materials; pure decor (no blocking, no occluder entries).
+    this._timberMat ??= new THREE.MeshLambertMaterial({ color: 0x453324, flatShading: true });
+    this._plinthMat ??= new THREE.MeshLambertMaterial({ color: 0x74746c, flatShading: true });
+    // a stone plinth course ringing the base
+    this._addDecor(w + 0.24, 0.34, d + 0.24, midX, y + 0.02, midZ, this._plinthMat);
+    // corner posts up to the eave
+    const postH = H + 0.35;
+    for (const [px, pz] of [[x0 + 0.16, z0 + 0.16], [x1 - 0.16, z0 + 0.16],
+      [x0 + 0.16, z1 - 0.16], [x1 - 0.16, z1 - 0.16]])
+      this._addDecor(0.26, postH, 0.26, px, y - 0.3 + postH / 2, pz, this._timberMat);
+    // door frame: two jambs and a lintel around the gap
+    if (dh) {
+      this._addDecor(0.16, 2.5, 0.96, doorTile - 0.08, y + 1.05, df + 0.5, this._timberMat);
+      this._addDecor(0.16, 2.5, 0.96, doorTile + 1.08, y + 1.05, df + 0.5, this._timberMat);
+      this._addDecor(1.5, 0.18, 0.96, doorTile + 0.5, y + 2.39, df + 0.5, this._timberMat);
+    } else {
+      this._addDecor(0.96, 2.5, 0.16, df + 0.5, y + 1.05, doorTile - 0.08, this._timberMat);
+      this._addDecor(0.96, 2.5, 0.16, df + 0.5, y + 1.05, doorTile + 1.08, this._timberMat);
+      this._addDecor(0.96, 0.18, 1.5, df + 0.5, y + 2.39, doorTile + 0.5, this._timberMat);
+    }
+    // a chimney on a back corner, clearing the LOCAL roof slope by a stub —
+    // sized against the hip pyramid's height right where the stack stands
+    const chX = side === 'e' ? x0 + 0.85 : x1 - 0.85;
+    const chZ = side === 'n' ? z1 - 0.85 : z0 + 0.85;
+    const frac = Math.max(Math.abs(chX - midX) / (w / 2 + 0.45), Math.abs(chZ - midZ) / (d / 2 + 0.45));
+    const localRoof = 0.14 + roofH * Math.max(0, 1 - frac);
+    const stackH = 0.5 + localRoof + 0.75;
+    this._addDecor(0.5, stackH, 0.5, chX, y + H - 0.5 + stackH / 2, chZ, this._plinthMat);
+    this._addDecor(0.68, 0.16, 0.68, chX, y + H - 0.5 + stackH + 0.06, chZ, this._timberMat);
+    // a little finial where the hip roof peaks
+    this._addDecor(0.16, 0.4, 0.16, midX, y + H + 0.14 + roofH + 0.08, midZ, this._timberMat);
     // interior fittings
     for (const c of b.contains ?? []) {
       if (c === 'bankChest') this._placeBankChest(midX, midZ - d / 4, 0);
