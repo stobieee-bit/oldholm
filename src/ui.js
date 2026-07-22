@@ -852,13 +852,17 @@ export class TabPanel {
     this.player.inventory.slots.forEach((slot, i) => {
       const cell = document.createElement('div');
       cell.className = 'inv-slot';
+      cell.dataset.slot = i; // empty cells are drop targets too
       if (slot) {
         const def = ITEMS[slot.id];
         cell.innerHTML = itemIconSVG(def) +
           (def.stackable ? `<span class="inv-count">${fmtCount(slot.count)}</span>` : '');
-        cell.addEventListener('mousedown', (e) => {
+        cell.addEventListener('pointerdown', (e) => {
           this.ui.hideItemTip();
-          if (e.button === 0 || e.button === 2) this.ui.openItemMenu(i, e);
+          if (e.button === 2) { this.ui.openItemMenu(i, e); return; }
+          if (e.button !== 0) return;
+          // maybe a click (menu on release), maybe a drag (rearrange)
+          this.ui.beginItemDrag(i, def, e, cell);
         });
         cell.addEventListener('mouseenter', (e) => this.ui.showItemTip(def, e.clientX, e.clientY));
         cell.addEventListener('mousemove', (e) => this.ui.moveItemTip(e.clientX, e.clientY));
@@ -906,6 +910,45 @@ export class UI {
     document.getElementById('bank-deposit-all')?.addEventListener('click', () => this.bank?.depositAll());
     document.getElementById('bank-deposit-loot')?.addEventListener('click', () => this.bank?.depositAllButTools());
     document.getElementById('bank-search').addEventListener('input', () => this.refreshBank());
+  }
+
+  /** Press-drag on a pack slot: past a small threshold a ghost icon follows
+   *  the pointer and releasing over another slot swaps them; a still release
+   *  is just a click and opens the item menu. Works for mouse and touch. */
+  beginItemDrag(fromIndex, def, e, srcCell) {
+    const start = { x: e.clientX, y: e.clientY };
+    let ghost = null;
+    const move = (ev) => {
+      if (!ghost) {
+        if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 7) return;
+        ghost = document.createElement('div');
+        ghost.className = 'drag-ghost';
+        ghost.innerHTML = itemIconSVG(def);
+        document.body.appendChild(ghost);
+        srcCell.classList.add('drag-src'); // may vanish on re-render; harmless
+        this.hideItemTip();
+      }
+      ghost.style.left = (ev.clientX - 19) + 'px';
+      ghost.style.top = (ev.clientY - 19) + 'px';
+    };
+    const up = (ev) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      document.querySelectorAll('.drag-src').forEach((c) => c.classList.remove('drag-src'));
+      if (!ghost) { this.openItemMenu(fromIndex, ev); return; } // a plain click
+      ghost.remove();
+      const cell = document.elementFromPoint(ev.clientX, ev.clientY)?.closest?.('.inv-slot');
+      if (!cell || cell.dataset.slot === undefined) return; // dropped nowhere
+      const to = Number(cell.dataset.slot);
+      if (to === fromIndex) return;
+      const slots = this.player.inventory.slots;
+      [slots[fromIndex], slots[to]] = [slots[to], slots[fromIndex]];
+      this.refreshInventory();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
   }
 
   /** Item tooltip: the item's combat stats with deltas against what's worn

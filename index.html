@@ -650,6 +650,15 @@
   .tip-up { color: #8fc97a; }
   .tip-down { color: #d97a6a; }
   .tip-dim { color: #a8a184; font-size: 11.5px; }
+
+  /* pack rearranging: the lifted item follows the pointer */
+  .inv-slot { touch-action: none; }
+  .inv-slot.drag-src { opacity: 0.35; }
+  .drag-ghost {
+    position: fixed; z-index: 60; width: 38px; height: 38px;
+    pointer-events: none; opacity: 0.9; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+  }
+  .drag-ghost svg { width: 100%; height: 100%; }
   .sys-slider { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-size: 12.5px; color: #a8a184; }
   .sys-slider input { flex: 1; accent-color: #c9a232; }
   .sys-note { margin-top: 10px; font-size: 11px; color: #a8a184; line-height: 1.5; text-align: center; }
