@@ -50,6 +50,24 @@ export function bakeMobGeometry(defId, def) {
   // authored face-forward at +z (the figure() humanoids and their kin) declare
   // front: 'z' and get turned around here, once, at bake time.
   if (def.model.front === 'z') merged.rotateY(Math.PI);
+  // fake ambient occlusion: darken toward the feet (and brighten a whisper at
+  // the crown) so creatures sit IN the world instead of floating on it
+  {
+    const pos = merged.getAttribute('position');
+    const col = merged.getAttribute('color');
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i);
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    const span = Math.max(0.001, maxY - minY);
+    for (let i = 0; i < pos.count; i++) {
+      const t = Math.min(1, Math.max(0, (pos.getY(i) - minY) / span));
+      const f = 0.74 + 0.28 * Math.pow(t, 0.7);
+      col.setXYZ(i, col.getX(i) * f, col.getY(i) * f, col.getZ(i) * f);
+    }
+  }
   merged.computeVertexNormals();
   for (const p of parts) p.dispose();
   geoCache.set(defId, merged);

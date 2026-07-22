@@ -738,8 +738,32 @@ export class World {
 
   // ---- castle ---------------------------------------------------------------
 
+  /** A vertex-coloured clone of a material, cached on the original. Boxes
+   *  carry an AO gradient in vertex colours; cloning keeps materials used by
+   *  non-box meshes (roofs, flames, windows) untouched. */
+  _vcMat(mat) {
+    if (!mat._vc) {
+      mat._vc = mat.clone();
+      mat._vc.vertexColors = true;
+    }
+    return mat._vc;
+  }
+
+  /** Bake a bottom-dark AO gradient into a box geometry's vertex colours. */
+  _aoBox(geo, h) {
+    const pos = geo.getAttribute('position');
+    const colors = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      const f = 0.8 + 0.2 * Math.min(1, Math.max(0, pos.getY(i) / h + 0.5));
+      colors[i * 3] = colors[i * 3 + 1] = colors[i * 3 + 2] = f;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  }
+
   _addBox(w, h, dpt, x, y, z, mat) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), mat);
+    const geo = new THREE.BoxGeometry(w, h, dpt);
+    this._aoBox(geo, h);
+    const mesh = new THREE.Mesh(geo, this._vcMat(mat));
     mesh.position.set(x, y, z);
     mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
@@ -751,7 +775,9 @@ export class World {
   /** Decorative trim: like _addBox but skipped by the occluder raycasts —
    *  plinths and door frames should never eat a click meant for a wall. */
   _addDecor(w, h, dpt, x, y, z, mat) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), mat);
+    const geo = new THREE.BoxGeometry(w, h, dpt);
+    this._aoBox(geo, h);
+    const mesh = new THREE.Mesh(geo, this._vcMat(mat));
     mesh.position.set(x, y, z);
     mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
